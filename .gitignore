@@ -3,6 +3,7 @@
 *.md
 !README.md
 !docs/manual.md
+!docs/*.md
 !ASSETS_LICENSE.md
 node_modules/
 
