@@ -158,7 +158,7 @@ export async function installFakeGoogle(page: Page, drive: FakeDrive, opts: { cl
   await page.addInitScript((clientId) => {
     const w = window as any;
     w.__PHOMYMO_CONFIG__ = { googleClientId: clientId, syncDebounceMs: 200 };
-    const gis = { requests: [] as any[], denySilent: false, revoked: [] as string[] };
+    const gis = { requests: [] as any[], settled: 0, denySilent: false, revoked: [] as string[] };
     w.__fakeGis = gis;
     w.google = {
       accounts: {
@@ -171,10 +171,12 @@ export async function installFakeGoogle(page: Page, drive: FakeDrive, opts: { cl
                 gis.requests.push({ ...params });
                 setTimeout(async () => {
                   if (params.prompt === '' && gis.denySilent) {
+                    gis.settled++;
                     client.error_callback?.({ type: 'popup_failed_to_open', message: 'Failed to open popup window' });
                     return;
                   }
                   const token = await w.__fakeIssueToken();
+                  gis.settled++;
                   client.callback({ access_token: token, expires_in: 3599, scope: cfg.scope, token_type: 'Bearer' });
                 }, 10);
               },
@@ -202,4 +204,13 @@ export async function loginViaUI(page: Page) {
 /** 同期が落ち着くまで待つ(未送信が無く、同期済み) */
 export async function waitForSynced(page: Page, timeout = 10_000) {
   await page.waitForFunction(() => document.querySelector('#account-btn')?.getAttribute('data-state') === 'synced', null, { timeout });
+}
+
+/** GIS への要求が全部終わるまで待つ */
+export async function waitForGisSettled(page: Page) {
+  await page.waitForFunction(() => {
+    const g = (window as any).__fakeGis;
+    return g.settled === g.requests.length;
+  });
+  await page.waitForTimeout(100);
 }

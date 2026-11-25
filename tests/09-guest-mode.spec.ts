@@ -104,6 +104,7 @@ test.describe('ゲストモード', () => {
     });
     await page.reload({ waitUntil: 'networkidle' });
     await waitForAppReady(page);
+    await dismissInfoDialog(page);
     expect(dialogs).toContain('beforeunload');
 
     // 要素は無くなっている

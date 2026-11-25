@@ -1,6 +1,6 @@
 import { test, expect, Page, Browser } from '@playwright/test';
 import { waitForAppReady, dismissInfoDialog } from './helpers/app';
-import { FakeDrive, installFakeGoogle, loginViaUI, waitForSynced, TEST_USER } from './helpers/fake-google';
+import { FakeDrive, installFakeGoogle, loginViaUI, waitForSynced, waitForGisSettled, TEST_USER } from './helpers/fake-google';
 
 // 3.3 端末間の同期(#40)。Google と Drive は偽物(tests/helpers/fake-google.ts)
 
@@ -208,6 +208,9 @@ test.describe('Drive 同期', () => {
     await page.click('#account-btn');
     await expect(page.locator('#account-reconnect')).toBeVisible();
     await expect(page.locator('#account-sync-status')).toContainText('未送信 1 件');
+    // チップのクリックのついでの無言の取り直し(失敗する)が終わってから、ポップアップを許す
+    await waitForGisSettled(page);
+    await expect(page.locator('#account-reconnect')).toBeVisible();
     await page.evaluate(() => { (window as any).__fakeGis.denySilent = false; });
     await page.click('#account-reconnect');
     await waitForSynced(page);
