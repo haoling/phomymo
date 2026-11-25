@@ -7,6 +7,7 @@ import { drawHandles, drawGroupHandles } from './handles.js?v=5';
 import { logError, ErrorLevel } from './utils/errors.js';
 import { drawFrame } from './frames.js';
 import { getImageSourceRect, normalizeCrop } from './elements.js';
+import { drawLine, measureLine, drawArcText, letterSpacingPx, normalizeArc } from './text-layout.js';
 
 // Pixels per mm (203 DPI ≈ 8 px/mm)
 const PX_PER_MM = 8;
@@ -194,6 +195,7 @@ export class CanvasRenderer {
       barcodeData: e.barcodeData, qrData: e.qrData,
       brightness: e.brightness, contrast: e.contrast, dither: e.dither,
       crop: e.crop, flipX: e.flipX, flipY: e.flipY,
+      letterSpacing: e.letterSpacing, arc: e.arc,
     }))) + `_${ditherMode}_${this.labelWidth}_${this.labelHeight}`;
 
     // Check cache
@@ -930,11 +932,21 @@ export class CanvasRenderer {
     const textColor = color || 'black';
     this.ctx.fillStyle = textColor;
 
+    // #24 曲線文字: 円弧に沿って描く(折り返し・自動縮小は使わない)
+    const arc = normalizeArc(element.arc);
+    if (arc) {
+      this.renderArcTextElement(element, arc, textColor);
+      if (clipOverflow) this.ctx.restore();
+      return;
+    }
+
     // Calculate effective font size (auto-scale if enabled)
     let effectiveFontSize = fontSize;
     if (autoScale) {
-      effectiveFontSize = this.calculateAutoScaleFontSize(text, width, height, fontFamily, fontWeight, fontStyle, noWrap);
+      effectiveFontSize = this.calculateAutoScaleFontSize(text, width, height, fontFamily, fontWeight, fontStyle, noWrap, element.letterSpacing);
     }
+    // #24 字間(px)
+    const spacing = letterSpacingPx(element, effectiveFontSize);
 
     // Build font string with weight and style
     const weight = fontWeight === 'bold' ? 'bold' : '';
@@ -962,7 +974,7 @@ export class CanvasRenderer {
       lines = text.split('\n');
     } else {
       // Word wrap mode
-      lines = this.wrapText(text, width - 8, effectiveFontSize, fontFamily, fontWeight, fontStyle);
+      lines = this.wrapText(text, width - 8, effectiveFontSize, fontFamily, fontWeight, fontStyle, spacing);
     }
 
     const lineHeight = effectiveFontSize * 1.2;
@@ -1003,16 +1015,15 @@ export class CanvasRenderer {
     }
 
     for (const line of lines) {
-      this.ctx.fillText(line, textX, textY);
+      drawLine(this.ctx, line, textX, textY, spacing);
 
       // Draw underline manually if enabled
       if (textDecoration === 'underline') {
-        const metrics = this.ctx.measureText(line);
         // Position underline below text - since textBaseline is 'middle',
         // the bottom of the text is at textY + effectiveFontSize/2, add small gap
         const underlineY = textY + effectiveFontSize * 0.45;
         let underlineX;
-        let underlineWidth = metrics.width;
+        let underlineWidth = measureLine(this.ctx, line, spacing);
 
         if (align === 'left') {
           underlineX = textX;
@@ -1040,9 +1051,29 @@ export class CanvasRenderer {
   }
 
   /**
+   * #24 曲線文字を描く(要素の中心を円の中心にする)
+   */
+  renderArcTextElement(element, arc, textColor) {
+    const { text, fontFamily, fontWeight, fontStyle, textDecoration } = element;
+    const fontSize = element.fontSize || 24;
+    const weight = fontWeight === 'bold' ? 'bold' : '';
+    const style = fontStyle === 'italic' ? 'italic' : '';
+    this.ctx.font = `${style} ${weight} ${fontSize}px ${fontFamily || 'Inter, sans-serif'}`.trim();
+    this.ctx.strokeStyle = textColor;
+    drawArcText(this.ctx, String(text).split('\n'), {
+      radius: arc.radius,
+      direction: arc.direction,
+      spacingPx: letterSpacingPx(element, fontSize),
+      lineHeight: fontSize * 1.2,
+      underline: textDecoration === 'underline',
+      fontSize,
+    });
+  }
+
+  /**
    * Calculate optimal font size to fit text within box
    */
-  calculateAutoScaleFontSize(text, width, height, fontFamily, fontWeight, fontStyle, noWrap) {
+  calculateAutoScaleFontSize(text, width, height, fontFamily, fontWeight, fontStyle, noWrap, letterSpacing = 0) {
     const padding = 8; // 4px on each side
     const availableWidth = width - padding;
     const availableHeight = height - padding;
@@ -1072,15 +1103,15 @@ export class CanvasRenderer {
 
         // Check width of longest line
         let maxLineWidth = 0;
+        const spacing = letterSpacingPx({ letterSpacing }, testSize);
         for (const line of lines) {
-          const metrics = this.ctx.measureText(line);
-          maxLineWidth = Math.max(maxLineWidth, metrics.width);
+          maxLineWidth = Math.max(maxLineWidth, measureLine(this.ctx, line, spacing));
         }
 
         fits = maxLineWidth <= availableWidth && totalHeight <= availableHeight;
       } else {
         // For wrapped text, check if text fits with wrapping
-        const lines = this.wrapText(text, availableWidth, testSize, fontFamily, fontWeight, fontStyle);
+        const lines = this.wrapText(text, availableWidth, testSize, fontFamily, fontWeight, fontStyle, letterSpacingPx({ letterSpacing }, testSize));
         const lineHeight = testSize * 1.2;
         const totalHeight = lines.length * lineHeight;
 
@@ -1637,7 +1668,7 @@ export class CanvasRenderer {
   /**
    * Word wrap text to fit width
    */
-  wrapText(text, maxWidth, fontSize, fontFamily = 'Inter, sans-serif', fontWeight = 'normal', fontStyle = 'normal') {
+  wrapText(text, maxWidth, fontSize, fontFamily = 'Inter, sans-serif', fontWeight = 'normal', fontStyle = 'normal', spacingPx = 0) {
     const weight = fontWeight === 'bold' ? 'bold' : '';
     const style = fontStyle === 'italic' ? 'italic' : '';
     this.ctx.font = `${style} ${weight} ${fontSize}px ${fontFamily}`.trim();
@@ -1660,9 +1691,9 @@ export class CanvasRenderer {
 
       for (const word of words) {
         const testLine = currentLine ? `${currentLine} ${word}` : word;
-        const metrics = this.ctx.measureText(testLine);
+        const lineWidth = measureLine(this.ctx, testLine, spacingPx);
 
-        if (metrics.width > maxWidth && currentLine) {
+        if (lineWidth > maxWidth && currentLine) {
           lines.push(currentLine);
           currentLine = word;
         } else {
