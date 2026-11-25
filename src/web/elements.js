@@ -41,6 +41,7 @@ export function createTextElement(text = 'Text', options = {}) {
     autoScale: options.autoScale ?? false,         // true = auto-fit text to box size
     letterSpacing: options.letterSpacing ?? 0,     // #24 字間(文字の大きさに対する割合。0.1 = 10%)
     arc: options.arc ?? null,                      // #24 曲線文字 { radius(px), direction: 'up'|'down' } / null
+    writingMode: options.writingMode ?? 'horizontal', // #22 'horizontal' | 'vertical'
   };
 }
 

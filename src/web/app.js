@@ -4,7 +4,7 @@
  * v116
  */
 
-import { CanvasRenderer } from './canvas.js?v=118';
+import { CanvasRenderer } from './canvas.js?v=119';
 import { BLETransport } from './ble.js?v=103';
 import { USBTransport } from './usb.js?v=101';
 import { print, printDensityTest, isDSeriesPrinter, isP12Printer, isA30Printer, isTapePrinter, isPM241Printer, isTSPLPrinter, isRotatedPrinter, getPrinterWidthBytes, getPrinterDpi, getPrinterAlignment, getPrinterDescription, isDeviceRecognized, getMatchedPattern, loadPrinterDefinitions, getAllPrinterDefinitions, getPrinterDefinition, getCustomPrinterDefinitions, saveCustomPrinterDefinition, deleteCustomPrinterDefinition, isBuiltinPrinter, resetBuiltinPrinter, getAvailableProtocols, getAvailableLabelPresets, getDetectedDefinition } from './printer.js?v=129';
@@ -38,7 +38,7 @@ import {
   removeElementsInHigherZones,
   normalizeCrop,
   getImageBaseSize,
-} from './elements.js?v=103';
+} from './elements.js?v=104';
 import {
   HandleType,
   getHandleAtPoint,
@@ -63,6 +63,7 @@ import { initAssetsPanel, ASSET_DEFAULTS } from './assets-panel.js';
 import { createFrameElement, frameGeometryForLabel, FRAME_STYLES } from './frames.js';
 import { openCropDialog } from './image-crop.js';
 import { initTextStylePanel, updateTextStylePanel, mobileTextStyleHtml, wireMobileTextStyle } from './text-style-panel.js';
+import { isVertical } from './text-layout.js';
 import {
   extractFields,
   hasTemplateFields,
@@ -2288,7 +2289,7 @@ function modifyElement(id, changes) {
   if (['x', 'y', 'width', 'height', 'rotation'].some(k => k in changes)) releaseMovedFrames();
 
   // Only clear cache if content or size changed (not just position/rotation)
-  const contentKeys = ['width', 'height', 'text', 'fontSize', 'fontFamily', 'fontWeight', 'fontStyle', 'textDecoration', 'background', 'noWrap', 'clipOverflow', 'autoScale', 'verticalAlign', 'imageData', 'barcodeData', 'barcodeFormat', 'qrData', 'brightness', 'contrast', 'dither', 'crop', 'flipX', 'flipY', 'letterSpacing', 'arc', 'showText', 'textFontSize', 'textBold'];
+  const contentKeys = ['width', 'height', 'text', 'fontSize', 'fontFamily', 'fontWeight', 'fontStyle', 'textDecoration', 'background', 'noWrap', 'clipOverflow', 'autoScale', 'verticalAlign', 'imageData', 'barcodeData', 'barcodeFormat', 'qrData', 'brightness', 'contrast', 'dither', 'crop', 'flipX', 'flipY', 'letterSpacing', 'arc', 'writingMode', 'tcy', 'latinMode', 'align', 'showText', 'textFontSize', 'textBold'];
   const needsCacheClear = Object.keys(changes).some(key => contentKeys.includes(key));
   if (needsCacheClear) {
     state.renderer.clearCache(id);
@@ -2351,6 +2352,7 @@ function startInlineEdit(elementId) {
     color: element.color === 'white' ? '#fff' : '#000',
     lineHeight: '1.2',
     letterSpacing: element.letterSpacing ? `${element.letterSpacing}em` : '',
+    writingMode: isVertical(element) ? 'vertical-rl' : '', // #22 縦書き
   });
 
   // Set content and show
