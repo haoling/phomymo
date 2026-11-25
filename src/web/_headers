@@ -5,6 +5,9 @@
 /*.html
   Cache-Control: no-cache, no-store, must-revalidate
 
-# Allow caching for versioned JS files
+# JS は ETag で毎回確かめさせる(?v= の上げ忘れで古いJSが動き続けないように)
 /*.js
-  Cache-Control: public, max-age=31536000, immutable
+  Cache-Control: no-cache
+
+/*.json
+  Cache-Control: no-cache

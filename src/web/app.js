@@ -7,7 +7,7 @@
 import { CanvasRenderer } from './canvas.js?v=115';
 import { BLETransport } from './ble.js?v=103';
 import { USBTransport } from './usb.js?v=101';
-import { print, printDensityTest, isDSeriesPrinter, isP12Printer, isA30Printer, isTapePrinter, isPM241Printer, isTSPLPrinter, isRotatedPrinter, getPrinterWidthBytes, getPrinterDpi, getPrinterAlignment, getPrinterDescription, isDeviceRecognized, getMatchedPattern, loadPrinterDefinitions, getAllPrinterDefinitions, getPrinterDefinition, getCustomPrinterDefinitions, saveCustomPrinterDefinition, deleteCustomPrinterDefinition, isBuiltinPrinter, resetBuiltinPrinter, getAvailableProtocols, getAvailableLabelPresets, getDetectedDefinition } from './printer.js?v=128';
+import { print, printDensityTest, isDSeriesPrinter, isP12Printer, isA30Printer, isTapePrinter, isPM241Printer, isTSPLPrinter, isRotatedPrinter, getPrinterWidthBytes, getPrinterDpi, getPrinterAlignment, getPrinterDescription, isDeviceRecognized, getMatchedPattern, loadPrinterDefinitions, getAllPrinterDefinitions, getPrinterDefinition, getCustomPrinterDefinitions, saveCustomPrinterDefinition, deleteCustomPrinterDefinition, isBuiltinPrinter, resetBuiltinPrinter, getAvailableProtocols, getAvailableLabelPresets, getDetectedDefinition } from './printer.js?v=129';
 import {
   createTextElement,
   createImageElement,
@@ -55,7 +55,8 @@ import {
   listDesigns,
   deleteDesign,
   updateDesignCounter,
-} from './storage.js?v=101';
+} from './storage.js?v=102';
+import { initAccountUI, showGuestNotice, showAccountDialog, isGuest } from './account-ui.js';
 import {
   extractFields,
   hasTemplateFields,
@@ -93,7 +94,7 @@ import {
   D_SERIES_ROUND_LABELS,
   TAPE_LABEL_SIZES,
   PM241_LABEL_SIZES,
-} from './constants.js?v=105';
+} from './constants.js?v=106';
 import {
   bindCheckbox,
   bindToggleButton,
@@ -118,7 +119,7 @@ import {
   ErrorLevel,
   ErrorCodes,
   getErrorMessage,
-} from './utils/errors.js?v=100';
+} from './utils/errors.js?v=101';
 import {
   validateFontSize,
   validateImageScale,
@@ -315,7 +316,7 @@ async function loadLocalFonts() {
     state.localFontsEnabled = true;
 
     // Persist preference
-    localStorage.setItem(STORAGE_KEYS.LOCAL_FONTS_ENABLED, 'true');
+    safeStorageSet(STORAGE_KEYS.LOCAL_FONTS_ENABLED, 'true');
 
     // Update all font dropdowns
     updateFontDropdowns();
@@ -379,7 +380,7 @@ async function initLocalFonts() {
   }
 
   // Check if user previously enabled local fonts
-  const wasEnabled = localStorage.getItem(STORAGE_KEYS.LOCAL_FONTS_ENABLED) === 'true';
+  const wasEnabled = safeStorageGet(STORAGE_KEYS.LOCAL_FONTS_ENABLED) === 'true';
 
   if (wasEnabled) {
     // Auto-load fonts (permission should be remembered)
@@ -1074,7 +1075,7 @@ function saveTapeWidthForDevice() {
   if (!deviceName) return;
 
   try {
-    const stored = localStorage.getItem(STORAGE_KEYS.DEVICE_MAPPING) || '{}';
+    const stored = safeStorageGet(STORAGE_KEYS.DEVICE_MAPPING) || '{}';
     const mapping = JSON.parse(stored);
 
     if (!mapping[deviceName]) {
@@ -1082,7 +1083,7 @@ function saveTapeWidthForDevice() {
     }
     mapping[deviceName].tapeWidth = state.tapeWidth;
 
-    localStorage.setItem(STORAGE_KEYS.DEVICE_MAPPING, JSON.stringify(mapping));
+    safeStorageSet(STORAGE_KEYS.DEVICE_MAPPING, JSON.stringify(mapping));
   } catch (e) {
     console.warn('Failed to save tape width preference:', e);
   }
@@ -1095,7 +1096,7 @@ function saveTapeWidthForDevice() {
  */
 function loadTapeWidthForDevice(deviceName) {
   try {
-    const stored = localStorage.getItem(STORAGE_KEYS.DEVICE_MAPPING) || '{}';
+    const stored = safeStorageGet(STORAGE_KEYS.DEVICE_MAPPING) || '{}';
     const mapping = JSON.parse(stored);
     return mapping[deviceName]?.tapeWidth || 12;
   } catch (e) {
@@ -4988,8 +4989,15 @@ function shouldShowInfoOnLoad() {
 /**
  * Show save dialog
  */
-function showSaveDialog() {
+function showSaveDialog(opts = {}) {
+  // ゲストモードでは保存しない(3.4)。ログインの案内を出す
+  if (isGuest()) {
+    showGuestNotice('save');
+    return;
+  }
+  $('#save-dialog-title').textContent = opts.title || 'Save Design';
   $('#save-dialog').classList.remove('hidden');
+  $('#save-dialog').hidden = false;
   $('#save-name').value = '';
   $('#save-name').focus();
 }
@@ -4999,6 +5007,7 @@ function showSaveDialog() {
  */
 function hideSaveDialog() {
   $('#save-dialog').classList.add('hidden');
+  $('#save-dialog').hidden = true;
 }
 
 /**
@@ -5056,10 +5065,21 @@ function handleSave() {
  * Show load dialog
  */
 function showLoadDialog() {
-  const designs = listDesigns();
+  const designs = isGuest() ? [] : listDesigns();
   const listEl = $('#design-list');
 
-  if (designs.length === 0) {
+  if (isGuest()) {
+    // ゲストモード(3.4): 保存したデザインは無い。ファイルからの読み込みは使える
+    listEl.innerHTML = `
+      <div id="load-guest-notice" class="text-sm text-gray-500 text-center py-6 px-2">
+        <p class="mb-3">ゲストモードでは、デザインは保存されません。<br>ログインすると、保存したデザインをここから開けます。</p>
+        <button id="load-guest-login" class="px-3 py-1.5 bg-gray-900 text-white rounded-lg text-sm">ログインについて</button>
+      </div>`;
+    $('#load-guest-login').addEventListener('click', () => {
+      hideLoadDialog();
+      showAccountDialog('ログインすると、保存したデザインを開けます。');
+    });
+  } else if (designs.length === 0) {
     listEl.innerHTML = '<div class="text-sm text-gray-400 text-center py-8">No saved designs</div>';
   } else {
     listEl.innerHTML = designs.map(d => {
@@ -5076,6 +5096,9 @@ function showLoadDialog() {
       }
       if (d.isMultiLabel) {
         badges.push(`<span class="px-1.5 py-0.5 text-xs bg-orange-100 text-orange-700 rounded">${d.multiLabel.labelsAcross}-up</span>`);
+      }
+      if (d.dirty) {
+        badges.push('<span class="px-1.5 py-0.5 text-xs bg-amber-100 text-amber-700 rounded" title="まだ Google Drive に送っていません">未送信</span>');
       }
 
       const badgeHtml = badges.length > 0 ? `<div class="flex gap-1 mt-1">${badges.join('')}</div>` : '';
@@ -5111,6 +5134,7 @@ function showLoadDialog() {
   }
 
   $('#load-dialog').classList.remove('hidden');
+  $('#load-dialog').hidden = false;
 }
 
 /**
@@ -5118,6 +5142,7 @@ function showLoadDialog() {
  */
 function hideLoadDialog() {
   $('#load-dialog').classList.add('hidden');
+  $('#load-dialog').hidden = true;
 }
 
 /**
@@ -8327,6 +8352,17 @@ function init() {
 
   // Initialize mobile UI
   initMobileUI();
+
+  // アカウント・同期(3.3)とゲストモード(3.4)
+  initAccountUI({
+    hasWork: () => state.elements.length > 0,
+    openSaveDialog: (opts) => showSaveDialog(opts),
+    refreshLoadDialog: () => {
+      if (!$('#load-dialog').classList.contains('hidden')) showLoadDialog();
+    },
+    setStatus,
+    showToast,
+  });
 
   // Initialize printer model prompt listeners
   initPrinterModelPrompt();
