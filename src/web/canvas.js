@@ -7,7 +7,7 @@ import { drawHandles, drawGroupHandles } from './handles.js?v=5';
 import { logError, ErrorLevel } from './utils/errors.js';
 import { drawFrame } from './frames.js';
 import { getImageSourceRect, normalizeCrop } from './elements.js';
-import { drawLine, measureLine, drawArcText, letterSpacingPx, normalizeArc } from './text-layout.js';
+import { drawLine, measureLine, drawArcText, letterSpacingPx, normalizeArc, isVertical, verticalOptions, layoutVertical, drawVerticalText, verticalBlockWidth } from './text-layout.js';
 
 // Pixels per mm (203 DPI ≈ 8 px/mm)
 const PX_PER_MM = 8;
@@ -196,6 +196,7 @@ export class CanvasRenderer {
       brightness: e.brightness, contrast: e.contrast, dither: e.dither,
       crop: e.crop, flipX: e.flipX, flipY: e.flipY,
       letterSpacing: e.letterSpacing, arc: e.arc,
+      writingMode: e.writingMode, tcy: e.tcy, latinMode: e.latinMode,
     }))) + `_${ditherMode}_${this.labelWidth}_${this.labelHeight}`;
 
     // Check cache
@@ -940,6 +941,13 @@ export class CanvasRenderer {
       return;
     }
 
+    // #22 縦書き
+    if (isVertical(element)) {
+      this.renderVerticalTextElement(element, width, height, textColor);
+      if (clipOverflow) this.ctx.restore();
+      return;
+    }
+
     // Calculate effective font size (auto-scale if enabled)
     let effectiveFontSize = fontSize;
     if (autoScale) {
@@ -1067,6 +1075,55 @@ export class CanvasRenderer {
       lineHeight: fontSize * 1.2,
       underline: textDecoration === 'underline',
       fontSize,
+    });
+  }
+
+  /**
+   * #22 縦書きを描く(右の列から左へ)
+   */
+  renderVerticalTextElement(element, width, height, textColor) {
+    const { text, fontFamily, fontWeight, fontStyle, textDecoration, noWrap, autoScale } = element;
+    const opts = verticalOptions(element);
+    const fontFor = (size) => {
+      const weight = fontWeight === 'bold' ? 'bold' : '';
+      const style = fontStyle === 'italic' ? 'italic' : '';
+      return `${style} ${weight} ${size}px ${fontFamily || 'Inter, sans-serif'}`.trim();
+    };
+    const padding = 4;
+    const layoutAt = (size) => {
+      this.ctx.font = fontFor(size);
+      return layoutVertical(this.ctx, text, {
+        fontSize: size,
+        spacingPx: letterSpacingPx(element, size),
+        maxHeight: noWrap ? null : height - padding * 2,
+        ...opts,
+      });
+    };
+
+    let fontSize = element.fontSize || 24;
+    if (autoScale) {
+      // 箱に収まる一番大きい文字サイズを探す
+      let lo = 6, hi = 200, best = 6;
+      while (lo <= hi) {
+        const size = Math.floor((lo + hi) / 2);
+        const cols = layoutAt(size);
+        const maxLen = Math.max(0, ...cols.map(c => c.length));
+        const fits = verticalBlockWidth(cols.length, size) <= width - padding * 2
+          && maxLen <= height - padding * 2;
+        if (fits) { best = size; lo = size + 1; } else { hi = size - 1; }
+      }
+      fontSize = best;
+    }
+
+    const columns = layoutAt(fontSize);
+    this.ctx.strokeStyle = textColor;
+    drawVerticalText(this.ctx, columns, {
+      width, height, fontSize,
+      spacingPx: letterSpacingPx(element, fontSize),
+      align: element.align || 'left',
+      verticalAlign: element.verticalAlign || 'middle',
+      underline: textDecoration === 'underline',
+      padding,
     });
   }
 

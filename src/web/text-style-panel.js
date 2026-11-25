@@ -1,5 +1,5 @@
 /**
- * テキストの「字間」と「曲線文字」(#24)のプロパティ UI
+ * テキストの「字間」「曲線文字」(#24)と「縦書き」(#22)のプロパティ UI
  *
  * パソコン用のパネル(index.html の #text-style-extra)と、スマホ用のシートの HTML をここで扱う。
  * app.js からは init / update / mobile 用の関数だけを呼ぶ。
@@ -22,6 +22,12 @@ import {
   arcBoxSize,
   arcRadiusForBox,
   defaultArcRadius,
+  normalizeWritingMode,
+  isVertical,
+  verticalOptions,
+  swapBoxForWritingMode,
+  layoutVertical,
+  verticalBlockWidth,
 } from './text-layout.js';
 
 const PX_PER_MM = 8;
@@ -47,6 +53,22 @@ function firstLineWidth(element) {
   ctx.font = `${style} ${weight} ${fontSize}px ${element.fontFamily || 'Inter, sans-serif'}`.trim();
   const line = String(element.text || '').split('\n')[0] || ' ';
   return measureLine(ctx, line, letterSpacingPx(element, fontSize));
+}
+
+/** 縦書きにしたときの列の並びの幅(px、余白込み)。height は箱の高さ */
+function verticalColumnsWidth(element, height) {
+  const ctx = getMeasureCtx();
+  const fontSize = element.fontSize || 24;
+  const weight = element.fontWeight === 'bold' ? 'bold' : '';
+  const style = element.fontStyle === 'italic' ? 'italic' : '';
+  ctx.font = `${style} ${weight} ${fontSize}px ${element.fontFamily || 'Inter, sans-serif'}`.trim();
+  const cols = layoutVertical(ctx, element.text || '', {
+    fontSize,
+    spacingPx: letterSpacingPx(element, fontSize),
+    maxHeight: element.noWrap ? null : height - 8,
+    ...verticalOptions(element),
+  });
+  return verticalBlockWidth(cols.length, fontSize) + 8;
 }
 
 function lineCount(element) {
@@ -87,6 +109,7 @@ export function setArcEnabled(ctx, element, enabled) {
     const ncy = cy + radius;
     ctx.modifyElement(element.id, {
       arc: { radius, direction },
+      writingMode: 'horizontal', // 曲線文字と縦書きは同時に使わない
       x: cx - size / 2,
       y: ncy - size / 2,
       width: size,
@@ -136,6 +159,60 @@ function applyArc(ctx, element, arc) {
     width: size,
     height: size,
   });
+}
+
+/**
+ * #22 横書き ↔ 縦書きの切り替え
+ * 中心を保ったまま箱の幅と高さを入れ替える。曲線文字だったら解除する
+ */
+export function setWritingMode(ctx, element, mode) {
+  const next = normalizeWritingMode(mode);
+  const arc = normalizeArc(element.arc);
+  const current = isVertical(element) ? 'vertical' : 'horizontal';
+  if (next === current && !(arc && next === 'vertical')) return;
+  ctx.saveHistory();
+  const changes = { writingMode: next };
+  if (arc && next === 'vertical') {
+    // 曲線文字の正方形の箱から、縦長の箱を作る
+    const fontSize = element.fontSize || 24;
+    const cx = element.x + element.width / 2;
+    const cy = element.y + element.height / 2;
+    const width = Math.ceil(fontSize * 1.2 * lineCount(element) + 8);
+    const height = Math.max(40, Math.ceil(lineCount(element) === 1 ? firstLineWidth(element) + 12 : element.height));
+    Object.assign(changes, { arc: null, x: cx - width / 2, y: cy - height / 2, width, height });
+  } else {
+    const box = swapBoxForWritingMode(element);
+    if (next === 'vertical' && !element.autoScale) {
+      // 入れ替えた箱で列があふれるときは、列が収まる幅まで広げる(中心は保つ)
+      const needed = Math.ceil(verticalColumnsWidth(element, box.height));
+      if (needed > box.width) {
+        box.x -= (needed - box.width) / 2;
+        box.width = needed;
+      }
+    }
+    Object.assign(changes, box);
+  }
+  if (next === 'vertical') {
+    // 初めて縦書きにしたときは、縦書きの設定を要素に書いておく
+    Object.assign(changes, verticalOptions(element));
+  }
+  ctx.modifyElement(element.id, changes);
+  ctx.setStatus?.(next === 'vertical' ? '縦書きにしました' : '横書きにしました');
+  ctx.refresh();
+}
+
+/** 縦中横のオン・オフ */
+export function setTcy(ctx, element, enabled) {
+  ctx.saveHistory();
+  ctx.modifyElement(element.id, { tcy: !!enabled });
+  ctx.refresh();
+}
+
+/** 縦書きの英数字の向き('rotate' | 'upright') */
+export function setLatinMode(ctx, element, mode) {
+  ctx.saveHistory();
+  ctx.modifyElement(element.id, { latinMode: mode === 'upright' ? 'upright' : 'rotate' });
+  ctx.refresh();
 }
 
 /**
@@ -202,6 +279,21 @@ export function initTextStylePanel(ctx) {
     ctx.refresh();
   });
 
+  document.querySelectorAll('[data-writing-mode]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const el = ctx.getSelected();
+      if (el && el.type === 'text') setWritingMode(ctx, el, btn.dataset.writingMode);
+    });
+  });
+  $('#prop-tcy')?.addEventListener('change', (e) => {
+    const el = ctx.getSelected();
+    if (el && el.type === 'text') setTcy(ctx, el, e.target.checked);
+  });
+  $('#prop-latin-mode')?.addEventListener('change', (e) => {
+    const el = ctx.getSelected();
+    if (el && el.type === 'text') setLatinMode(ctx, el, e.target.value);
+  });
+
   $('#prop-arc-enabled')?.addEventListener('change', (e) => {
     const el = ctx.getSelected();
     if (el && el.type === 'text') setArcEnabled(ctx, el, e.target.checked);
@@ -234,6 +326,18 @@ export function updateTextStylePanel(element) {
   spacing.value = percent;
   $('#prop-letter-spacing-input').value = percent;
 
+  const vertical = isVertical(element);
+  document.querySelectorAll('[data-writing-mode]').forEach(btn => {
+    btn.setAttribute('aria-pressed', String((btn.dataset.writingMode === 'vertical') === vertical));
+  });
+  const vOpts = $('#prop-vertical-options');
+  if (vOpts) {
+    vOpts.hidden = !vertical;
+    const opts = verticalOptions(element);
+    $('#prop-tcy').checked = opts.tcy;
+    $('#prop-latin-mode').value = opts.latinMode;
+  }
+
   const arc = normalizeArc(element.arc);
   $('#prop-arc-enabled').checked = !!arc;
   $('#prop-arc-options').hidden = !arc;
@@ -256,7 +360,26 @@ export function mobileTextStyleHtml(element) {
   const arc = normalizeArc(element.arc);
   const mm = arc ? pxToMm(arc.radius) : 10;
   const btn = 'class="img-tool-btn" style="padding:10px 4px;font-size:13px"';
+  const vertical = isVertical(element);
+  const vopts = verticalOptions(element);
   return `
+    <div class="prop-group">
+      <div class="prop-label">文字の向き</div>
+      <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px">
+        <button type="button" ${btn} data-mobile-writing-mode="horizontal" aria-pressed="${!vertical}">横書き</button>
+        <button type="button" ${btn} data-mobile-writing-mode="vertical" aria-pressed="${vertical}">縦書き</button>
+      </div>
+      ${vertical ? `
+        <label class="flex items-center gap-2" style="margin-top:8px">
+          <input type="checkbox" id="mobile-prop-tcy" class="w-5 h-5" ${vopts.tcy ? 'checked' : ''}>
+          <span class="text-sm">縦中横(2桁までの数字を横に並べる)</span>
+        </label>
+        <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;margin-top:8px">
+          <button type="button" ${btn} data-mobile-latin-mode="rotate" aria-pressed="${vopts.latinMode === 'rotate'}">英数字を寝かせる</button>
+          <button type="button" ${btn} data-mobile-latin-mode="upright" aria-pressed="${vopts.latinMode === 'upright'}">英数字を立てる</button>
+        </div>
+      ` : ''}
+    </div>
     <div class="prop-group">
       <div class="prop-label">字間: <span id="mobile-prop-letterSpacing-value">${percent}</span>%</div>
       <input type="range" id="mobile-prop-letterSpacing" class="w-full" min="${SPACING_UI.min}" max="${SPACING_UI.max}" step="${SPACING_UI.step}" value="${percent}">
@@ -289,6 +412,16 @@ export function wireMobileTextStyle(element, ctx) {
     setLetterSpacing(ctx, element, Number(range.value));
   });
   range.addEventListener('change', () => { dragging = false; });
+
+  document.querySelectorAll('[data-mobile-writing-mode]').forEach(b => {
+    b.addEventListener('click', () => setWritingMode(ctx, ctx.getSelected() || element, b.dataset.mobileWritingMode));
+  });
+  document.getElementById('mobile-prop-tcy')?.addEventListener('change', (e) => {
+    setTcy(ctx, ctx.getSelected() || element, e.target.checked);
+  });
+  document.querySelectorAll('[data-mobile-latin-mode]').forEach(b => {
+    b.addEventListener('click', () => setLatinMode(ctx, ctx.getSelected() || element, b.dataset.mobileLatinMode));
+  });
 
   document.getElementById('mobile-prop-arc')?.addEventListener('change', (e) => {
     setArcEnabled(ctx, element, e.target.checked);
