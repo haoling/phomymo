@@ -60,6 +60,63 @@ export function createImageElement(imageData, options = {}) {
     naturalWidth: options.naturalWidth ?? 100,
     naturalHeight: options.naturalHeight ?? 100,
     lockAspectRatio: options.lockAspectRatio ?? true,
+    // #26 トリミング・反転
+    crop: normalizeCrop(options.crop), // null = 切り抜きなし。{x, y, w, h} は元画像に対する割合(0〜1)
+    flipX: options.flipX ?? false,     // 左右反転
+    flipY: options.flipY ?? false,     // 上下反転
+  };
+}
+
+/** これより小さい切り抜き(割合)は作らない。0 幅で画像が消えるのを防ぐ */
+export const MIN_CROP_FRACTION = 0.01;
+
+/**
+ * 切り抜き範囲を 0〜1 に収める。全体を選んでいるとき・不正な値のときは null
+ * 割合で持つのは、元画像の画素数と naturalWidth(拡大率 100% の基準)が
+ * 一致しない要素(素材など)でも、同じ値で切り抜けるようにするため
+ * @param {{x:number,y:number,w:number,h:number}|null|undefined} crop
+ * @returns {{x:number,y:number,w:number,h:number}|null}
+ */
+export function normalizeCrop(crop) {
+  if (!crop || typeof crop !== 'object') return null;
+  let { x, y, w, h } = crop;
+  if (![x, y, w, h].every(v => typeof v === 'number' && Number.isFinite(v))) return null;
+  x = Math.min(Math.max(x, 0), 1 - MIN_CROP_FRACTION);
+  y = Math.min(Math.max(y, 0), 1 - MIN_CROP_FRACTION);
+  w = Math.min(Math.max(w, MIN_CROP_FRACTION), 1 - x);
+  h = Math.min(Math.max(h, MIN_CROP_FRACTION), 1 - y);
+  const eps = 1e-4;
+  if (x < eps && y < eps && w > 1 - eps && h > 1 - eps) return null;
+  const r = v => Math.round(v * 1e6) / 1e6;
+  return { x: r(x), y: r(y), w: r(w), h: r(h) };
+}
+
+/**
+ * 画像要素の、拡大率 100% のときの大きさ(切り抜き後)
+ * @returns {{width:number,height:number}}
+ */
+export function getImageBaseSize(element) {
+  const crop = normalizeCrop(element.crop);
+  const nw = element.naturalWidth || element.width || 1;
+  const nh = element.naturalHeight || element.height || 1;
+  return crop ? { width: nw * crop.w, height: nh * crop.h } : { width: nw, height: nh };
+}
+
+/**
+ * drawImage の切り出し範囲(元画像の画素)
+ * @param {Object} element - 画像要素
+ * @param {number} imgW - 読み込んだ画像の実際の幅(img.naturalWidth)
+ * @param {number} imgH - 同じく高さ
+ * @returns {{sx:number,sy:number,sw:number,sh:number}}
+ */
+export function getImageSourceRect(element, imgW, imgH) {
+  const crop = normalizeCrop(element.crop);
+  if (!crop) return { sx: 0, sy: 0, sw: imgW, sh: imgH };
+  return {
+    sx: crop.x * imgW,
+    sy: crop.y * imgH,
+    sw: Math.max(1, crop.w * imgW),
+    sh: Math.max(1, crop.h * imgH),
   };
 }
 

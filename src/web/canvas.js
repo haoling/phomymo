@@ -6,6 +6,7 @@
 import { drawHandles, drawGroupHandles } from './handles.js?v=5';
 import { logError, ErrorLevel } from './utils/errors.js';
 import { drawFrame } from './frames.js';
+import { getImageSourceRect, normalizeCrop } from './elements.js';
 
 // Pixels per mm (203 DPI ≈ 8 px/mm)
 const PX_PER_MM = 8;
@@ -192,6 +193,7 @@ export class CanvasRenderer {
       imageData: e.imageData?.substring(0, 50), // Just enough to detect changes
       barcodeData: e.barcodeData, qrData: e.qrData,
       brightness: e.brightness, contrast: e.contrast, dither: e.dither,
+      crop: e.crop, flipX: e.flipX, flipY: e.flipY,
     }))) + `_${ditherMode}_${this.labelWidth}_${this.labelHeight}`;
 
     // Check cache
@@ -259,7 +261,9 @@ export class CanvasRenderer {
     const ditherMode = element.dither || 'floyd-steinberg';
     const brightness = element.brightness || 0;
     const contrast = element.contrast || 0;
-    const cacheKey = `${element.id}_${width}_${height}_${ditherMode}_${brightness}_${contrast}`;
+    const crop = normalizeCrop(element.crop);
+    const cropKey = crop ? `${crop.x},${crop.y},${crop.w},${crop.h}` : 'full';
+    const cacheKey = `${element.id}_${width}_${height}_${ditherMode}_${brightness}_${contrast}_${cropKey}`;
 
     // Check cache
     let cached = this.ditherPreviewCache.get(cacheKey);
@@ -280,8 +284,9 @@ export class CanvasRenderer {
       tempCtx.filter = `brightness(${brightnessValue}) contrast(${contrastValue})`;
     }
 
-    // Draw image
-    tempCtx.drawImage(img, 0, 0, width, height);
+    // Draw image (#26: 切り抜き範囲だけを描く。反転は呼び出し側で行う)
+    const { sx, sy, sw, sh } = getImageSourceRect(element, img.naturalWidth, img.naturalHeight);
+    tempCtx.drawImage(img, sx, sy, sw, sh, 0, 0, width, height);
     tempCtx.filter = 'none';
 
     // Get pixel data
@@ -1129,41 +1134,59 @@ export class CanvasRenderer {
     }
 
     if (img.complete && img.naturalWidth > 0) {
-      // When dither preview is enabled, show how this image will look when printed
-      if (this.ditherPreview) {
-        // Generate dithered preview at print resolution (element dimensions are printer pixels)
-        const printWidth = Math.round(element.width);
-        const printHeight = Math.round(element.height);
-        const ditherCanvas = this._generateDitherPreview(img, printWidth, printHeight, element);
-
-        // Draw with smoothing for better display quality, then restore state
+      // #26 反転: 原点が要素の中心なので、scale(-1, 1) でその場で裏返る
+      const flipped = element.flipX || element.flipY;
+      if (flipped) {
         this.ctx.save();
-        this.ctx.imageSmoothingEnabled = true;
-        this.ctx.imageSmoothingQuality = 'medium';
-        this.ctx.drawImage(ditherCanvas, -width / 2, -height / 2, width, height);
-        this.ctx.restore();
-        return;
+        this.ctx.scale(element.flipX ? -1 : 1, element.flipY ? -1 : 1);
       }
-
-      // Normal rendering: Apply brightness and contrast filters if set
-      const brightness = element.brightness || 0;
-      const contrast = element.contrast || 0;
-      const hasFilters = brightness !== 0 || contrast !== 0;
-
-      if (hasFilters) {
-        // Convert from -100..100 to filter values
-        // Brightness: 0 = 100% (no change), -100 = 0%, +100 = 200%
-        const brightnessValue = 1 + (brightness / 100);
-        // Contrast: 0 = 100% (no change), -100 = 0%, +100 = 200%
-        const contrastValue = 1 + (contrast / 100);
-        this.ctx.filter = `brightness(${brightnessValue}) contrast(${contrastValue})`;
+      try {
+        this._drawImageContent(element, img, width, height);
+      } finally {
+        if (flipped) this.ctx.restore();
       }
+    }
+  }
 
-      this.ctx.drawImage(img, -width / 2, -height / 2, width, height);
+  /**
+   * renderImageElement の中身(切り抜きを反映して描く)
+   */
+  _drawImageContent(element, img, width, height) {
+    // When dither preview is enabled, show how this image will look when printed
+    if (this.ditherPreview) {
+      // Generate dithered preview at print resolution (element dimensions are printer pixels)
+      const printWidth = Math.round(element.width);
+      const printHeight = Math.round(element.height);
+      const ditherCanvas = this._generateDitherPreview(img, printWidth, printHeight, element);
 
-      if (hasFilters) {
-        this.ctx.filter = 'none';
-      }
+      // Draw with smoothing for better display quality, then restore state
+      this.ctx.save();
+      this.ctx.imageSmoothingEnabled = true;
+      this.ctx.imageSmoothingQuality = 'medium';
+      this.ctx.drawImage(ditherCanvas, -width / 2, -height / 2, width, height);
+      this.ctx.restore();
+      return;
+    }
+
+    // Normal rendering: Apply brightness and contrast filters if set
+    const brightness = element.brightness || 0;
+    const contrast = element.contrast || 0;
+    const hasFilters = brightness !== 0 || contrast !== 0;
+
+    if (hasFilters) {
+      // Convert from -100..100 to filter values
+      // Brightness: 0 = 100% (no change), -100 = 0%, +100 = 200%
+      const brightnessValue = 1 + (brightness / 100);
+      // Contrast: 0 = 100% (no change), -100 = 0%, +100 = 200%
+      const contrastValue = 1 + (contrast / 100);
+      this.ctx.filter = `brightness(${brightnessValue}) contrast(${contrastValue})`;
+    }
+
+    const { sx, sy, sw, sh } = getImageSourceRect(element, img.naturalWidth, img.naturalHeight);
+    this.ctx.drawImage(img, sx, sy, sw, sh, -width / 2, -height / 2, width, height);
+
+    if (hasFilters) {
+      this.ctx.filter = 'none';
     }
   }
 
