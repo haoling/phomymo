@@ -367,6 +367,50 @@
       #assets-dialog .assets-panel { height: 85vh; border-radius: 16px 16px 0 0; }
       #assets-dialog .assets-grid { grid-template-columns: repeat(auto-fill, minmax(72px, 1fr)); }
     }
+    /* 画像のトリミング(#26)。素材パネルと同じく素の CSS で書く */
+    #crop-dialog { position: fixed; inset: 0; background: rgba(17,24,39,.6); display: flex; align-items: center; justify-content: center; z-index: 66; padding: 16px; }
+    #crop-dialog[hidden] { display: none; }
+    #crop-dialog .crop-panel { background: #fff; border-radius: 12px; max-width: 100%; max-height: 100%; display: flex; flex-direction: column; box-shadow: 0 20px 25px -5px rgba(0,0,0,.25); color: #374151; font-size: 14px; overflow: auto; }
+    #crop-dialog .crop-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 12px 16px 6px; }
+    #crop-dialog h3 { font-size: 16px; font-weight: 600; color: #111827; margin: 0; }
+    #crop-dialog .crop-size { font-size: 12px; color: #6b7280; font-variant-numeric: tabular-nums; }
+    #crop-dialog .crop-ratios { display: flex; gap: 6px; padding: 4px 16px 10px; overflow-x: auto; scrollbar-width: thin; }
+    #crop-dialog .crop-ratio { padding: 4px 12px; border-radius: 9999px; border: 1px solid #e5e7eb; background: #fff; white-space: nowrap; font-size: 13px; color: #4b5563; }
+    #crop-dialog .crop-ratio:hover { background: #f9fafb; }
+    #crop-dialog .crop-ratio[aria-checked="true"] { background: #111827; border-color: #111827; color: #fff; }
+    #crop-dialog .crop-stage-wrap { padding: 16px 20px; background: #f3f4f6; display: flex; justify-content: center; overflow: hidden; }
+    #crop-dialog .crop-stage { position: relative; touch-action: none; user-select: none; -webkit-user-select: none; background: repeating-conic-gradient(#e5e7eb 0% 25%, #fff 0% 50%) 50% / 16px 16px; }
+    #crop-dialog .crop-stage img { display: block; max-width: none; pointer-events: none; }
+    #crop-dialog .crop-box { position: absolute; box-shadow: 0 0 0 9999px rgba(17,24,39,.55); outline: 2px solid #fff; cursor: move; touch-action: none; }
+    #crop-dialog .crop-box:focus-visible { outline-color: #60a5fa; }
+    #crop-dialog .crop-grid { position: absolute; inset: 0; pointer-events: none; background-image: linear-gradient(to right, rgba(255,255,255,.5) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,.5) 1px, transparent 1px); background-size: 33.333% 33.333%; background-position: -1px -1px; }
+    #crop-dialog .crop-handle { position: absolute; width: 18px; height: 18px; margin: -9px 0 0 -9px; border-radius: 9999px; background: #fff; border: 2px solid #2563eb; box-shadow: 0 1px 3px rgba(0,0,0,.35); touch-action: none; }
+    #crop-dialog .crop-handle::before { content: ''; position: absolute; inset: -10px; }
+    #crop-dialog .crop-handle-nw { left: 0; top: 0; cursor: nwse-resize; }
+    #crop-dialog .crop-handle-n { left: 50%; top: 0; cursor: ns-resize; }
+    #crop-dialog .crop-handle-ne { left: 100%; top: 0; cursor: nesw-resize; }
+    #crop-dialog .crop-handle-e { left: 100%; top: 50%; cursor: ew-resize; }
+    #crop-dialog .crop-handle-se { left: 100%; top: 100%; cursor: nwse-resize; }
+    #crop-dialog .crop-handle-s { left: 50%; top: 100%; cursor: ns-resize; }
+    #crop-dialog .crop-handle-sw { left: 0; top: 100%; cursor: nesw-resize; }
+    #crop-dialog .crop-handle-w { left: 0; top: 50%; cursor: ew-resize; }
+    #crop-dialog .crop-hint { margin: 0; padding: 8px 16px 0; font-size: 12px; color: #6b7280; }
+    #crop-dialog .crop-foot { display: flex; align-items: center; gap: 8px; padding: 10px 16px 14px; }
+    #crop-dialog .crop-spacer { flex: 1; }
+    #crop-dialog .crop-btn { padding: 7px 14px; border-radius: 8px; border: 1px solid #d1d5db; background: #fff; font-size: 13px; color: #374151; }
+    #crop-dialog .crop-btn:hover { background: #f9fafb; }
+    #crop-dialog .crop-primary { background: #111827; border-color: #111827; color: #fff; }
+    #crop-dialog .crop-primary:hover { background: #1f2937; }
+    @media (max-width: 640px) {
+      #crop-dialog { padding: 0; align-items: flex-end; }
+      #crop-dialog .crop-panel { width: 100%; border-radius: 16px 16px 0 0; }
+      #crop-dialog .crop-handle { width: 22px; height: 22px; margin: -11px 0 0 -11px; }
+    }
+    /* 画像の反転・トリミングボタン(#26) */
+    .img-tool-btn { display: inline-flex; align-items: center; justify-content: center; gap: 4px; padding: 5px 6px; font-size: 11px; border: 1px solid #e5e7eb; border-radius: 6px; background: #fff; color: #374151; }
+    .img-tool-btn:hover { background: #f9fafb; }
+    .img-tool-btn[aria-pressed="true"] { background: #eff6ff; border-color: #60a5fa; color: #1d4ed8; }
+    .img-tool-btn svg { width: 14px; height: 14px; flex-shrink: 0; }
   </style>
 </head>
 <body class="bg-gray-100 h-screen flex flex-col overflow-hidden">
@@ -1034,6 +1078,15 @@
 
         <!-- Image Properties -->
         <div id="props-image" class="hidden space-y-2">
+          <div>
+            <label class="text-[10px] text-gray-400 uppercase tracking-wide">トリミング・反転</label>
+            <div class="grid grid-cols-3 gap-1" style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px">
+              <button type="button" id="prop-image-crop" class="img-tool-btn" title="切り抜く範囲を選ぶ(画像をダブルクリックでも開きます)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 5v10a1 1 0 0 0 1 1h10"/><path d="M5 8h10a1 1 0 0 1 1 1v10"/></svg>トリミング</button>
+              <button type="button" id="prop-image-flip-x" class="img-tool-btn" aria-pressed="false" title="左右反転"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18"/><path d="M16 7v10h5z"/><path d="M8 7v10H3z"/></svg>左右</button>
+              <button type="button" id="prop-image-flip-y" class="img-tool-btn" aria-pressed="false" title="上下反転"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h18"/><path d="M7 16h10v5z"/><path d="M7 8h10V3z"/></svg>上下</button>
+            </div>
+            <button type="button" id="prop-image-crop-clear" class="text-[10px] text-blue-600 hover:underline mt-1" hidden>トリミングを解除</button>
+          </div>
           <div>
             <label class="text-[10px] text-gray-400 uppercase tracking-wide">Scale</label>
             <div class="flex items-center gap-1.5">

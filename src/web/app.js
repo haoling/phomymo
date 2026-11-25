@@ -4,7 +4,7 @@
  * v116
  */
 
-import { CanvasRenderer } from './canvas.js?v=116';
+import { CanvasRenderer } from './canvas.js?v=117';
 import { BLETransport } from './ble.js?v=103';
 import { USBTransport } from './usb.js?v=101';
 import { print, printDensityTest, isDSeriesPrinter, isP12Printer, isA30Printer, isTapePrinter, isPM241Printer, isTSPLPrinter, isRotatedPrinter, getPrinterWidthBytes, getPrinterDpi, getPrinterAlignment, getPrinterDescription, isDeviceRecognized, getMatchedPattern, loadPrinterDefinitions, getAllPrinterDefinitions, getPrinterDefinition, getCustomPrinterDefinitions, saveCustomPrinterDefinition, deleteCustomPrinterDefinition, isBuiltinPrinter, resetBuiltinPrinter, getAvailableProtocols, getAvailableLabelPresets, getDetectedDefinition } from './printer.js?v=129';
@@ -36,7 +36,9 @@ import {
   collapseToSingleZone,
   hasElementsInHigherZones,
   removeElementsInHigherZones,
-} from './elements.js?v=101';
+  normalizeCrop,
+  getImageBaseSize,
+} from './elements.js?v=102';
 import {
   HandleType,
   getHandleAtPoint,
@@ -59,6 +61,7 @@ import {
 import { initAccountUI, showGuestNotice, showAccountDialog, isGuest } from './account-ui.js';
 import { initAssetsPanel, ASSET_DEFAULTS } from './assets-panel.js';
 import { createFrameElement, frameGeometryForLabel, FRAME_STYLES } from './frames.js';
+import { openCropDialog } from './image-crop.js';
 import {
   extractFields,
   hasTemplateFields,
@@ -2284,7 +2287,7 @@ function modifyElement(id, changes) {
   if (['x', 'y', 'width', 'height', 'rotation'].some(k => k in changes)) releaseMovedFrames();
 
   // Only clear cache if content or size changed (not just position/rotation)
-  const contentKeys = ['width', 'height', 'text', 'fontSize', 'fontFamily', 'fontWeight', 'fontStyle', 'textDecoration', 'background', 'noWrap', 'clipOverflow', 'autoScale', 'verticalAlign', 'imageData', 'barcodeData', 'barcodeFormat', 'qrData', 'brightness', 'contrast', 'dither', 'showText', 'textFontSize', 'textBold'];
+  const contentKeys = ['width', 'height', 'text', 'fontSize', 'fontFamily', 'fontWeight', 'fontStyle', 'textDecoration', 'background', 'noWrap', 'clipOverflow', 'autoScale', 'verticalAlign', 'imageData', 'barcodeData', 'barcodeFormat', 'qrData', 'brightness', 'contrast', 'dither', 'crop', 'flipX', 'flipY', 'showText', 'textFontSize', 'textBold'];
   const needsCacheClear = Object.keys(changes).some(key => contentKeys.includes(key));
   if (needsCacheClear) {
     state.renderer.clearCache(id);
@@ -2493,9 +2496,10 @@ function updatePropertiesPanel() {
 
     case 'image':
       $('#props-image').classList.remove('hidden');
-      // Calculate current scale based on natural size
-      const scaleW = (element.width / element.naturalWidth) * 100;
-      const scaleH = (element.height / element.naturalHeight) * 100;
+      // Calculate current scale based on natural size (#26: 切り抜き後の大きさが基準)
+      const imgBase = getImageBaseSize(element);
+      const scaleW = (element.width / imgBase.width) * 100;
+      const scaleH = (element.height / imgBase.height) * 100;
       const currentScale = Math.round(Math.max(scaleW, scaleH));
       $('#prop-image-scale').value = currentScale;
       $('#prop-image-scale-input').value = currentScale;
@@ -2505,6 +2509,10 @@ function updatePropertiesPanel() {
       $('#prop-image-brightness-input').value = element.brightness || 0;
       $('#prop-image-contrast').value = element.contrast || 0;
       $('#prop-image-contrast-input').value = element.contrast || 0;
+      $('#prop-image-flip-x').setAttribute('aria-pressed', String(!!element.flipX));
+      $('#prop-image-flip-y').setAttribute('aria-pressed', String(!!element.flipY));
+      $('#prop-image-crop').setAttribute('aria-pressed', String(!!normalizeCrop(element.crop)));
+      $('#prop-image-crop-clear').hidden = !normalizeCrop(element.crop);
       break;
 
     case 'barcode':
@@ -4692,6 +4700,67 @@ function addShapeElement(shapeType = 'rectangle') {
   setStatus(`${shapeType.charAt(0).toUpperCase() + shapeType.slice(1)} added`);
 }
 
+// ---------------------------------------------------------------------------
+// #26 画像のトリミング・反転
+// ---------------------------------------------------------------------------
+
+/** 選んでいる画像を反転する(key は 'flipX' か 'flipY') */
+function toggleImageFlip(id, key) {
+  const element = state.elements.find(e => e.id === id);
+  if (!element || element.type !== 'image') return;
+  saveHistory();
+  modifyElement(id, { [key]: !element[key] });
+  updatePropertiesPanel();
+  refreshMobilePropsIfOpen();
+  const on = !element[key];
+  setStatus(`${key === 'flipX' ? '左右' : '上下'}反転を${on ? 'オン' : 'オフ'}にしました`);
+}
+
+/**
+ * 切り抜き範囲を変える。拡大率は保ったまま、要素の大きさを切り抜いた形に合わせる
+ * (中心の位置は動かさない)
+ */
+function applyImageCrop(id, crop) {
+  const element = state.elements.find(e => e.id === id);
+  if (!element || element.type !== 'image') return;
+  const next = normalizeCrop(crop);
+  if (JSON.stringify(normalizeCrop(element.crop)) === JSON.stringify(next)) return;
+  const oldBase = getImageBaseSize(element);
+  const newBase = getImageBaseSize({ ...element, crop: next });
+  const width = Math.max(4, newBase.width * (element.width / oldBase.width));
+  const height = Math.max(4, newBase.height * (element.height / oldBase.height));
+  const cx = element.x + element.width / 2;
+  const cy = element.y + element.height / 2;
+  saveHistory();
+  modifyElement(id, { crop: next, width, height, x: cx - width / 2, y: cy - height / 2 });
+  updatePropertiesPanel();
+  refreshMobilePropsIfOpen();
+  setStatus(next ? 'トリミングしました' : 'トリミングを解除しました');
+}
+
+/** トリミング画面を開き、決定したら反映する */
+async function openImageCrop(id) {
+  const element = state.elements.find(e => e.id === id);
+  if (!element || element.type !== 'image' || !element.imageData) return;
+  const dims = state.renderer.getSingleLabelDimensions();
+  const result = await openCropDialog({
+    imageData: element.imageData,
+    crop: element.crop,
+    flipX: element.flipX,
+    flipY: element.flipY,
+    labelAspect: dims.width / dims.height,
+  });
+  if (result) applyImageCrop(id, result.crop);
+}
+
+/** スマホのプロパティシートが開いていれば作り直す */
+function refreshMobilePropsIfOpen() {
+  const panel = document.getElementById('mobile-props-panel');
+  if (panel && panel.classList.contains('props-open')) {
+    populateMobileProps();
+  }
+}
+
 /**
  * 素材パネル(#27)から選んだ素材を、画像要素として追加する
  */
@@ -6693,10 +6762,21 @@ function populateMobileProps() {
       </div>
     `;
   } else if (selected.type === 'image') {
-    const scaleW = selected.naturalWidth ? (selected.width / selected.naturalWidth) * 100 : 100;
-    const scaleH = selected.naturalHeight ? (selected.height / selected.naturalHeight) * 100 : 100;
+    const imgBase = getImageBaseSize(selected);
+    const scaleW = (selected.width / imgBase.width) * 100;
+    const scaleH = (selected.height / imgBase.height) * 100;
     const currentScale = Math.round(Math.max(scaleW, scaleH));
+    const hasCrop = !!normalizeCrop(selected.crop);
     html += `
+      <div class="prop-group">
+        <div class="prop-label">トリミング・反転</div>
+        <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px">
+          <button type="button" id="mobile-prop-crop" class="img-tool-btn" style="padding:10px 4px;font-size:13px" aria-pressed="${hasCrop}">トリミング</button>
+          <button type="button" id="mobile-prop-flipX" class="img-tool-btn" style="padding:10px 4px;font-size:13px" aria-pressed="${!!selected.flipX}">左右反転</button>
+          <button type="button" id="mobile-prop-flipY" class="img-tool-btn" style="padding:10px 4px;font-size:13px" aria-pressed="${!!selected.flipY}">上下反転</button>
+        </div>
+        ${hasCrop ? '<button type="button" id="mobile-prop-crop-clear" class="text-sm text-blue-600 mt-2">トリミングを解除</button>' : ''}
+      </div>
       <div class="prop-group">
         <div class="prop-label">Scale: ${currentScale}%</div>
         <input type="range" id="mobile-prop-scale" class="w-full" min="10" max="200" value="${currentScale}">
@@ -7022,16 +7102,23 @@ function wireUpMobilePropHandlers(element) {
   });
 
   // Image properties - use live update for sliders
+  // #26 トリミング・反転
+  $('#mobile-prop-crop')?.addEventListener('click', () => openImageCrop(element.id));
+  $('#mobile-prop-crop-clear')?.addEventListener('click', () => applyImageCrop(element.id, null));
+  $('#mobile-prop-flipX')?.addEventListener('click', () => toggleImageFlip(element.id, 'flipX'));
+  $('#mobile-prop-flipY')?.addEventListener('click', () => toggleImageFlip(element.id, 'flipY'));
+
   const scaleInput = $('#mobile-prop-scale');
   if (scaleInput && element.naturalWidth && element.naturalHeight) {
     scaleInput.addEventListener('input', (e) => {
       const scale = parseInt(e.target.value) / 100;
       const lockRatio = element.lockAspectRatio !== false;
+      const base = getImageBaseSize(element);
       if (lockRatio) {
-        element.width = element.naturalWidth * scale;
-        element.height = element.naturalHeight * scale;
+        element.width = base.width * scale;
+        element.height = base.height * scale;
       } else {
-        element.width = element.naturalWidth * scale;
+        element.width = base.width * scale;
       }
       state.renderer.clearCache(element.id);
       autoCloneIfEnabled();
@@ -8052,7 +8139,8 @@ function init() {
       }
       try {
         const { dataUrl } = await state.renderer.loadImageFile(file);
-        modifyElement(id, { imageData: dataUrl });
+        // #26: 別の画像に差し替えたら、前の画像用の切り抜き範囲は外す
+        modifyElement(id, { imageData: dataUrl, crop: null });
         setStatus('Image replaced');
       } catch (err) {
         logError(err, 'replaceImage');
@@ -8062,13 +8150,32 @@ function init() {
     }
   });
 
+  // #26 トリミング・反転
+  $('#prop-image-crop').addEventListener('click', () => {
+    const element = getSelected();
+    if (element && element.type === 'image') openImageCrop(element.id);
+  });
+  $('#prop-image-crop-clear').addEventListener('click', () => {
+    const element = getSelected();
+    if (element && element.type === 'image') applyImageCrop(element.id, null);
+  });
+  $('#prop-image-flip-x').addEventListener('click', () => {
+    const element = getSelected();
+    if (element && element.type === 'image') toggleImageFlip(element.id, 'flipX');
+  });
+  $('#prop-image-flip-y').addEventListener('click', () => {
+    const element = getSelected();
+    if (element && element.type === 'image') toggleImageFlip(element.id, 'flipY');
+  });
+
   // Image scale slider
   const applyImageScale = (scalePercent) => {
     const element = getSelected();
     if (element && element.type === 'image') {
       const scale = scalePercent / 100;
-      const newWidth = element.naturalWidth * scale;
-      const newHeight = element.naturalHeight * scale;
+      const base = getImageBaseSize(element);
+      const newWidth = base.width * scale;
+      const newHeight = base.height * scale;
       // Keep centered on current center point
       const cx = element.x + element.width / 2;
       const cy = element.y + element.height / 2;
@@ -8137,11 +8244,12 @@ function init() {
       saveHistory();
       const cx = element.x + element.width / 2;
       const cy = element.y + element.height / 2;
+      const base = getImageBaseSize(element);
       modifyElement(element.id, {
-        width: element.naturalWidth,
-        height: element.naturalHeight,
-        x: cx - element.naturalWidth / 2,
-        y: cy - element.naturalHeight / 2,
+        width: base.width,
+        height: base.height,
+        x: cx - base.width / 2,
+        y: cy - base.height / 2,
       });
       setStatus('Image reset to native size');
     }
@@ -8343,6 +8451,11 @@ function init() {
       e.preventDefault();
       e.stopPropagation();
       startInlineEdit(clickedElement.id);
+    } else if (clickedElement?.type === 'image') {
+      // #26: 画像をダブルクリックでトリミング
+      e.preventDefault();
+      e.stopPropagation();
+      openImageCrop(clickedElement.id);
     }
   });
 
