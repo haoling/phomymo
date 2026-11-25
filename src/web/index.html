@@ -337,6 +337,36 @@
     #account-sync-status[data-state="pending"] { background: #fffbeb; color: #92400e; }
     #account-sync-status[data-state="needs-auth"], #account-sync-status[data-state="error"] { background: #fef2f2; color: #b91c1c; }
     #account-sync-status[data-state="syncing"] { background: #eff6ff; color: #1d4ed8; }
+    /* 素材パネル(#27, #28)。Tailwind に頼らず単独で効くように素の CSS で書く */
+    #assets-dialog { position: fixed; inset: 0; background: rgba(17,24,39,.5); display: flex; align-items: center; justify-content: center; z-index: 65; padding: 16px; }
+    #assets-dialog[hidden] { display: none; }
+    #assets-dialog .assets-panel { background: #fff; border-radius: 12px; width: min(760px, 100%); height: min(640px, 100%); display: flex; flex-direction: column; box-shadow: 0 20px 25px -5px rgba(0,0,0,.2); color: #374151; font-size: 14px; overflow: hidden; }
+    #assets-dialog .assets-head { display: flex; align-items: center; gap: 10px; padding: 12px 14px 8px; }
+    #assets-dialog h3 { font-size: 16px; font-weight: 600; color: #111827; margin: 0; flex-shrink: 0; }
+    #assets-search { flex: 1; min-width: 0; padding: 7px 10px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px; }
+    #assets-search:focus { outline: 2px solid #93c5fd; border-color: #60a5fa; }
+    #assets-dialog .assets-icon-btn { width: 32px; height: 32px; border-radius: 8px; color: #6b7280; flex-shrink: 0; }
+    #assets-dialog .assets-icon-btn:hover { background: #f3f4f6; }
+    #assets-dialog .assets-cats { display: flex; gap: 6px; padding: 0 14px 10px; overflow-x: auto; flex-shrink: 0; scrollbar-width: thin; }
+    #assets-dialog .assets-cat { padding: 4px 12px; border-radius: 9999px; border: 1px solid #e5e7eb; background: #fff; white-space: nowrap; font-size: 13px; color: #4b5563; }
+    #assets-dialog .assets-cat:hover { background: #f9fafb; }
+    #assets-dialog .assets-cat[aria-selected="true"] { background: #111827; border-color: #111827; color: #fff; }
+    #assets-dialog .assets-grid { flex: 1; overflow-y: auto; padding: 4px 14px 14px; display: grid; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); gap: 8px; align-content: start; border-top: 1px solid #f3f4f6; padding-top: 12px; }
+    #assets-dialog .assets-item { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 8px 4px 6px; border-radius: 10px; border: 1px solid transparent; background: #fff; cursor: pointer; }
+    #assets-dialog .assets-item:hover { background: #f3f4f6; border-color: #e5e7eb; }
+    #assets-dialog .assets-item:disabled { opacity: .5; cursor: progress; }
+    #assets-dialog .assets-item img { width: 44px; height: 44px; object-fit: contain; }
+    #assets-dialog .assets-item-frame img { width: 72px; height: 52px; }
+    #assets-dialog .assets-item span { font-size: 11px; line-height: 1.3; color: #4b5563; text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
+    #assets-dialog .assets-empty { grid-column: 1 / -1; text-align: center; color: #9ca3af; padding: 40px 0; }
+    #assets-dialog .assets-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 14px; border-top: 1px solid #e5e7eb; background: #f9fafb; font-size: 12px; color: #6b7280; flex-wrap: wrap; }
+    #assets-dialog .assets-linewidth select { margin-left: 6px; padding: 3px 6px; border: 1px solid #d1d5db; border-radius: 6px; background: #fff; font-size: 12px; }
+    #assets-dialog .assets-credit { font-size: 11px; color: #9ca3af; }
+    @media (max-width: 640px) {
+      #assets-dialog { padding: 0; align-items: flex-end; }
+      #assets-dialog .assets-panel { height: 85vh; border-radius: 16px 16px 0 0; }
+      #assets-dialog .assets-grid { grid-template-columns: repeat(auto-fill, minmax(72px, 1fr)); }
+    }
   </style>
 </head>
 <body class="bg-gray-100 h-screen flex flex-col overflow-hidden">
@@ -533,6 +563,16 @@
           </button>
         </div>
       </div>
+
+      <!-- 素材(#27)・枠(#28) -->
+      <button id="add-asset" class="toolbar-btn" data-open-assets="" title="素材(アイコン・絵文字・ステッカー)">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3l2.6 5.6 6.1.7-4.5 4.2 1.2 6L12 16.6 6.6 19.5l1.2-6L3.3 9.3l6.1-.7z"/></svg>
+        <span class="hidden sm:inline">素材</span>
+      </button>
+      <button id="add-frame" class="toolbar-btn" data-open-assets="frames" title="枠・ボーダー">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2" stroke-width="2"/><rect x="6.5" y="7.5" width="11" height="9" rx="1" stroke-width="1.5" stroke-dasharray="2 2"/></svg>
+        <span class="hidden sm:inline">枠</span>
+      </button>
 
       <div class="toolbar-divider"></div>
 
@@ -1163,6 +1203,45 @@
           </div>
         </div>
 
+
+        <!-- 枠のプロパティ(#28) -->
+        <div id="props-frame" class="hidden space-y-2">
+          <div>
+            <label for="prop-frame-style" class="text-[10px] text-gray-400 tracking-wide">枠の種類</label>
+            <select id="prop-frame-style" class="prop-input"></select>
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label for="prop-frame-shape" class="text-[10px] text-gray-400 tracking-wide">形</label>
+              <select id="prop-frame-shape" class="prop-input">
+                <option value="rect">四角</option>
+                <option value="ellipse">丸</option>
+              </select>
+            </div>
+            <div>
+              <label for="prop-frame-color" class="text-[10px] text-gray-400 tracking-wide">色</label>
+              <select id="prop-frame-color" class="prop-input">
+                <option value="black">黒</option>
+                <option value="white">白</option>
+              </select>
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label for="prop-frame-stroke" class="text-[10px] text-gray-400 tracking-wide">線の太さ(px)</label>
+              <input type="number" id="prop-frame-stroke" class="w-full px-1.5 py-1 text-xs border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-blue-400 text-center" min="1" max="20" value="3">
+            </div>
+            <div>
+              <label for="prop-frame-margin" class="text-[10px] text-gray-400 tracking-wide">余白(px)</label>
+              <input type="number" id="prop-frame-margin" class="w-full px-1.5 py-1 text-xs border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-blue-400 text-center" min="0" max="80" value="8">
+            </div>
+          </div>
+          <label class="flex items-center gap-2 text-xs text-gray-600">
+            <input type="checkbox" id="prop-frame-fit" class="rounded border-gray-300">
+            ラベルの大きさに合わせる
+          </label>
+          <p class="text-[10px] text-gray-400 leading-snug">オンのときは、ラベルのサイズを変えると枠も自動で伸び縮みします。8px ≒ 1mm です。</p>
+        </div>
       </div>
     </aside>
   </main>
@@ -2208,6 +2287,18 @@
         </svg>
         <span>Line</span>
       </button>
+      <button id="mobile-add-asset" class="mobile-tool-btn" data-open-assets="">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3l2.6 5.6 6.1.7-4.5 4.2 1.2 6L12 16.6 6.6 19.5l1.2-6L3.3 9.3l6.1-.7z"/>
+        </svg>
+        <span>素材</span>
+      </button>
+      <button id="mobile-add-frame" class="mobile-tool-btn" data-open-assets="frames">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <rect x="3" y="4" width="18" height="16" rx="2" stroke-width="2"/><rect x="6.5" y="7.5" width="11" height="9" rx="1" stroke-width="1.5" stroke-dasharray="2 2"/>
+        </svg>
+        <span>枠</span>
+      </button>
       <div class="mobile-divider"></div>
       <button id="mobile-add-barcode" class="mobile-tool-btn">
         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -2248,7 +2339,7 @@
     pdfjsModule.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.379/pdf.worker.min.mjs';
     window.pdfjsLib = pdfjsModule;
   </script>
-  <script type="module" src="app.js?v=153"></script>
+  <script type="module" src="app.js?v=154"></script>
   <script>
     // Show body once styles are ready
     requestAnimationFrame(() => {

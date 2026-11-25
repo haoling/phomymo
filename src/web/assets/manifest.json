@@ -1,0 +1,4464 @@
+{
+ "version": 1,
+ "categories": [
+  {
+   "id": "marks",
+   "name": "記号・マーク"
+  },
+  {
+   "id": "living",
+   "name": "暮らし・収納"
+  },
+  {
+   "id": "food",
+   "name": "キッチン・食べ物"
+  },
+  {
+   "id": "office",
+   "name": "文具・しごと"
+  },
+  {
+   "id": "caution",
+   "name": "注意・取り扱い"
+  },
+  {
+   "id": "nature",
+   "name": "天気・自然"
+  },
+  {
+   "id": "animals",
+   "name": "動物"
+  },
+  {
+   "id": "hobby",
+   "name": "趣味・推し活"
+  },
+  {
+   "id": "arrows",
+   "name": "矢印"
+  },
+  {
+   "id": "emoji",
+   "name": "絵文字"
+  },
+  {
+   "id": "stickers",
+   "name": "ステッカー"
+  }
+ ],
+ "sources": {
+  "tabler": {
+   "name": "Tabler Icons",
+   "license": "MIT",
+   "url": "https://tabler.io/icons"
+  },
+  "twemoji": {
+   "name": "Twemoji",
+   "license": "CC-BY 4.0",
+   "url": "https://github.com/jdecked/twemoji"
+  },
+  "original": {
+   "name": "自作のステッカー",
+   "license": "MIT",
+   "url": ""
+  }
+ },
+ "items": [
+  {
+   "id": "tabler:check",
+   "cats": [
+    "marks"
+   ],
+   "file": "tabler/check.svg",
+   "name": "チェック",
+   "tags": [
+    "済",
+    "OK",
+    "完了",
+    "確認",
+    "check"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:circle-check",
+   "cats": [
+    "marks"
+   ],
+   "file": "tabler/circle-check.svg",
+   "name": "丸チェック",
+   "tags": [
+    "済",
+    "OK",
+    "完了",
+    "circle check"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:x",
+   "cats": [
+    "marks"
+   ],
+   "file": "tabler/x.svg",
+   "name": "バツ",
+   "tags": [
+    "NG",
+    "ダメ",
+    "削除",
+    "x"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:circle-x",
+   "cats": [
+    "marks"
+   ],
+   "file": "tabler/circle-x.svg",
+   "name": "丸バツ",
+   "tags": [
+    "NG",
+    "ダメ",
+    "circle x"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:star:filled",
+   "cats": [
+    "marks"
+   ],
+   "file": "tabler/star-filled.svg",
+   "name": "星(塗り)",
+   "tags": [
+    "ほし",
+    "スター",
+    "お気に入り",
+    "star"
+   ],
+   "kind": "fill",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:star",
+   "cats": [
+    "marks"
+   ],
+   "file": "tabler/star.svg",
+   "name": "星",
+   "tags": [
+    "ほし",
+    "スター",
+    "お気に入り",
+    "star"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:heart:filled",
+   "cats": [
+    "marks"
+   ],
+   "file": "tabler/heart-filled.svg",
+   "name": "ハート(塗り)",
+   "tags": [
+    "はーと",
+    "好き",
+    "推し",
+    "heart"
+   ],
+   "kind": "fill",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:heart",
+   "cats": [
+    "marks"
+   ],
+   "file": "tabler/heart.svg",
+   "name": "ハート",
+   "tags": [
+    "はーと",
+    "好き",
+    "推し",
+    "heart"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:circle:filled",
+   "cats": [
+    "marks"
+   ],
+   "file": "tabler/circle-filled.svg",
+   "name": "丸(塗り)",
+   "tags": [
+    "まる",
+    "ドット",
+    "circle"
+   ],
+   "kind": "fill",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:circle",
+   "cats": [
+    "marks"
+   ],
+   "file": "tabler/circle.svg",
+   "name": "丸",
+   "tags": [
+    "まる",
+    "circle"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:square-rounded:filled",
+   "cats": [
+    "marks"
+   ],
+   "file": "tabler/square-rounded-filled.svg",
+   "name": "四角(塗り)",
+   "tags": [
+    "しかく",
+    "square rounded"
+   ],
+   "kind": "fill",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:triangle",
+   "cats": [
+    "marks"
+   ],
+   "file": "tabler/triangle.svg",
+   "name": "三角",
+   "tags": [
+    "さんかく",
+    "triangle"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:diamond",
+   "cats": [
+    "marks"
+   ],
+   "file": "tabler/diamond.svg",
+   "name": "ダイヤ",
+   "tags": [
+    "ひし形",
+    "宝石",
+    "diamond"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:crown",
+   "cats": [
+    "marks"
+   ],
+   "file": "tabler/crown.svg",
+   "name": "王冠",
+   "tags": [
+    "おうかん",
+    "1位",
+    "キング",
+    "crown"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:award",
+   "cats": [
+    "marks"
+   ],
+   "file": "tabler/award.svg",
+   "name": "メダル",
+   "tags": [
+    "賞",
+    "1位",
+    "award"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:rosette",
+   "cats": [
+    "marks"
+   ],
+   "file": "tabler/rosette.svg",
+   "name": "ロゼット",
+   "tags": [
+    "賞",
+    "リボン",
+    "rosette"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:flag",
+   "cats": [
+    "marks"
+   ],
+   "file": "tabler/flag.svg",
+   "name": "旗",
+   "tags": [
+    "はた",
+    "フラグ",
+    "flag"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:map-pin",
+   "cats": [
+    "marks"
+   ],
+   "file": "tabler/map-pin.svg",
+   "name": "ピン",
+   "tags": [
+    "場所",
+    "地図",
+    "map pin"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:bell",
+   "cats": [
+    "marks"
+   ],
+   "file": "tabler/bell.svg",
+   "name": "ベル",
+   "tags": [
+    "通知",
+    "すず",
+    "bell"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:sparkles",
+   "cats": [
+    "marks"
+   ],
+   "file": "tabler/sparkles.svg",
+   "name": "キラキラ",
+   "tags": [
+    "きらきら",
+    "新しい",
+    "sparkles"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:question-mark",
+   "cats": [
+    "marks"
+   ],
+   "file": "tabler/question-mark.svg",
+   "name": "はてな",
+   "tags": [
+    "?",
+    "質問",
+    "question mark"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:exclamation-mark",
+   "cats": [
+    "marks"
+   ],
+   "file": "tabler/exclamation-mark.svg",
+   "name": "びっくり",
+   "tags": [
+    "!",
+    "注意",
+    "exclamation mark"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:info-circle",
+   "cats": [
+    "marks"
+   ],
+   "file": "tabler/info-circle.svg",
+   "name": "インフォ",
+   "tags": [
+    "情報",
+    "i",
+    "info circle"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:number-1",
+   "cats": [
+    "marks"
+   ],
+   "file": "tabler/number-1.svg",
+   "name": "1",
+   "tags": [
+    "数字",
+    "いち",
+    "number 1"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:number-2",
+   "cats": [
+    "marks"
+   ],
+   "file": "tabler/number-2.svg",
+   "name": "2",
+   "tags": [
+    "数字",
+    "に",
+    "number 2"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:number-3",
+   "cats": [
+    "marks"
+   ],
+   "file": "tabler/number-3.svg",
+   "name": "3",
+   "tags": [
+    "数字",
+    "さん",
+    "number 3"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:plus",
+   "cats": [
+    "marks"
+   ],
+   "file": "tabler/plus.svg",
+   "name": "プラス",
+   "tags": [
+    "足す",
+    "追加",
+    "plus"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:minus",
+   "cats": [
+    "marks"
+   ],
+   "file": "tabler/minus.svg",
+   "name": "マイナス",
+   "tags": [
+    "引く",
+    "minus"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:percentage",
+   "cats": [
+    "marks"
+   ],
+   "file": "tabler/percentage.svg",
+   "name": "パーセント",
+   "tags": [
+    "%",
+    "割引",
+    "セール",
+    "percentage"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:currency-yen",
+   "cats": [
+    "marks"
+   ],
+   "file": "tabler/currency-yen.svg",
+   "name": "円",
+   "tags": [
+    "¥",
+    "値段",
+    "価格",
+    "currency yen"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:qrcode",
+   "cats": [
+    "marks"
+   ],
+   "file": "tabler/qrcode.svg",
+   "name": "QR",
+   "tags": [
+    "キューアール",
+    "qrcode"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:wifi",
+   "cats": [
+    "marks"
+   ],
+   "file": "tabler/wifi.svg",
+   "name": "Wi-Fi",
+   "tags": [
+    "無線",
+    "ネット",
+    "wifi"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:home",
+   "cats": [
+    "living"
+   ],
+   "file": "tabler/home.svg",
+   "name": "家",
+   "tags": [
+    "いえ",
+    "ホーム",
+    "home"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:box",
+   "cats": [
+    "living"
+   ],
+   "file": "tabler/box.svg",
+   "name": "箱",
+   "tags": [
+    "はこ",
+    "収納",
+    "box"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:package",
+   "cats": [
+    "living"
+   ],
+   "file": "tabler/package.svg",
+   "name": "荷物",
+   "tags": [
+    "段ボール",
+    "小包",
+    "配送",
+    "package"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:archive",
+   "cats": [
+    "living"
+   ],
+   "file": "tabler/archive.svg",
+   "name": "アーカイブ",
+   "tags": [
+    "保管",
+    "収納",
+    "ケース",
+    "archive"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:basket",
+   "cats": [
+    "living"
+   ],
+   "file": "tabler/basket.svg",
+   "name": "かご",
+   "tags": [
+    "バスケット",
+    "収納",
+    "basket"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:shopping-bag",
+   "cats": [
+    "living"
+   ],
+   "file": "tabler/shopping-bag.svg",
+   "name": "買い物袋",
+   "tags": [
+    "ショッピング",
+    "shopping bag"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:shopping-cart",
+   "cats": [
+    "living"
+   ],
+   "file": "tabler/shopping-cart.svg",
+   "name": "カート",
+   "tags": [
+    "買い物",
+    "shopping cart"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:shirt",
+   "cats": [
+    "living"
+   ],
+   "file": "tabler/shirt.svg",
+   "name": "シャツ",
+   "tags": [
+    "服",
+    "衣類",
+    "shirt"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:hanger",
+   "cats": [
+    "living"
+   ],
+   "file": "tabler/hanger.svg",
+   "name": "ハンガー",
+   "tags": [
+    "服",
+    "クローゼット",
+    "hanger"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:shoe",
+   "cats": [
+    "living"
+   ],
+   "file": "tabler/shoe.svg",
+   "name": "くつ",
+   "tags": [
+    "靴",
+    "シューズ",
+    "shoe"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:key",
+   "cats": [
+    "living"
+   ],
+   "file": "tabler/key.svg",
+   "name": "鍵",
+   "tags": [
+    "かぎ",
+    "キー",
+    "key"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:lock",
+   "cats": [
+    "living"
+   ],
+   "file": "tabler/lock.svg",
+   "name": "錠",
+   "tags": [
+    "ロック",
+    "かぎ",
+    "lock"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:bulb",
+   "cats": [
+    "living"
+   ],
+   "file": "tabler/bulb.svg",
+   "name": "電球",
+   "tags": [
+    "ライト",
+    "アイデア",
+    "bulb"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:plug",
+   "cats": [
+    "living"
+   ],
+   "file": "tabler/plug.svg",
+   "name": "プラグ",
+   "tags": [
+    "コンセント",
+    "電源",
+    "plug"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:battery",
+   "cats": [
+    "living"
+   ],
+   "file": "tabler/battery.svg",
+   "name": "電池",
+   "tags": [
+    "バッテリー",
+    "battery"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:trash",
+   "cats": [
+    "living"
+   ],
+   "file": "tabler/trash.svg",
+   "name": "ゴミ箱",
+   "tags": [
+    "ごみ",
+    "捨てる",
+    "trash"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:recycle",
+   "cats": [
+    "living",
+    "caution"
+   ],
+   "file": "tabler/recycle.svg",
+   "name": "リサイクル",
+   "tags": [
+    "資源",
+    "分別",
+    "recycle"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:bath",
+   "cats": [
+    "living"
+   ],
+   "file": "tabler/bath.svg",
+   "name": "お風呂",
+   "tags": [
+    "ふろ",
+    "バス",
+    "bath"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:bed",
+   "cats": [
+    "living"
+   ],
+   "file": "tabler/bed.svg",
+   "name": "ベッド",
+   "tags": [
+    "寝室",
+    "ねる",
+    "bed"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:armchair",
+   "cats": [
+    "living"
+   ],
+   "file": "tabler/armchair.svg",
+   "name": "ソファ",
+   "tags": [
+    "いす",
+    "リビング",
+    "armchair"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:door",
+   "cats": [
+    "living"
+   ],
+   "file": "tabler/door.svg",
+   "name": "ドア",
+   "tags": [
+    "とびら",
+    "玄関",
+    "door"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:wash-machine",
+   "cats": [
+    "living"
+   ],
+   "file": "tabler/wash-machine.svg",
+   "name": "洗濯機",
+   "tags": [
+    "せんたく",
+    "ランドリー",
+    "wash machine"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:scissors",
+   "cats": [
+    "living"
+   ],
+   "file": "tabler/scissors.svg",
+   "name": "はさみ",
+   "tags": [
+    "ハサミ",
+    "工作",
+    "scissors"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:needle-thread",
+   "cats": [
+    "living"
+   ],
+   "file": "tabler/needle-thread.svg",
+   "name": "針と糸",
+   "tags": [
+    "裁縫",
+    "ソーイング",
+    "needle thread"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:tool",
+   "cats": [
+    "living"
+   ],
+   "file": "tabler/tool.svg",
+   "name": "工具",
+   "tags": [
+    "道具",
+    "DIY",
+    "tool"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:hammer",
+   "cats": [
+    "living"
+   ],
+   "file": "tabler/hammer.svg",
+   "name": "ハンマー",
+   "tags": [
+    "工具",
+    "DIY",
+    "hammer"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:first-aid-kit",
+   "cats": [
+    "living"
+   ],
+   "file": "tabler/first-aid-kit.svg",
+   "name": "救急箱",
+   "tags": [
+    "くすり",
+    "薬",
+    "first aid kit"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:pill",
+   "cats": [
+    "living"
+   ],
+   "file": "tabler/pill.svg",
+   "name": "くすり",
+   "tags": [
+    "薬",
+    "錠剤",
+    "pill"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:dental",
+   "cats": [
+    "living"
+   ],
+   "file": "tabler/dental.svg",
+   "name": "歯",
+   "tags": [
+    "はみがき",
+    "歯ブラシ",
+    "dental"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:baby-bottle",
+   "cats": [
+    "living"
+   ],
+   "file": "tabler/baby-bottle.svg",
+   "name": "哺乳瓶",
+   "tags": [
+    "ベビー",
+    "赤ちゃん",
+    "baby bottle"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:plant",
+   "cats": [
+    "living"
+   ],
+   "file": "tabler/plant.svg",
+   "name": "観葉植物",
+   "tags": [
+    "植物",
+    "グリーン",
+    "plant"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:car",
+   "cats": [
+    "living"
+   ],
+   "file": "tabler/car.svg",
+   "name": "車",
+   "tags": [
+    "くるま",
+    "自動車",
+    "car"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:bike",
+   "cats": [
+    "living"
+   ],
+   "file": "tabler/bike.svg",
+   "name": "自転車",
+   "tags": [
+    "じてんしゃ",
+    "bike"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:tools-kitchen-2",
+   "cats": [
+    "food"
+   ],
+   "file": "tabler/tools-kitchen-2.svg",
+   "name": "ナイフとフォーク",
+   "tags": [
+    "食事",
+    "キッチン",
+    "tools kitchen 2"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:chef-hat",
+   "cats": [
+    "food"
+   ],
+   "file": "tabler/chef-hat.svg",
+   "name": "コック帽",
+   "tags": [
+    "料理",
+    "シェフ",
+    "chef hat"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:coffee",
+   "cats": [
+    "food"
+   ],
+   "file": "tabler/coffee.svg",
+   "name": "コーヒー",
+   "tags": [
+    "カップ",
+    "カフェ",
+    "coffee"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:cup",
+   "cats": [
+    "food"
+   ],
+   "file": "tabler/cup.svg",
+   "name": "カップ",
+   "tags": [
+    "ドリンク",
+    "のみもの",
+    "cup"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:glass-full",
+   "cats": [
+    "food"
+   ],
+   "file": "tabler/glass-full.svg",
+   "name": "グラス",
+   "tags": [
+    "コップ",
+    "ワイン",
+    "glass full"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:beer",
+   "cats": [
+    "food"
+   ],
+   "file": "tabler/beer.svg",
+   "name": "ビール",
+   "tags": [
+    "お酒",
+    "さけ",
+    "beer"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:bottle",
+   "cats": [
+    "food"
+   ],
+   "file": "tabler/bottle.svg",
+   "name": "ボトル",
+   "tags": [
+    "びん",
+    "瓶",
+    "ドリンク",
+    "bottle"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:milk",
+   "cats": [
+    "food"
+   ],
+   "file": "tabler/milk.svg",
+   "name": "牛乳",
+   "tags": [
+    "ミルク",
+    "乳製品",
+    "milk"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:egg",
+   "cats": [
+    "food"
+   ],
+   "file": "tabler/egg.svg",
+   "name": "たまご",
+   "tags": [
+    "卵",
+    "玉子",
+    "egg"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:apple",
+   "cats": [
+    "food"
+   ],
+   "file": "tabler/apple.svg",
+   "name": "りんご",
+   "tags": [
+    "果物",
+    "フルーツ",
+    "apple"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:lemon",
+   "cats": [
+    "food"
+   ],
+   "file": "tabler/lemon.svg",
+   "name": "レモン",
+   "tags": [
+    "果物",
+    "フルーツ",
+    "lemon"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:carrot",
+   "cats": [
+    "food"
+   ],
+   "file": "tabler/carrot.svg",
+   "name": "にんじん",
+   "tags": [
+    "野菜",
+    "carrot"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:pepper",
+   "cats": [
+    "food"
+   ],
+   "file": "tabler/pepper.svg",
+   "name": "ピーマン",
+   "tags": [
+    "野菜",
+    "唐辛子",
+    "pepper"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:mushroom",
+   "cats": [
+    "food"
+   ],
+   "file": "tabler/mushroom.svg",
+   "name": "きのこ",
+   "tags": [
+    "キノコ",
+    "mushroom"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:fish",
+   "cats": [
+    "food",
+    "animals"
+   ],
+   "file": "tabler/fish.svg",
+   "name": "魚",
+   "tags": [
+    "さかな",
+    "fish"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:meat",
+   "cats": [
+    "food"
+   ],
+   "file": "tabler/meat.svg",
+   "name": "肉",
+   "tags": [
+    "にく",
+    "meat"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:bread",
+   "cats": [
+    "food"
+   ],
+   "file": "tabler/bread.svg",
+   "name": "パン",
+   "tags": [
+    "ぱん",
+    "bread"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:pizza",
+   "cats": [
+    "food"
+   ],
+   "file": "tabler/pizza.svg",
+   "name": "ピザ",
+   "tags": [
+    "ぴざ",
+    "pizza"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:cake",
+   "cats": [
+    "food",
+    "hobby"
+   ],
+   "file": "tabler/cake.svg",
+   "name": "ケーキ",
+   "tags": [
+    "誕生日",
+    "お祝い",
+    "cake"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:ice-cream",
+   "cats": [
+    "food"
+   ],
+   "file": "tabler/ice-cream.svg",
+   "name": "アイス",
+   "tags": [
+    "あいす",
+    "デザート",
+    "ice cream"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:cookie",
+   "cats": [
+    "food"
+   ],
+   "file": "tabler/cookie.svg",
+   "name": "クッキー",
+   "tags": [
+    "お菓子",
+    "おかし",
+    "cookie"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:candy",
+   "cats": [
+    "food"
+   ],
+   "file": "tabler/candy.svg",
+   "name": "あめ",
+   "tags": [
+    "飴",
+    "お菓子",
+    "candy"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:salt",
+   "cats": [
+    "food"
+   ],
+   "file": "tabler/salt.svg",
+   "name": "塩",
+   "tags": [
+    "しお",
+    "調味料",
+    "salt"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:soup",
+   "cats": [
+    "food"
+   ],
+   "file": "tabler/soup.svg",
+   "name": "スープ",
+   "tags": [
+    "汁",
+    "なべ",
+    "soup"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:bowl-chopsticks",
+   "cats": [
+    "food"
+   ],
+   "file": "tabler/bowl-chopsticks.svg",
+   "name": "どんぶり",
+   "tags": [
+    "ご飯",
+    "はし",
+    "和食",
+    "bowl chopsticks"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:cooker",
+   "cats": [
+    "food"
+   ],
+   "file": "tabler/cooker.svg",
+   "name": "炊飯器",
+   "tags": [
+    "鍋",
+    "なべ",
+    "cooker"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:fridge",
+   "cats": [
+    "food"
+   ],
+   "file": "tabler/fridge.svg",
+   "name": "冷蔵庫",
+   "tags": [
+    "れいぞうこ",
+    "保存",
+    "fridge"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:microwave",
+   "cats": [
+    "food"
+   ],
+   "file": "tabler/microwave.svg",
+   "name": "電子レンジ",
+   "tags": [
+    "レンジ",
+    "チン",
+    "microwave"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:pencil",
+   "cats": [
+    "office"
+   ],
+   "file": "tabler/pencil.svg",
+   "name": "えんぴつ",
+   "tags": [
+    "鉛筆",
+    "書く",
+    "pencil"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:ballpen",
+   "cats": [
+    "office"
+   ],
+   "file": "tabler/ballpen.svg",
+   "name": "ボールペン",
+   "tags": [
+    "ペン",
+    "書く",
+    "ballpen"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:highlight",
+   "cats": [
+    "office"
+   ],
+   "file": "tabler/highlight.svg",
+   "name": "マーカー",
+   "tags": [
+    "蛍光ペン",
+    "highlight"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:eraser",
+   "cats": [
+    "office"
+   ],
+   "file": "tabler/eraser.svg",
+   "name": "消しゴム",
+   "tags": [
+    "けしごむ",
+    "eraser"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:ruler-2",
+   "cats": [
+    "office"
+   ],
+   "file": "tabler/ruler-2.svg",
+   "name": "定規",
+   "tags": [
+    "じょうぎ",
+    "ものさし",
+    "ruler 2"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:paperclip",
+   "cats": [
+    "office"
+   ],
+   "file": "tabler/paperclip.svg",
+   "name": "クリップ",
+   "tags": [
+    "くりっぷ",
+    "paperclip"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:pin",
+   "cats": [
+    "office"
+   ],
+   "file": "tabler/pin.svg",
+   "name": "画びょう",
+   "tags": [
+    "ピン",
+    "pin"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:notebook",
+   "cats": [
+    "office"
+   ],
+   "file": "tabler/notebook.svg",
+   "name": "ノート",
+   "tags": [
+    "のーと",
+    "メモ",
+    "notebook"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:book",
+   "cats": [
+    "office"
+   ],
+   "file": "tabler/book.svg",
+   "name": "本",
+   "tags": [
+    "ほん",
+    "読書",
+    "book"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:books",
+   "cats": [
+    "office"
+   ],
+   "file": "tabler/books.svg",
+   "name": "本棚",
+   "tags": [
+    "ほん",
+    "書籍",
+    "books"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:clipboard",
+   "cats": [
+    "office"
+   ],
+   "file": "tabler/clipboard.svg",
+   "name": "クリップボード",
+   "tags": [
+    "チェックリスト",
+    "clipboard"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:note",
+   "cats": [
+    "office"
+   ],
+   "file": "tabler/note.svg",
+   "name": "メモ",
+   "tags": [
+    "付箋",
+    "ふせん",
+    "note"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:calendar",
+   "cats": [
+    "office"
+   ],
+   "file": "tabler/calendar.svg",
+   "name": "カレンダー",
+   "tags": [
+    "日付",
+    "予定",
+    "calendar"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:clock",
+   "cats": [
+    "office"
+   ],
+   "file": "tabler/clock.svg",
+   "name": "時計",
+   "tags": [
+    "とけい",
+    "時間",
+    "clock"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:alarm",
+   "cats": [
+    "office"
+   ],
+   "file": "tabler/alarm.svg",
+   "name": "目覚まし",
+   "tags": [
+    "アラーム",
+    "時間",
+    "alarm"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:hourglass",
+   "cats": [
+    "office"
+   ],
+   "file": "tabler/hourglass.svg",
+   "name": "砂時計",
+   "tags": [
+    "期限",
+    "待つ",
+    "hourglass"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:mail",
+   "cats": [
+    "office"
+   ],
+   "file": "tabler/mail.svg",
+   "name": "封筒",
+   "tags": [
+    "メール",
+    "手紙",
+    "mail"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:phone",
+   "cats": [
+    "office"
+   ],
+   "file": "tabler/phone.svg",
+   "name": "電話",
+   "tags": [
+    "でんわ",
+    "phone"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:device-mobile",
+   "cats": [
+    "office"
+   ],
+   "file": "tabler/device-mobile.svg",
+   "name": "スマホ",
+   "tags": [
+    "携帯",
+    "スマートフォン",
+    "device mobile"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:device-laptop",
+   "cats": [
+    "office"
+   ],
+   "file": "tabler/device-laptop.svg",
+   "name": "ノートPC",
+   "tags": [
+    "パソコン",
+    "device laptop"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:printer",
+   "cats": [
+    "office"
+   ],
+   "file": "tabler/printer.svg",
+   "name": "プリンタ",
+   "tags": [
+    "印刷",
+    "printer"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:camera",
+   "cats": [
+    "office"
+   ],
+   "file": "tabler/camera.svg",
+   "name": "カメラ",
+   "tags": [
+    "写真",
+    "camera"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:file",
+   "cats": [
+    "office"
+   ],
+   "file": "tabler/file.svg",
+   "name": "書類",
+   "tags": [
+    "ファイル",
+    "文書",
+    "file"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:folder",
+   "cats": [
+    "office"
+   ],
+   "file": "tabler/folder.svg",
+   "name": "フォルダ",
+   "tags": [
+    "書類",
+    "ファイル",
+    "folder"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:tag",
+   "cats": [
+    "office"
+   ],
+   "file": "tabler/tag.svg",
+   "name": "タグ",
+   "tags": [
+    "値札",
+    "ラベル",
+    "tag"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:tags",
+   "cats": [
+    "office"
+   ],
+   "file": "tabler/tags.svg",
+   "name": "タグ(複数)",
+   "tags": [
+    "値札",
+    "ラベル",
+    "tags"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:plug-connected",
+   "cats": [
+    "office"
+   ],
+   "file": "tabler/plug-connected.svg",
+   "name": "ケーブル",
+   "tags": [
+    "コード",
+    "配線",
+    "plug connected"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:usb",
+   "cats": [
+    "office"
+   ],
+   "file": "tabler/usb.svg",
+   "name": "USB",
+   "tags": [
+    "ユーエスビー",
+    "usb"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:device-sd-card",
+   "cats": [
+    "office"
+   ],
+   "file": "tabler/device-sd-card.svg",
+   "name": "SDカード",
+   "tags": [
+    "メモリーカード",
+    "device sd card"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:palette",
+   "cats": [
+    "office"
+   ],
+   "file": "tabler/palette.svg",
+   "name": "パレット",
+   "tags": [
+    "絵の具",
+    "色",
+    "palette"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:brush",
+   "cats": [
+    "office"
+   ],
+   "file": "tabler/brush.svg",
+   "name": "筆",
+   "tags": [
+    "ふで",
+    "ブラシ",
+    "brush"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:school",
+   "cats": [
+    "office"
+   ],
+   "file": "tabler/school.svg",
+   "name": "学校",
+   "tags": [
+    "卒業",
+    "帽子",
+    "school"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:alert-triangle",
+   "cats": [
+    "caution"
+   ],
+   "file": "tabler/alert-triangle.svg",
+   "name": "注意",
+   "tags": [
+    "警告",
+    "ちゅうい",
+    "alert triangle"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:alert-octagon",
+   "cats": [
+    "caution"
+   ],
+   "file": "tabler/alert-octagon.svg",
+   "name": "止まれ",
+   "tags": [
+    "警告",
+    "ストップ",
+    "alert octagon"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:ban",
+   "cats": [
+    "caution"
+   ],
+   "file": "tabler/ban.svg",
+   "name": "禁止",
+   "tags": [
+    "ダメ",
+    "不可",
+    "ban"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:hand-stop",
+   "cats": [
+    "caution"
+   ],
+   "file": "tabler/hand-stop.svg",
+   "name": "手のひら",
+   "tags": [
+    "ストップ",
+    "触らない",
+    "hand stop"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:glass",
+   "cats": [
+    "caution"
+   ],
+   "file": "tabler/glass.svg",
+   "name": "ワレモノ",
+   "tags": [
+    "割れ物",
+    "こわれもの",
+    "取扱注意",
+    "glass"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:umbrella",
+   "cats": [
+    "caution"
+   ],
+   "file": "tabler/umbrella.svg",
+   "name": "水濡れ注意",
+   "tags": [
+    "雨",
+    "かさ",
+    "濡らさない",
+    "umbrella"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:arrow-bar-up",
+   "cats": [
+    "caution"
+   ],
+   "file": "tabler/arrow-bar-up.svg",
+   "name": "天地無用",
+   "tags": [
+    "この面を上に",
+    "上",
+    "arrow bar up"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:temperature",
+   "cats": [
+    "caution"
+   ],
+   "file": "tabler/temperature.svg",
+   "name": "温度",
+   "tags": [
+    "温度計",
+    "temperature"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:temperature-snow",
+   "cats": [
+    "caution"
+   ],
+   "file": "tabler/temperature-snow.svg",
+   "name": "要冷蔵",
+   "tags": [
+    "冷たい",
+    "冷凍",
+    "れいぞう",
+    "temperature snow"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:flame",
+   "cats": [
+    "caution"
+   ],
+   "file": "tabler/flame.svg",
+   "name": "火気厳禁",
+   "tags": [
+    "火",
+    "ほのお",
+    "熱い",
+    "flame"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:bolt",
+   "cats": [
+    "caution",
+    "nature"
+   ],
+   "file": "tabler/bolt.svg",
+   "name": "電気",
+   "tags": [
+    "感電",
+    "雷",
+    "bolt"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:radioactive",
+   "cats": [
+    "caution"
+   ],
+   "file": "tabler/radioactive.svg",
+   "name": "危険",
+   "tags": [
+    "放射能",
+    "radioactive"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:biohazard",
+   "cats": [
+    "caution"
+   ],
+   "file": "tabler/biohazard.svg",
+   "name": "バイオハザード",
+   "tags": [
+    "危険",
+    "biohazard"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:skull",
+   "cats": [
+    "caution"
+   ],
+   "file": "tabler/skull.svg",
+   "name": "ドクロ",
+   "tags": [
+    "毒",
+    "危険",
+    "skull"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:eye-off",
+   "cats": [
+    "caution"
+   ],
+   "file": "tabler/eye-off.svg",
+   "name": "見ない",
+   "tags": [
+    "非公開",
+    "ひみつ",
+    "eye off"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:lock-square",
+   "cats": [
+    "caution"
+   ],
+   "file": "tabler/lock-square.svg",
+   "name": "持ち出し禁止",
+   "tags": [
+    "施錠",
+    "社外秘",
+    "lock square"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:smoking-no",
+   "cats": [
+    "caution"
+   ],
+   "file": "tabler/smoking-no.svg",
+   "name": "禁煙",
+   "tags": [
+    "たばこ",
+    "smoking no"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:paw-off",
+   "cats": [
+    "caution"
+   ],
+   "file": "tabler/paw-off.svg",
+   "name": "ペット禁止",
+   "tags": [
+    "動物",
+    "paw off"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:wheelchair",
+   "cats": [
+    "caution"
+   ],
+   "file": "tabler/wheelchair.svg",
+   "name": "車いす",
+   "tags": [
+    "バリアフリー",
+    "wheelchair"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:sun",
+   "cats": [
+    "nature"
+   ],
+   "file": "tabler/sun.svg",
+   "name": "晴れ",
+   "tags": [
+    "太陽",
+    "たいよう",
+    "sun"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:cloud",
+   "cats": [
+    "nature"
+   ],
+   "file": "tabler/cloud.svg",
+   "name": "くもり",
+   "tags": [
+    "雲",
+    "くも",
+    "cloud"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:cloud-rain",
+   "cats": [
+    "nature"
+   ],
+   "file": "tabler/cloud-rain.svg",
+   "name": "雨",
+   "tags": [
+    "あめ",
+    "cloud rain"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:snowflake",
+   "cats": [
+    "nature"
+   ],
+   "file": "tabler/snowflake.svg",
+   "name": "雪",
+   "tags": [
+    "ゆき",
+    "冷凍",
+    "snowflake"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:moon",
+   "cats": [
+    "nature"
+   ],
+   "file": "tabler/moon.svg",
+   "name": "月",
+   "tags": [
+    "つき",
+    "夜",
+    "moon"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:moon:filled",
+   "cats": [
+    "nature"
+   ],
+   "file": "tabler/moon-filled.svg",
+   "name": "月(塗り)",
+   "tags": [
+    "つき",
+    "夜",
+    "moon"
+   ],
+   "kind": "fill",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:rainbow",
+   "cats": [
+    "nature"
+   ],
+   "file": "tabler/rainbow.svg",
+   "name": "虹",
+   "tags": [
+    "にじ",
+    "rainbow"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:droplet",
+   "cats": [
+    "nature"
+   ],
+   "file": "tabler/droplet.svg",
+   "name": "しずく",
+   "tags": [
+    "水",
+    "みず",
+    "droplet"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:leaf",
+   "cats": [
+    "nature"
+   ],
+   "file": "tabler/leaf.svg",
+   "name": "葉っぱ",
+   "tags": [
+    "はっぱ",
+    "植物",
+    "leaf"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:flower",
+   "cats": [
+    "nature"
+   ],
+   "file": "tabler/flower.svg",
+   "name": "花",
+   "tags": [
+    "はな",
+    "フラワー",
+    "flower"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:plant-2",
+   "cats": [
+    "nature"
+   ],
+   "file": "tabler/plant-2.svg",
+   "name": "芽",
+   "tags": [
+    "めばえ",
+    "植物",
+    "plant 2"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:tree",
+   "cats": [
+    "nature"
+   ],
+   "file": "tabler/tree.svg",
+   "name": "木",
+   "tags": [
+    "き",
+    "森",
+    "tree"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:cactus",
+   "cats": [
+    "nature"
+   ],
+   "file": "tabler/cactus.svg",
+   "name": "サボテン",
+   "tags": [
+    "植物",
+    "cactus"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:clover",
+   "cats": [
+    "nature"
+   ],
+   "file": "tabler/clover.svg",
+   "name": "クローバー",
+   "tags": [
+    "四つ葉",
+    "幸運",
+    "clover"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:mountain",
+   "cats": [
+    "nature"
+   ],
+   "file": "tabler/mountain.svg",
+   "name": "山",
+   "tags": [
+    "やま",
+    "mountain"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:ripple",
+   "cats": [
+    "nature"
+   ],
+   "file": "tabler/ripple.svg",
+   "name": "波",
+   "tags": [
+    "なみ",
+    "海",
+    "ripple"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:cat",
+   "cats": [
+    "animals"
+   ],
+   "file": "tabler/cat.svg",
+   "name": "ねこ",
+   "tags": [
+    "猫",
+    "ネコ",
+    "cat"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:dog",
+   "cats": [
+    "animals"
+   ],
+   "file": "tabler/dog.svg",
+   "name": "いぬ",
+   "tags": [
+    "犬",
+    "イヌ",
+    "dog"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:paw",
+   "cats": [
+    "animals"
+   ],
+   "file": "tabler/paw.svg",
+   "name": "肉球",
+   "tags": [
+    "あしあと",
+    "ペット",
+    "paw"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:butterfly",
+   "cats": [
+    "animals"
+   ],
+   "file": "tabler/butterfly.svg",
+   "name": "ちょうちょ",
+   "tags": [
+    "蝶",
+    "チョウ",
+    "butterfly"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:bug",
+   "cats": [
+    "animals"
+   ],
+   "file": "tabler/bug.svg",
+   "name": "むし",
+   "tags": [
+    "虫",
+    "bug"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:spider",
+   "cats": [
+    "animals"
+   ],
+   "file": "tabler/spider.svg",
+   "name": "くも",
+   "tags": [
+    "蜘蛛",
+    "spider"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:pig",
+   "cats": [
+    "animals"
+   ],
+   "file": "tabler/pig.svg",
+   "name": "ぶた",
+   "tags": [
+    "豚",
+    "ブタ",
+    "pig"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:deer",
+   "cats": [
+    "animals"
+   ],
+   "file": "tabler/deer.svg",
+   "name": "しか",
+   "tags": [
+    "鹿",
+    "シカ",
+    "deer"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:feather",
+   "cats": [
+    "animals"
+   ],
+   "file": "tabler/feather.svg",
+   "name": "羽",
+   "tags": [
+    "はね",
+    "とり",
+    "feather"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:bone",
+   "cats": [
+    "animals"
+   ],
+   "file": "tabler/bone.svg",
+   "name": "骨",
+   "tags": [
+    "ほね",
+    "いぬ",
+    "bone"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:fish-bone",
+   "cats": [
+    "animals"
+   ],
+   "file": "tabler/fish-bone.svg",
+   "name": "魚の骨",
+   "tags": [
+    "ほね",
+    "ねこ",
+    "fish bone"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:music",
+   "cats": [
+    "hobby"
+   ],
+   "file": "tabler/music.svg",
+   "name": "音符",
+   "tags": [
+    "おんぷ",
+    "音楽",
+    "music"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:microphone-2",
+   "cats": [
+    "hobby"
+   ],
+   "file": "tabler/microphone-2.svg",
+   "name": "マイク",
+   "tags": [
+    "歌",
+    "カラオケ",
+    "配信",
+    "microphone 2"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:headphones",
+   "cats": [
+    "hobby"
+   ],
+   "file": "tabler/headphones.svg",
+   "name": "ヘッドホン",
+   "tags": [
+    "音楽",
+    "headphones"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:device-gamepad-2",
+   "cats": [
+    "hobby"
+   ],
+   "file": "tabler/device-gamepad-2.svg",
+   "name": "ゲーム",
+   "tags": [
+    "コントローラー",
+    "device gamepad 2"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:ticket",
+   "cats": [
+    "hobby"
+   ],
+   "file": "tabler/ticket.svg",
+   "name": "チケット",
+   "tags": [
+    "ライブ",
+    "入場券",
+    "ticket"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:gift",
+   "cats": [
+    "hobby"
+   ],
+   "file": "tabler/gift.svg",
+   "name": "プレゼント",
+   "tags": [
+    "ギフト",
+    "贈り物",
+    "gift"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:balloon",
+   "cats": [
+    "hobby"
+   ],
+   "file": "tabler/balloon.svg",
+   "name": "風船",
+   "tags": [
+    "ふうせん",
+    "パーティー",
+    "balloon"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:confetti",
+   "cats": [
+    "hobby"
+   ],
+   "file": "tabler/confetti.svg",
+   "name": "クラッカー",
+   "tags": [
+    "お祝い",
+    "パーティー",
+    "confetti"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:wand",
+   "cats": [
+    "hobby"
+   ],
+   "file": "tabler/wand.svg",
+   "name": "魔法のステッキ",
+   "tags": [
+    "まほう",
+    "wand"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:photo",
+   "cats": [
+    "hobby"
+   ],
+   "file": "tabler/photo.svg",
+   "name": "写真",
+   "tags": [
+    "しゃしん",
+    "画像",
+    "photo"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:movie",
+   "cats": [
+    "hobby"
+   ],
+   "file": "tabler/movie.svg",
+   "name": "映画",
+   "tags": [
+    "動画",
+    "movie"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:brand-youtube",
+   "cats": [
+    "hobby"
+   ],
+   "file": "tabler/brand-youtube.svg",
+   "name": "動画配信",
+   "tags": [
+    "配信",
+    "YouTube",
+    "brand youtube"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:broadcast",
+   "cats": [
+    "hobby"
+   ],
+   "file": "tabler/broadcast.svg",
+   "name": "配信",
+   "tags": [
+    "ライブ",
+    "放送",
+    "broadcast"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:device-tv",
+   "cats": [
+    "hobby"
+   ],
+   "file": "tabler/device-tv.svg",
+   "name": "テレビ",
+   "tags": [
+    "TV",
+    "device tv"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:ball-football",
+   "cats": [
+    "hobby"
+   ],
+   "file": "tabler/ball-football.svg",
+   "name": "サッカー",
+   "tags": [
+    "ボール",
+    "スポーツ",
+    "ball football"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:ball-baseball",
+   "cats": [
+    "hobby"
+   ],
+   "file": "tabler/ball-baseball.svg",
+   "name": "野球",
+   "tags": [
+    "ボール",
+    "スポーツ",
+    "ball baseball"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:plane",
+   "cats": [
+    "hobby"
+   ],
+   "file": "tabler/plane.svg",
+   "name": "飛行機",
+   "tags": [
+    "旅行",
+    "たび",
+    "plane"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:map",
+   "cats": [
+    "hobby"
+   ],
+   "file": "tabler/map.svg",
+   "name": "地図",
+   "tags": [
+    "ちず",
+    "旅行",
+    "map"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:tent",
+   "cats": [
+    "hobby"
+   ],
+   "file": "tabler/tent.svg",
+   "name": "テント",
+   "tags": [
+    "キャンプ",
+    "tent"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:christmas-tree",
+   "cats": [
+    "hobby"
+   ],
+   "file": "tabler/christmas-tree.svg",
+   "name": "クリスマス",
+   "tags": [
+    "ツリー",
+    "christmas tree"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:pumpkin-scary",
+   "cats": [
+    "hobby"
+   ],
+   "file": "tabler/pumpkin-scary.svg",
+   "name": "ハロウィン",
+   "tags": [
+    "かぼちゃ",
+    "pumpkin scary"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:arrow-up",
+   "cats": [
+    "arrows"
+   ],
+   "file": "tabler/arrow-up.svg",
+   "name": "上",
+   "tags": [
+    "うえ",
+    "矢印",
+    "arrow up"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:arrow-down",
+   "cats": [
+    "arrows"
+   ],
+   "file": "tabler/arrow-down.svg",
+   "name": "下",
+   "tags": [
+    "した",
+    "矢印",
+    "arrow down"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:arrow-left",
+   "cats": [
+    "arrows"
+   ],
+   "file": "tabler/arrow-left.svg",
+   "name": "左",
+   "tags": [
+    "ひだり",
+    "矢印",
+    "arrow left"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:arrow-right",
+   "cats": [
+    "arrows"
+   ],
+   "file": "tabler/arrow-right.svg",
+   "name": "右",
+   "tags": [
+    "みぎ",
+    "矢印",
+    "arrow right"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:arrow-up-right",
+   "cats": [
+    "arrows"
+   ],
+   "file": "tabler/arrow-up-right.svg",
+   "name": "右上",
+   "tags": [
+    "ななめ",
+    "矢印",
+    "arrow up right"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:arrows-up-down",
+   "cats": [
+    "arrows"
+   ],
+   "file": "tabler/arrows-up-down.svg",
+   "name": "上下",
+   "tags": [
+    "矢印",
+    "arrows up down"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:arrows-left-right",
+   "cats": [
+    "arrows"
+   ],
+   "file": "tabler/arrows-left-right.svg",
+   "name": "左右",
+   "tags": [
+    "矢印",
+    "arrows left right"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:arrow-big-right",
+   "cats": [
+    "arrows"
+   ],
+   "file": "tabler/arrow-big-right.svg",
+   "name": "太い矢印",
+   "tags": [
+    "みぎ",
+    "arrow big right"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:arrow-big-up",
+   "cats": [
+    "arrows"
+   ],
+   "file": "tabler/arrow-big-up.svg",
+   "name": "太い矢印(上)",
+   "tags": [
+    "うえ",
+    "arrow big up"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:corner-down-right",
+   "cats": [
+    "arrows"
+   ],
+   "file": "tabler/corner-down-right.svg",
+   "name": "折れ矢印",
+   "tags": [
+    "曲がる",
+    "corner down right"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:refresh",
+   "cats": [
+    "arrows"
+   ],
+   "file": "tabler/refresh.svg",
+   "name": "くり返し",
+   "tags": [
+    "更新",
+    "リピート",
+    "refresh"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:rotate-clockwise",
+   "cats": [
+    "arrows"
+   ],
+   "file": "tabler/rotate-clockwise.svg",
+   "name": "右回り",
+   "tags": [
+    "回転",
+    "rotate clockwise"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:chevron-right",
+   "cats": [
+    "arrows"
+   ],
+   "file": "tabler/chevron-right.svg",
+   "name": "くの字",
+   "tags": [
+    "次",
+    "進む",
+    "chevron right"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:chevrons-right",
+   "cats": [
+    "arrows"
+   ],
+   "file": "tabler/chevrons-right.svg",
+   "name": "二重くの字",
+   "tags": [
+    "早送り",
+    "chevrons right"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "tabler:hand-finger-right",
+   "cats": [
+    "arrows"
+   ],
+   "file": "tabler/hand-finger-right.svg",
+   "name": "指さし",
+   "tags": [
+    "ゆび",
+    "こちら",
+    "hand finger right"
+   ],
+   "kind": "line",
+   "source": "tabler"
+  },
+  {
+   "id": "twemoji:2764",
+   "cats": [
+    "emoji"
+   ],
+   "file": "twemoji/2764.svg",
+   "name": "ハート",
+   "tags": [
+    "赤",
+    "好き"
+   ],
+   "kind": "color",
+   "source": "twemoji"
+  },
+  {
+   "id": "twemoji:1f495",
+   "cats": [
+    "emoji"
+   ],
+   "file": "twemoji/1f495.svg",
+   "name": "ふたつのハート",
+   "tags": [
+    "好き",
+    "ラブ"
+   ],
+   "kind": "color",
+   "source": "twemoji"
+  },
+  {
+   "id": "twemoji:2b50",
+   "cats": [
+    "emoji"
+   ],
+   "file": "twemoji/2b50.svg",
+   "name": "星",
+   "tags": [
+    "ほし"
+   ],
+   "kind": "color",
+   "source": "twemoji"
+  },
+  {
+   "id": "twemoji:2728",
+   "cats": [
+    "emoji"
+   ],
+   "file": "twemoji/2728.svg",
+   "name": "キラキラ",
+   "tags": [
+    "きらきら"
+   ],
+   "kind": "color",
+   "source": "twemoji"
+  },
+  {
+   "id": "twemoji:1f338",
+   "cats": [
+    "emoji"
+   ],
+   "file": "twemoji/1f338.svg",
+   "name": "さくら",
+   "tags": [
+    "桜",
+    "花"
+   ],
+   "kind": "color",
+   "source": "twemoji"
+  },
+  {
+   "id": "twemoji:1f340",
+   "cats": [
+    "emoji"
+   ],
+   "file": "twemoji/1f340.svg",
+   "name": "四つ葉",
+   "tags": [
+    "クローバー",
+    "幸運"
+   ],
+   "kind": "color",
+   "source": "twemoji"
+  },
+  {
+   "id": "twemoji:1f380",
+   "cats": [
+    "emoji"
+   ],
+   "file": "twemoji/1f380.svg",
+   "name": "リボン",
+   "tags": [
+    "りぼん"
+   ],
+   "kind": "color",
+   "source": "twemoji"
+  },
+  {
+   "id": "twemoji:1f381",
+   "cats": [
+    "emoji"
+   ],
+   "file": "twemoji/1f381.svg",
+   "name": "プレゼント",
+   "tags": [
+    "ギフト"
+   ],
+   "kind": "color",
+   "source": "twemoji"
+  },
+  {
+   "id": "twemoji:1f382",
+   "cats": [
+    "emoji"
+   ],
+   "file": "twemoji/1f382.svg",
+   "name": "バースデーケーキ",
+   "tags": [
+    "誕生日"
+   ],
+   "kind": "color",
+   "source": "twemoji"
+  },
+  {
+   "id": "twemoji:1f389",
+   "cats": [
+    "emoji"
+   ],
+   "file": "twemoji/1f389.svg",
+   "name": "クラッカー",
+   "tags": [
+    "お祝い"
+   ],
+   "kind": "color",
+   "source": "twemoji"
+  },
+  {
+   "id": "twemoji:1f431",
+   "cats": [
+    "emoji"
+   ],
+   "file": "twemoji/1f431.svg",
+   "name": "ねこ",
+   "tags": [
+    "猫"
+   ],
+   "kind": "color",
+   "source": "twemoji"
+  },
+  {
+   "id": "twemoji:1f436",
+   "cats": [
+    "emoji"
+   ],
+   "file": "twemoji/1f436.svg",
+   "name": "いぬ",
+   "tags": [
+    "犬"
+   ],
+   "kind": "color",
+   "source": "twemoji"
+  },
+  {
+   "id": "twemoji:1f430",
+   "cats": [
+    "emoji"
+   ],
+   "file": "twemoji/1f430.svg",
+   "name": "うさぎ",
+   "tags": [
+    "兎"
+   ],
+   "kind": "color",
+   "source": "twemoji"
+  },
+  {
+   "id": "twemoji:1f43b",
+   "cats": [
+    "emoji"
+   ],
+   "file": "twemoji/1f43b.svg",
+   "name": "くま",
+   "tags": [
+    "熊"
+   ],
+   "kind": "color",
+   "source": "twemoji"
+  },
+  {
+   "id": "twemoji:1f43c",
+   "cats": [
+    "emoji"
+   ],
+   "file": "twemoji/1f43c.svg",
+   "name": "パンダ",
+   "tags": [
+    "ぱんだ"
+   ],
+   "kind": "color",
+   "source": "twemoji"
+  },
+  {
+   "id": "twemoji:1f427",
+   "cats": [
+    "emoji"
+   ],
+   "file": "twemoji/1f427.svg",
+   "name": "ペンギン",
+   "tags": [
+    "ぺんぎん"
+   ],
+   "kind": "color",
+   "source": "twemoji"
+  },
+  {
+   "id": "twemoji:1f98a",
+   "cats": [
+    "emoji"
+   ],
+   "file": "twemoji/1f98a.svg",
+   "name": "きつね",
+   "tags": [
+    "狐"
+   ],
+   "kind": "color",
+   "source": "twemoji"
+  },
+  {
+   "id": "twemoji:1f41f",
+   "cats": [
+    "emoji"
+   ],
+   "file": "twemoji/1f41f.svg",
+   "name": "さかな",
+   "tags": [
+    "魚"
+   ],
+   "kind": "color",
+   "source": "twemoji"
+  },
+  {
+   "id": "twemoji:1f34e",
+   "cats": [
+    "emoji"
+   ],
+   "file": "twemoji/1f34e.svg",
+   "name": "りんご",
+   "tags": [
+    "果物"
+   ],
+   "kind": "color",
+   "source": "twemoji"
+  },
+  {
+   "id": "twemoji:1f353",
+   "cats": [
+    "emoji"
+   ],
+   "file": "twemoji/1f353.svg",
+   "name": "いちご",
+   "tags": [
+    "苺",
+    "果物"
+   ],
+   "kind": "color",
+   "source": "twemoji"
+  },
+  {
+   "id": "twemoji:1f359",
+   "cats": [
+    "emoji"
+   ],
+   "file": "twemoji/1f359.svg",
+   "name": "おにぎり",
+   "tags": [
+    "ご飯"
+   ],
+   "kind": "color",
+   "source": "twemoji"
+  },
+  {
+   "id": "twemoji:1f370",
+   "cats": [
+    "emoji"
+   ],
+   "file": "twemoji/1f370.svg",
+   "name": "ショートケーキ",
+   "tags": [
+    "ケーキ"
+   ],
+   "kind": "color",
+   "source": "twemoji"
+  },
+  {
+   "id": "twemoji:1f361",
+   "cats": [
+    "emoji"
+   ],
+   "file": "twemoji/1f361.svg",
+   "name": "だんご",
+   "tags": [
+    "団子",
+    "和菓子"
+   ],
+   "kind": "color",
+   "source": "twemoji"
+  },
+  {
+   "id": "twemoji:2615",
+   "cats": [
+    "emoji"
+   ],
+   "file": "twemoji/2615.svg",
+   "name": "コーヒー",
+   "tags": [
+    "ホット"
+   ],
+   "kind": "color",
+   "source": "twemoji"
+  },
+  {
+   "id": "twemoji:1f375",
+   "cats": [
+    "emoji"
+   ],
+   "file": "twemoji/1f375.svg",
+   "name": "お茶",
+   "tags": [
+    "緑茶"
+   ],
+   "kind": "color",
+   "source": "twemoji"
+  },
+  {
+   "id": "twemoji:1f37a",
+   "cats": [
+    "emoji"
+   ],
+   "file": "twemoji/1f37a.svg",
+   "name": "ビール",
+   "tags": [
+    "お酒"
+   ],
+   "kind": "color",
+   "source": "twemoji"
+  },
+  {
+   "id": "twemoji:1f377",
+   "cats": [
+    "emoji"
+   ],
+   "file": "twemoji/1f377.svg",
+   "name": "ワイン",
+   "tags": [
+    "お酒"
+   ],
+   "kind": "color",
+   "source": "twemoji"
+  },
+  {
+   "id": "twemoji:1f95b",
+   "cats": [
+    "emoji"
+   ],
+   "file": "twemoji/1f95b.svg",
+   "name": "牛乳",
+   "tags": [
+    "ミルク"
+   ],
+   "kind": "color",
+   "source": "twemoji"
+  },
+  {
+   "id": "twemoji:1f35e",
+   "cats": [
+    "emoji"
+   ],
+   "file": "twemoji/1f35e.svg",
+   "name": "パン",
+   "tags": [
+    "食パン"
+   ],
+   "kind": "color",
+   "source": "twemoji"
+  },
+  {
+   "id": "twemoji:1f95a",
+   "cats": [
+    "emoji"
+   ],
+   "file": "twemoji/1f95a.svg",
+   "name": "たまご",
+   "tags": [
+    "卵"
+   ],
+   "kind": "color",
+   "source": "twemoji"
+  },
+  {
+   "id": "twemoji:1f9c2",
+   "cats": [
+    "emoji"
+   ],
+   "file": "twemoji/1f9c2.svg",
+   "name": "塩",
+   "tags": [
+    "調味料"
+   ],
+   "kind": "color",
+   "source": "twemoji"
+  },
+  {
+   "id": "twemoji:1f373",
+   "cats": [
+    "emoji"
+   ],
+   "file": "twemoji/1f373.svg",
+   "name": "目玉焼き",
+   "tags": [
+    "フライパン",
+    "料理"
+   ],
+   "kind": "color",
+   "source": "twemoji"
+  },
+  {
+   "id": "twemoji:2705",
+   "cats": [
+    "emoji"
+   ],
+   "file": "twemoji/2705.svg",
+   "name": "チェック",
+   "tags": [
+    "済",
+    "OK"
+   ],
+   "kind": "color",
+   "source": "twemoji"
+  },
+  {
+   "id": "twemoji:274c",
+   "cats": [
+    "emoji"
+   ],
+   "file": "twemoji/274c.svg",
+   "name": "バツ",
+   "tags": [
+    "NG"
+   ],
+   "kind": "color",
+   "source": "twemoji"
+  },
+  {
+   "id": "twemoji:26a0",
+   "cats": [
+    "emoji"
+   ],
+   "file": "twemoji/26a0.svg",
+   "name": "注意",
+   "tags": [
+    "警告"
+   ],
+   "kind": "color",
+   "source": "twemoji"
+  },
+  {
+   "id": "twemoji:26d4",
+   "cats": [
+    "emoji"
+   ],
+   "file": "twemoji/26d4.svg",
+   "name": "進入禁止",
+   "tags": [
+    "禁止"
+   ],
+   "kind": "color",
+   "source": "twemoji"
+  },
+  {
+   "id": "twemoji:2757",
+   "cats": [
+    "emoji"
+   ],
+   "file": "twemoji/2757.svg",
+   "name": "びっくり",
+   "tags": [
+    "!"
+   ],
+   "kind": "color",
+   "source": "twemoji"
+  },
+  {
+   "id": "twemoji:2753",
+   "cats": [
+    "emoji"
+   ],
+   "file": "twemoji/2753.svg",
+   "name": "はてな",
+   "tags": [
+    "?"
+   ],
+   "kind": "color",
+   "source": "twemoji"
+  },
+  {
+   "id": "twemoji:1f4a1",
+   "cats": [
+    "emoji"
+   ],
+   "file": "twemoji/1f4a1.svg",
+   "name": "電球",
+   "tags": [
+    "アイデア"
+   ],
+   "kind": "color",
+   "source": "twemoji"
+  },
+  {
+   "id": "twemoji:1f4e6",
+   "cats": [
+    "emoji"
+   ],
+   "file": "twemoji/1f4e6.svg",
+   "name": "荷物",
+   "tags": [
+    "箱"
+   ],
+   "kind": "color",
+   "source": "twemoji"
+  },
+  {
+   "id": "twemoji:1f4cc",
+   "cats": [
+    "emoji"
+   ],
+   "file": "twemoji/1f4cc.svg",
+   "name": "画びょう",
+   "tags": [
+    "ピン"
+   ],
+   "kind": "color",
+   "source": "twemoji"
+  },
+  {
+   "id": "twemoji:1f4ce",
+   "cats": [
+    "emoji"
+   ],
+   "file": "twemoji/1f4ce.svg",
+   "name": "クリップ",
+   "tags": [
+    "くりっぷ"
+   ],
+   "kind": "color",
+   "source": "twemoji"
+  },
+  {
+   "id": "twemoji:2702",
+   "cats": [
+    "emoji"
+   ],
+   "file": "twemoji/2702.svg",
+   "name": "はさみ",
+   "tags": [
+    "ハサミ"
+   ],
+   "kind": "color",
+   "source": "twemoji"
+  },
+  {
+   "id": "twemoji:1f4da",
+   "cats": [
+    "emoji"
+   ],
+   "file": "twemoji/1f4da.svg",
+   "name": "本",
+   "tags": [
+    "書籍"
+   ],
+   "kind": "color",
+   "source": "twemoji"
+  },
+  {
+   "id": "twemoji:1f4dd",
+   "cats": [
+    "emoji"
+   ],
+   "file": "twemoji/1f4dd.svg",
+   "name": "メモ",
+   "tags": [
+    "ノート"
+   ],
+   "kind": "color",
+   "source": "twemoji"
+  },
+  {
+   "id": "twemoji:1f4c5",
+   "cats": [
+    "emoji"
+   ],
+   "file": "twemoji/1f4c5.svg",
+   "name": "カレンダー",
+   "tags": [
+    "日付"
+   ],
+   "kind": "color",
+   "source": "twemoji"
+  },
+  {
+   "id": "twemoji:23f0",
+   "cats": [
+    "emoji"
+   ],
+   "file": "twemoji/23f0.svg",
+   "name": "目覚まし時計",
+   "tags": [
+    "時間"
+   ],
+   "kind": "color",
+   "source": "twemoji"
+  },
+  {
+   "id": "twemoji:1f511",
+   "cats": [
+    "emoji"
+   ],
+   "file": "twemoji/1f511.svg",
+   "name": "鍵",
+   "tags": [
+    "キー"
+   ],
+   "kind": "color",
+   "source": "twemoji"
+  },
+  {
+   "id": "twemoji:1f512",
+   "cats": [
+    "emoji"
+   ],
+   "file": "twemoji/1f512.svg",
+   "name": "錠",
+   "tags": [
+    "ロック"
+   ],
+   "kind": "color",
+   "source": "twemoji"
+  },
+  {
+   "id": "twemoji:1f3e0",
+   "cats": [
+    "emoji"
+   ],
+   "file": "twemoji/1f3e0.svg",
+   "name": "家",
+   "tags": [
+    "ホーム"
+   ],
+   "kind": "color",
+   "source": "twemoji"
+  },
+  {
+   "id": "twemoji:1f9fa",
+   "cats": [
+    "emoji"
+   ],
+   "file": "twemoji/1f9fa.svg",
+   "name": "かご",
+   "tags": [
+    "バスケット"
+   ],
+   "kind": "color",
+   "source": "twemoji"
+  },
+  {
+   "id": "twemoji:1f9f4",
+   "cats": [
+    "emoji"
+   ],
+   "file": "twemoji/1f9f4.svg",
+   "name": "ボトル",
+   "tags": [
+    "ローション"
+   ],
+   "kind": "color",
+   "source": "twemoji"
+  },
+  {
+   "id": "twemoji:1f9fb",
+   "cats": [
+    "emoji"
+   ],
+   "file": "twemoji/1f9fb.svg",
+   "name": "トイレットペーパー",
+   "tags": [
+    "日用品"
+   ],
+   "kind": "color",
+   "source": "twemoji"
+  },
+  {
+   "id": "twemoji:1f48a",
+   "cats": [
+    "emoji"
+   ],
+   "file": "twemoji/1f48a.svg",
+   "name": "くすり",
+   "tags": [
+    "薬"
+   ],
+   "kind": "color",
+   "source": "twemoji"
+  },
+  {
+   "id": "twemoji:1fa79",
+   "cats": [
+    "emoji"
+   ],
+   "file": "twemoji/1fa79.svg",
+   "name": "ばんそうこう",
+   "tags": [
+    "絆創膏"
+   ],
+   "kind": "color",
+   "source": "twemoji"
+  },
+  {
+   "id": "twemoji:1f3b5",
+   "cats": [
+    "emoji"
+   ],
+   "file": "twemoji/1f3b5.svg",
+   "name": "音符",
+   "tags": [
+    "音楽"
+   ],
+   "kind": "color",
+   "source": "twemoji"
+  },
+  {
+   "id": "twemoji:1f3ae",
+   "cats": [
+    "emoji"
+   ],
+   "file": "twemoji/1f3ae.svg",
+   "name": "ゲーム",
+   "tags": [
+    "コントローラー"
+   ],
+   "kind": "color",
+   "source": "twemoji"
+  },
+  {
+   "id": "twemoji:1f3a4",
+   "cats": [
+    "emoji"
+   ],
+   "file": "twemoji/1f3a4.svg",
+   "name": "マイク",
+   "tags": [
+    "カラオケ",
+    "歌"
+   ],
+   "kind": "color",
+   "source": "twemoji"
+  },
+  {
+   "id": "twemoji:1f4f7",
+   "cats": [
+    "emoji"
+   ],
+   "file": "twemoji/1f4f7.svg",
+   "name": "カメラ",
+   "tags": [
+    "写真"
+   ],
+   "kind": "color",
+   "source": "twemoji"
+  },
+  {
+   "id": "twemoji:1f319",
+   "cats": [
+    "emoji"
+   ],
+   "file": "twemoji/1f319.svg",
+   "name": "三日月",
+   "tags": [
+    "月",
+    "夜"
+   ],
+   "kind": "color",
+   "source": "twemoji"
+  },
+  {
+   "id": "twemoji:2600",
+   "cats": [
+    "emoji"
+   ],
+   "file": "twemoji/2600.svg",
+   "name": "晴れ",
+   "tags": [
+    "太陽"
+   ],
+   "kind": "color",
+   "source": "twemoji"
+  },
+  {
+   "id": "twemoji:2601",
+   "cats": [
+    "emoji"
+   ],
+   "file": "twemoji/2601.svg",
+   "name": "くもり",
+   "tags": [
+    "雲"
+   ],
+   "kind": "color",
+   "source": "twemoji"
+  },
+  {
+   "id": "twemoji:2614",
+   "cats": [
+    "emoji"
+   ],
+   "file": "twemoji/2614.svg",
+   "name": "雨",
+   "tags": [
+    "傘"
+   ],
+   "kind": "color",
+   "source": "twemoji"
+  },
+  {
+   "id": "twemoji:2744",
+   "cats": [
+    "emoji"
+   ],
+   "file": "twemoji/2744.svg",
+   "name": "雪",
+   "tags": [
+    "冷凍"
+   ],
+   "kind": "color",
+   "source": "twemoji"
+  },
+  {
+   "id": "twemoji:1f525",
+   "cats": [
+    "emoji"
+   ],
+   "file": "twemoji/1f525.svg",
+   "name": "炎",
+   "tags": [
+    "火",
+    "熱い"
+   ],
+   "kind": "color",
+   "source": "twemoji"
+  },
+  {
+   "id": "twemoji:1f4a7",
+   "cats": [
+    "emoji"
+   ],
+   "file": "twemoji/1f4a7.svg",
+   "name": "しずく",
+   "tags": [
+    "水"
+   ],
+   "kind": "color",
+   "source": "twemoji"
+  },
+  {
+   "id": "twemoji:1f308",
+   "cats": [
+    "emoji"
+   ],
+   "file": "twemoji/1f308.svg",
+   "name": "虹",
+   "tags": [
+    "にじ"
+   ],
+   "kind": "color",
+   "source": "twemoji"
+  },
+  {
+   "id": "twemoji:1f600",
+   "cats": [
+    "emoji"
+   ],
+   "file": "twemoji/1f600.svg",
+   "name": "にっこり",
+   "tags": [
+    "笑顔",
+    "顔"
+   ],
+   "kind": "color",
+   "source": "twemoji"
+  },
+  {
+   "id": "twemoji:1f60a",
+   "cats": [
+    "emoji"
+   ],
+   "file": "twemoji/1f60a.svg",
+   "name": "ほほえみ",
+   "tags": [
+    "笑顔",
+    "顔"
+   ],
+   "kind": "color",
+   "source": "twemoji"
+  },
+  {
+   "id": "twemoji:1f60d",
+   "cats": [
+    "emoji"
+   ],
+   "file": "twemoji/1f60d.svg",
+   "name": "目がハート",
+   "tags": [
+    "好き",
+    "顔"
+   ],
+   "kind": "color",
+   "source": "twemoji"
+  },
+  {
+   "id": "twemoji:1f602",
+   "cats": [
+    "emoji"
+   ],
+   "file": "twemoji/1f602.svg",
+   "name": "うれし泣き",
+   "tags": [
+    "笑い",
+    "顔"
+   ],
+   "kind": "color",
+   "source": "twemoji"
+  },
+  {
+   "id": "twemoji:1f622",
+   "cats": [
+    "emoji"
+   ],
+   "file": "twemoji/1f622.svg",
+   "name": "なみだ",
+   "tags": [
+    "泣く",
+    "顔"
+   ],
+   "kind": "color",
+   "source": "twemoji"
+  },
+  {
+   "id": "twemoji:1f621",
+   "cats": [
+    "emoji"
+   ],
+   "file": "twemoji/1f621.svg",
+   "name": "ぷんぷん",
+   "tags": [
+    "怒り",
+    "顔"
+   ],
+   "kind": "color",
+   "source": "twemoji"
+  },
+  {
+   "id": "twemoji:1f970",
+   "cats": [
+    "emoji"
+   ],
+   "file": "twemoji/1f970.svg",
+   "name": "ハートの顔",
+   "tags": [
+    "好き",
+    "顔"
+   ],
+   "kind": "color",
+   "source": "twemoji"
+  },
+  {
+   "id": "twemoji:1f60e",
+   "cats": [
+    "emoji"
+   ],
+   "file": "twemoji/1f60e.svg",
+   "name": "サングラス",
+   "tags": [
+    "かっこいい",
+    "顔"
+   ],
+   "kind": "color",
+   "source": "twemoji"
+  },
+  {
+   "id": "twemoji:1f914",
+   "cats": [
+    "emoji"
+   ],
+   "file": "twemoji/1f914.svg",
+   "name": "考え中",
+   "tags": [
+    "うーん",
+    "顔"
+   ],
+   "kind": "color",
+   "source": "twemoji"
+  },
+  {
+   "id": "twemoji:1f44d",
+   "cats": [
+    "emoji"
+   ],
+   "file": "twemoji/1f44d.svg",
+   "name": "いいね",
+   "tags": [
+    "グッド"
+   ],
+   "kind": "color",
+   "source": "twemoji"
+  },
+  {
+   "id": "twemoji:1f44f",
+   "cats": [
+    "emoji"
+   ],
+   "file": "twemoji/1f44f.svg",
+   "name": "拍手",
+   "tags": [
+    "ぱちぱち"
+   ],
+   "kind": "color",
+   "source": "twemoji"
+  },
+  {
+   "id": "twemoji:1f64f",
+   "cats": [
+    "emoji"
+   ],
+   "file": "twemoji/1f64f.svg",
+   "name": "おねがい",
+   "tags": [
+    "ありがとう"
+   ],
+   "kind": "color",
+   "source": "twemoji"
+  },
+  {
+   "id": "twemoji:1f4af",
+   "cats": [
+    "emoji"
+   ],
+   "file": "twemoji/1f4af.svg",
+   "name": "100点",
+   "tags": [
+    "満点"
+   ],
+   "kind": "color",
+   "source": "twemoji"
+  },
+  {
+   "id": "twemoji:1f197",
+   "cats": [
+    "emoji"
+   ],
+   "file": "twemoji/1f197.svg",
+   "name": "OK",
+   "tags": [
+    "おけ"
+   ],
+   "kind": "color",
+   "source": "twemoji"
+  },
+  {
+   "id": "twemoji:1f195",
+   "cats": [
+    "emoji"
+   ],
+   "file": "twemoji/1f195.svg",
+   "name": "NEW",
+   "tags": [
+    "新しい"
+   ],
+   "kind": "color",
+   "source": "twemoji"
+  },
+  {
+   "id": "twemoji:1f250",
+   "cats": [
+    "emoji"
+   ],
+   "file": "twemoji/1f250.svg",
+   "name": "得",
+   "tags": [
+    "お得"
+   ],
+   "kind": "color",
+   "source": "twemoji"
+  },
+  {
+   "id": "twemoji:1f530",
+   "cats": [
+    "emoji"
+   ],
+   "file": "twemoji/1f530.svg",
+   "name": "初心者",
+   "tags": [
+    "若葉"
+   ],
+   "kind": "color",
+   "source": "twemoji"
+  },
+  {
+   "id": "twemoji:2668",
+   "cats": [
+    "emoji"
+   ],
+   "file": "twemoji/2668.svg",
+   "name": "温泉",
+   "tags": [
+    "おんせん"
+   ],
+   "kind": "color",
+   "source": "twemoji"
+  },
+  {
+   "id": "twemoji:1f5fb",
+   "cats": [
+    "emoji"
+   ],
+   "file": "twemoji/1f5fb.svg",
+   "name": "富士山",
+   "tags": [
+    "山"
+   ],
+   "kind": "color",
+   "source": "twemoji"
+  },
+  {
+   "id": "twemoji:1f38d",
+   "cats": [
+    "emoji"
+   ],
+   "file": "twemoji/1f38d.svg",
+   "name": "門松",
+   "tags": [
+    "お正月"
+   ],
+   "kind": "color",
+   "source": "twemoji"
+  },
+  {
+   "id": "sticker:starburst",
+   "cats": [
+    "stickers"
+   ],
+   "file": "stickers/starburst.svg",
+   "name": "星形バッジ",
+   "tags": [
+    "セール",
+    "目立つ",
+    "ばくはつ"
+   ],
+   "kind": "fill",
+   "source": "original"
+  },
+  {
+   "id": "sticker:rosette",
+   "cats": [
+    "stickers"
+   ],
+   "file": "stickers/rosette.svg",
+   "name": "ロゼット",
+   "tags": [
+    "賞",
+    "リボン",
+    "1位"
+   ],
+   "kind": "fill",
+   "source": "original"
+  },
+  {
+   "id": "sticker:ribbon-banner",
+   "cats": [
+    "stickers"
+   ],
+   "file": "stickers/ribbon-banner.svg",
+   "name": "リボン帯",
+   "tags": [
+    "見出し",
+    "タイトル"
+   ],
+   "kind": "fill",
+   "source": "original"
+  },
+  {
+   "id": "sticker:speech-bubble",
+   "cats": [
+    "stickers"
+   ],
+   "file": "stickers/speech-bubble.svg",
+   "name": "ふきだし",
+   "tags": [
+    "吹き出し",
+    "セリフ"
+   ],
+   "kind": "fill",
+   "source": "original"
+  },
+  {
+   "id": "sticker:thought-bubble",
+   "cats": [
+    "stickers"
+   ],
+   "file": "stickers/thought-bubble.svg",
+   "name": "もくもくふきだし",
+   "tags": [
+    "考え",
+    "吹き出し"
+   ],
+   "kind": "fill",
+   "source": "original"
+  },
+  {
+   "id": "sticker:tag-shape",
+   "cats": [
+    "stickers"
+   ],
+   "file": "stickers/tag-shape.svg",
+   "name": "荷札",
+   "tags": [
+    "タグ",
+    "値札"
+   ],
+   "kind": "fill",
+   "source": "original"
+  },
+  {
+   "id": "sticker:circle-badge",
+   "cats": [
+    "stickers"
+   ],
+   "file": "stickers/circle-badge.svg",
+   "name": "二重丸バッジ",
+   "tags": [
+    "スタンプ",
+    "判子"
+   ],
+   "kind": "fill",
+   "source": "original"
+  },
+  {
+   "id": "sticker:heart-badge",
+   "cats": [
+    "stickers"
+   ],
+   "file": "stickers/heart-badge.svg",
+   "name": "ハートの台紙",
+   "tags": [
+    "かわいい"
+   ],
+   "kind": "fill",
+   "source": "original"
+  },
+  {
+   "id": "sticker:cloud-badge",
+   "cats": [
+    "stickers"
+   ],
+   "file": "stickers/cloud-badge.svg",
+   "name": "雲の台紙",
+   "tags": [
+    "くも",
+    "かわいい"
+   ],
+   "kind": "fill",
+   "source": "original"
+  },
+  {
+   "id": "sticker:flower-badge",
+   "cats": [
+    "stickers"
+   ],
+   "file": "stickers/flower-badge.svg",
+   "name": "花の台紙",
+   "tags": [
+    "はな",
+    "かわいい"
+   ],
+   "kind": "fill",
+   "source": "original"
+  },
+  {
+   "id": "sticker:price-plate",
+   "cats": [
+    "stickers"
+   ],
+   "file": "stickers/price-plate.svg",
+   "name": "プレート",
+   "tags": [
+    "見出し",
+    "名札"
+   ],
+   "kind": "fill",
+   "source": "original"
+  },
+  {
+   "id": "sticker:arrow-banner",
+   "cats": [
+    "stickers"
+   ],
+   "file": "stickers/arrow-banner.svg",
+   "name": "矢羽根の帯",
+   "tags": [
+    "見出し",
+    "矢印"
+   ],
+   "kind": "fill",
+   "source": "original"
+  }
+ ]
+}
