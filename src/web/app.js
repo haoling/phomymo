@@ -4,7 +4,7 @@
  * v116
  */
 
-import { CanvasRenderer } from './canvas.js?v=117';
+import { CanvasRenderer } from './canvas.js?v=118';
 import { BLETransport } from './ble.js?v=103';
 import { USBTransport } from './usb.js?v=101';
 import { print, printDensityTest, isDSeriesPrinter, isP12Printer, isA30Printer, isTapePrinter, isPM241Printer, isTSPLPrinter, isRotatedPrinter, getPrinterWidthBytes, getPrinterDpi, getPrinterAlignment, getPrinterDescription, isDeviceRecognized, getMatchedPattern, loadPrinterDefinitions, getAllPrinterDefinitions, getPrinterDefinition, getCustomPrinterDefinitions, saveCustomPrinterDefinition, deleteCustomPrinterDefinition, isBuiltinPrinter, resetBuiltinPrinter, getAvailableProtocols, getAvailableLabelPresets, getDetectedDefinition } from './printer.js?v=129';
@@ -38,7 +38,7 @@ import {
   removeElementsInHigherZones,
   normalizeCrop,
   getImageBaseSize,
-} from './elements.js?v=102';
+} from './elements.js?v=103';
 import {
   HandleType,
   getHandleAtPoint,
@@ -62,6 +62,7 @@ import { initAccountUI, showGuestNotice, showAccountDialog, isGuest } from './ac
 import { initAssetsPanel, ASSET_DEFAULTS } from './assets-panel.js';
 import { createFrameElement, frameGeometryForLabel, FRAME_STYLES } from './frames.js';
 import { openCropDialog } from './image-crop.js';
+import { initTextStylePanel, updateTextStylePanel, mobileTextStyleHtml, wireMobileTextStyle } from './text-style-panel.js';
 import {
   extractFields,
   hasTemplateFields,
@@ -2287,7 +2288,7 @@ function modifyElement(id, changes) {
   if (['x', 'y', 'width', 'height', 'rotation'].some(k => k in changes)) releaseMovedFrames();
 
   // Only clear cache if content or size changed (not just position/rotation)
-  const contentKeys = ['width', 'height', 'text', 'fontSize', 'fontFamily', 'fontWeight', 'fontStyle', 'textDecoration', 'background', 'noWrap', 'clipOverflow', 'autoScale', 'verticalAlign', 'imageData', 'barcodeData', 'barcodeFormat', 'qrData', 'brightness', 'contrast', 'dither', 'crop', 'flipX', 'flipY', 'showText', 'textFontSize', 'textBold'];
+  const contentKeys = ['width', 'height', 'text', 'fontSize', 'fontFamily', 'fontWeight', 'fontStyle', 'textDecoration', 'background', 'noWrap', 'clipOverflow', 'autoScale', 'verticalAlign', 'imageData', 'barcodeData', 'barcodeFormat', 'qrData', 'brightness', 'contrast', 'dither', 'crop', 'flipX', 'flipY', 'letterSpacing', 'arc', 'showText', 'textFontSize', 'textBold'];
   const needsCacheClear = Object.keys(changes).some(key => contentKeys.includes(key));
   if (needsCacheClear) {
     state.renderer.clearCache(id);
@@ -2349,6 +2350,7 @@ function startInlineEdit(elementId) {
     textAlign: element.align || 'left',
     color: element.color === 'white' ? '#fff' : '#000',
     lineHeight: '1.2',
+    letterSpacing: element.letterSpacing ? `${element.letterSpacing}em` : '',
   });
 
   // Set content and show
@@ -2465,6 +2467,7 @@ function updatePropertiesPanel() {
       $('#prop-no-wrap').checked = element.noWrap || false;
       $('#prop-clip-overflow').checked = element.clipOverflow || false;
       $('#prop-auto-scale').checked = element.autoScale || false;
+      updateTextStylePanel(element); // #24 字間・曲線文字
       // Update horizontal alignment buttons
       $$('.align-btn').forEach(btn => {
         btn.classList.toggle('bg-gray-100', btn.dataset.align === element.align);
@@ -4753,6 +4756,16 @@ async function openImageCrop(id) {
   if (result) applyImageCrop(id, result.crop);
 }
 
+/** #24 字間・曲線文字のパネルに渡すもの */
+const textStyleCtx = {
+  getSelected: () => getSelected(),
+  modifyElement: (id, changes) => modifyElement(id, changes),
+  saveHistory: () => saveHistory(),
+  getLabelDims: () => state.renderer.getSingleLabelDimensions(),
+  refresh: () => { updatePropertiesPanel(); refreshMobilePropsIfOpen(); },
+  setStatus: (msg) => setStatus(msg),
+};
+
 /** スマホのプロパティシートが開いていれば作り直す */
 function refreshMobilePropsIfOpen() {
   const panel = document.getElementById('mobile-props-panel');
@@ -6622,6 +6635,7 @@ function populateMobileProps() {
           </label>
         </div>
       </div>
+      ${mobileTextStyleHtml(selected)}
     `;
   } else if (selected.type === 'barcode') {
     html += `
@@ -6957,6 +6971,7 @@ function wireUpMobilePropHandlers(element) {
   $('#mobile-prop-noWrap')?.addEventListener('change', (e) => updateProp('noWrap', e.target.checked));
   $('#mobile-prop-clipOverflow')?.addEventListener('change', (e) => updateProp('clipOverflow', e.target.checked));
   $('#mobile-prop-autoScale')?.addEventListener('change', (e) => updateProp('autoScale', e.target.checked));
+  if (element.type === 'text') wireMobileTextStyle(element, textStyleCtx); // #24
 
   // Barcode/QR properties - use live update for typing
   const valueInput = $('#mobile-prop-value');
@@ -8081,6 +8096,7 @@ function init() {
   bindCheckbox('#prop-no-wrap', 'noWrap', 'text', bindCtx);
   bindCheckbox('#prop-clip-overflow', 'clipOverflow', 'text', bindCtx);
   bindCheckbox('#prop-auto-scale', 'autoScale', 'text', bindCtx);
+  initTextStylePanel(textStyleCtx); // #24 字間・曲線文字
 
   // Font style toggle buttons
   bindToggleButton('#style-bold', 'fontWeight', 'text', bindCtx);

@@ -39,6 +39,8 @@ export function createTextElement(text = 'Text', options = {}) {
     noWrap: options.noWrap ?? false,               // true = single line, no wrap
     clipOverflow: options.clipOverflow ?? false,   // true = clip text at box boundary
     autoScale: options.autoScale ?? false,         // true = auto-fit text to box size
+    letterSpacing: options.letterSpacing ?? 0,     // #24 字間(文字の大きさに対する割合。0.1 = 10%)
+    arc: options.arc ?? null,                      // #24 曲線文字 { radius(px), direction: 'up'|'down' } / null
   };
 }
 
