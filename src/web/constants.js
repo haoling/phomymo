@@ -132,7 +132,10 @@ export const BLE = {
 // =============================================================================
 export const STORAGE_KEYS = {
   DEVICE_MAPPING: 'phomymo_device_models',
-  DESIGNS: 'phomymo_designs',
+  DESIGNS: 'phomymo_designs', // 旧形式(名前がキー)。読み込み時に DESIGN_RECORDS へ移す
+  DESIGN_RECORDS: 'phomymo_design_records', // id(uuid)がキー。Drive 同期の単位
+  PRINT_SETTINGS: 'phomymo_print_settings',
+  INFO_SEEN: 'phomymo_info_seen',
   SETTINGS: 'phomymo_settings',
   MULTI_LABEL_PRESETS: 'phomymo_multi_label_presets',
   LOCAL_FONTS_ENABLED: 'phomymo_local_fonts_enabled',

@@ -3,6 +3,8 @@
  * Provides consistent error handling across the application
  */
 
+import * as kv from '../kv.js';
+
 // Error severity levels
 export const ErrorLevel = {
   INFO: 'info',
@@ -236,32 +238,32 @@ export function safeJsonStringify(value, fallback = '{}') {
 }
 
 /**
- * Safe localStorage get
+ * Safe storage get (kv.js 経由)
  * @param {string} key - Storage key
  * @param {*} fallback - Value to return on error
  * @returns {string|null} Stored value or fallback
  */
 export function safeStorageGet(key, fallback = null) {
   try {
-    return localStorage.getItem(key) ?? fallback;
+    return kv.getItem(key) ?? fallback;
   } catch (error) {
-    logError(error, `localStorage get: ${key}`, ErrorLevel.WARNING);
+    logError(error, `storage get: ${key}`, ErrorLevel.WARNING);
     return fallback;
   }
 }
 
 /**
- * Safe localStorage set
+ * Safe storage set (kv.js 経由)
  * @param {string} key - Storage key
  * @param {string} value - Value to store
  * @returns {boolean} Success status
  */
 export function safeStorageSet(key, value) {
   try {
-    localStorage.setItem(key, value);
+    kv.setItem(key, value);
     return true;
   } catch (error) {
-    logError(error, `localStorage set: ${key}`, ErrorLevel.WARNING);
+    logError(error, `storage set: ${key}`, ErrorLevel.WARNING);
     // Check if it's a quota exceeded error
     if (error.name === 'QuotaExceededError') {
       showError('Storage is full. Some data may not be saved.');
@@ -271,16 +273,16 @@ export function safeStorageSet(key, value) {
 }
 
 /**
- * Safe localStorage remove
+ * Safe storage remove (kv.js 経由)
  * @param {string} key - Storage key
  * @returns {boolean} Success status
  */
 export function safeStorageRemove(key) {
   try {
-    localStorage.removeItem(key);
+    kv.removeItem(key);
     return true;
   } catch (error) {
-    logError(error, `localStorage remove: ${key}`, ErrorLevel.WARNING);
+    logError(error, `storage remove: ${key}`, ErrorLevel.WARNING);
     return false;
   }
 }

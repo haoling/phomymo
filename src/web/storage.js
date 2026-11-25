@@ -1,31 +1,80 @@
 /**
- * localStorage persistence for Phomymo label designs
+ * デザインの保存(kv.js 経由。ゲストモードではメモリ、ログイン中は localStorage)
+ *
+ * デザインは1件ずつ「レコード」として持つ。Drive 同期(#40)の単位もこれ。
+ *   { id, name, updatedAt, deleted, design, driveFileId?, dirty? }
+ * - id: リネームしても変わらない uuid
+ * - deleted: 削除の墓標。他の端末に削除を伝えるために残す
+ * - dirty: まだ Drive に送っていない変更がある
+ * - driveFileId: Drive 上のファイル(一度でも送ったことがある印)
+ *
+ * app.js からは今までどおり「名前」で扱える同期APIのまま。
  */
 
 import { STORAGE_KEYS } from './constants.js';
+import * as kv from './kv.js';
 
-const STORAGE_KEY = STORAGE_KEYS.DESIGNS;
+const RECORDS_KEY = STORAGE_KEYS.DESIGN_RECORDS;
+const LEGACY_DESIGNS_KEY = STORAGE_KEYS.DESIGNS;
 const MULTI_LABEL_PRESETS_KEY = STORAGE_KEYS.MULTI_LABEL_PRESETS;
 
-/**
- * Get all saved designs from localStorage
- */
-function getAllDesigns() {
-  try {
-    const data = localStorage.getItem(STORAGE_KEY);
-    return data ? JSON.parse(data) : {};
-  } catch (e) {
-    console.error('Failed to load designs:', e);
-    return {};
-  }
+export function newDesignId() {
+  if (globalThis.crypto?.randomUUID) return crypto.randomUUID();
+  // 予備(secure context でない場合)
+  const b = new Uint8Array(16);
+  crypto.getRandomValues(b);
+  b[6] = (b[6] & 0x0f) | 0x40;
+  b[8] = (b[8] & 0x3f) | 0x80;
+  const h = [...b].map(x => x.toString(16).padStart(2, '0')).join('');
+  return `${h.slice(0, 8)}-${h.slice(8, 12)}-${h.slice(12, 16)}-${h.slice(16, 20)}-${h.slice(20)}`;
 }
 
-/**
- * Save all designs to localStorage
- */
-function setAllDesigns(designs) {
+function nextTimestamp(prev) {
+  return Math.max(Date.now(), (prev || 0) + 1);
+}
+
+/** 旧形式(名前がキー)のデザインがあれば、uuid を付けてレコードへ移す */
+function migrateLegacy(records) {
+  const raw = kv.getItem(LEGACY_DESIGNS_KEY);
+  if (raw === null) return false;
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(designs));
+    const legacy = JSON.parse(raw) || {};
+    for (const [name, design] of Object.entries(legacy)) {
+      const exists = Object.values(records).some(r => !r.deleted && r.name === name);
+      if (exists) continue;
+      const id = newDesignId();
+      records[id] = {
+        id,
+        name,
+        updatedAt: nextTimestamp(design?.savedAt),
+        deleted: false,
+        design: design || {},
+        dirty: true,
+      };
+    }
+  } catch (e) {
+    console.error('Failed to migrate legacy designs:', e);
+  }
+  kv.removeItem(LEGACY_DESIGNS_KEY);
+  return true;
+}
+
+function readRecords() {
+  let records = {};
+  try {
+    const data = kv.getItem(RECORDS_KEY);
+    records = data ? JSON.parse(data) || {} : {};
+  } catch (e) {
+    console.error('Failed to load designs:', e);
+    records = {};
+  }
+  if (migrateLegacy(records)) writeRecords(records);
+  return records;
+}
+
+function writeRecords(records) {
+  try {
+    kv.setItem(RECORDS_KEY, JSON.stringify(records));
     return true;
   } catch (e) {
     console.error('Failed to save designs:', e);
@@ -33,8 +82,23 @@ function setAllDesigns(designs) {
   }
 }
 
+/** 名前で生きているレコードを探す(同名が複数あれば新しいほう) */
+function findLiveByName(records, name) {
+  let found = null;
+  for (const r of Object.values(records)) {
+    if (r.deleted || r.name !== name) continue;
+    if (!found || r.updatedAt > found.updatedAt) found = r;
+  }
+  return found;
+}
+
+function touch(record) {
+  record.updatedAt = nextTimestamp(record.updatedAt);
+  record.dirty = true;
+}
+
 /**
- * Save a design to localStorage
+ * Save a design
  * @param {string} name - Design name
  * @param {object} design - { elements: [], labelSize: { width, height } }
  */
@@ -42,38 +106,42 @@ export function saveDesign(name, design) {
   if (!name || !name.trim()) {
     throw new Error('Design name is required');
   }
+  const trimmed = name.trim();
+  const records = readRecords();
+  let record = findLiveByName(records, trimmed);
+  if (!record) {
+    const id = newDesignId();
+    record = { id, name: trimmed, updatedAt: 0, deleted: false, design: null };
+    records[id] = record;
+  }
+  record.design = { ...design, savedAt: Date.now() };
+  touch(record);
 
-  const designs = getAllDesigns();
-  designs[name.trim()] = {
-    ...design,
-    savedAt: Date.now(),
-  };
-
-  if (!setAllDesigns(designs)) {
+  if (!writeRecords(records)) {
     throw new Error('Failed to save design');
   }
-
   return true;
 }
 
 /**
- * Load a design from localStorage
+ * Load a design
  * @param {string} name - Design name
  * @returns {object|null} - { elements: [], labelSize: { width, height }, savedAt: number }
  */
 export function loadDesign(name) {
-  const designs = getAllDesigns();
-  return designs[name] || null;
+  const record = findLiveByName(readRecords(), name);
+  return record ? record.design : null;
 }
 
 /**
  * Get list of saved design names with metadata
- * @returns {Array} - [{ name, savedAt, labelSize, elementCount, isTemplate, templateDataCount, isMultiLabel }]
+ * @returns {Array} - [{ id, name, savedAt, labelSize, elementCount, isTemplate, templateDataCount, isMultiLabel, dirty }]
  */
 export function listDesigns() {
-  const designs = getAllDesigns();
-  return Object.entries(designs)
-    .map(([name, design]) => ({
+  return Object.values(readRecords())
+    .filter(r => !r.deleted && r.design)
+    .map(({ id, name, design, dirty }) => ({
+      id,
       name,
       savedAt: design.savedAt,
       labelSize: design.labelSize,
@@ -84,38 +152,43 @@ export function listDesigns() {
       hasImages: design.elements?.some(el => el.type === 'image') || false,
       isMultiLabel: design.multiLabel?.enabled || false,
       multiLabel: design.multiLabel || null,
+      dirty: !!dirty,
     }))
-    .sort((a, b) => b.savedAt - a.savedAt); // Most recent first
+    .sort((a, b) => (b.savedAt || 0) - (a.savedAt || 0)); // Most recent first
 }
 
 /**
- * Delete a design from localStorage
+ * Delete a design(墓標を残す)
  * @param {string} name - Design name
  */
 export function deleteDesign(name) {
-  const designs = getAllDesigns();
-  if (!(name in designs)) {
+  const records = readRecords();
+  const record = findLiveByName(records, name);
+  if (!record) {
     return false;
   }
-
-  delete designs[name];
-  return setAllDesigns(designs);
+  record.deleted = true;
+  record.design = null;
+  touch(record);
+  return writeRecords(records);
 }
 
 /**
  * Update only the counter state of a saved design (#31)
- * 印刷のたびに呼ばれるので savedAt は変えない
+ * 印刷のたびに呼ばれるので savedAt は変えない(同期用の updatedAt は進める)
  * @param {string} name - Design name
  * @param {{resume: boolean, next: number}} counter
  * @returns {boolean} - false if the design does not exist
  */
 export function updateDesignCounter(name, counter) {
-  const designs = getAllDesigns();
-  if (!(name in designs)) {
+  const records = readRecords();
+  const record = findLiveByName(records, name);
+  if (!record) {
     return false;
   }
-  designs[name].counter = { resume: !!counter.resume, next: Math.max(0, counter.next | 0) };
-  return setAllDesigns(designs);
+  record.design.counter = { resume: !!counter.resume, next: Math.max(0, counter.next | 0) };
+  touch(record);
+  return writeRecords(records);
 }
 
 /**
@@ -128,22 +201,20 @@ export function renameDesign(oldName, newName) {
     throw new Error('New name is required');
   }
 
-  const designs = getAllDesigns();
-  if (!(oldName in designs)) {
+  const records = readRecords();
+  const record = findLiveByName(records, oldName);
+  if (!record) {
     throw new Error('Design not found');
   }
 
   const trimmedNew = newName.trim();
-  if (trimmedNew !== oldName && trimmedNew in designs) {
+  if (trimmedNew !== oldName && findLiveByName(records, trimmedNew)) {
     throw new Error('A design with that name already exists');
   }
 
-  designs[trimmedNew] = designs[oldName];
-  if (trimmedNew !== oldName) {
-    delete designs[oldName];
-  }
-
-  return setAllDesigns(designs);
+  record.name = trimmedNew;
+  touch(record);
+  return writeRecords(records);
 }
 
 /**
@@ -151,9 +222,50 @@ export function renameDesign(oldName, newName) {
  * @param {string} name - Design name
  */
 export function designExists(name) {
-  const designs = getAllDesigns();
-  return name in designs;
+  return !!findLiveByName(readRecords(), name);
 }
+
+// =============================================================================
+// 同期(#40)用。sync.js から使う
+// =============================================================================
+
+/** 全レコード(墓標を含む)のコピー */
+export function getDesignRecords() {
+  return readRecords();
+}
+
+/**
+ * レコードを差し替える(同期で取ってきたもの、または送ったあとの印付け)
+ * @param {object} record
+ * @param {{ifUpdatedAt?: number}} [opts] - 指定したときは、手元の updatedAt が同じときだけ書く
+ *   (送っている間に手元で編集された場合に、その編集を消さないため)
+ * @returns {boolean} 書いたかどうか
+ */
+export function putDesignRecord(record, opts = {}) {
+  const records = readRecords();
+  const cur = records[record.id];
+  if (opts.ifUpdatedAt !== undefined && cur && cur.updatedAt !== opts.ifUpdatedAt) {
+    return false;
+  }
+  records[record.id] = { ...record };
+  return writeRecords(records);
+}
+
+/** レコードを手元から消す(墓標の物理削除など) */
+export function removeDesignRecord(id) {
+  const records = readRecords();
+  if (!(id in records)) return false;
+  delete records[id];
+  return writeRecords(records);
+}
+
+/** まだ Drive に送っていない変更の数 */
+export function countUnsyncedDesigns() {
+  return Object.values(readRecords()).filter(r => r.dirty).length;
+}
+
+/** 同期の対象になるキー(kv.onChange で使う) */
+export const DESIGN_RECORDS_KEY = RECORDS_KEY;
 
 /**
  * Export design as JSON string (for file download)
@@ -240,8 +352,8 @@ export function importDesign(jsonString, overrideName = null) {
  * Get storage usage info
  */
 export function getStorageInfo() {
-  const designs = getAllDesigns();
-  const designCount = Object.keys(designs).length;
+  const designs = Object.values(readRecords()).filter(r => !r.deleted);
+  const designCount = designs.length;
   const dataSize = JSON.stringify(designs).length;
 
   return {
@@ -256,12 +368,12 @@ export function getStorageInfo() {
 // =============================================================================
 
 /**
- * Get all saved multi-label presets from localStorage
+ * Get all saved multi-label presets 
  * @returns {object} - { presetName: { labelWidth, labelHeight, labelsAcross, gapMm }, ... }
  */
 export function getMultiLabelPresets() {
   try {
-    const data = localStorage.getItem(MULTI_LABEL_PRESETS_KEY);
+    const data = kv.getItem(MULTI_LABEL_PRESETS_KEY);
     return data ? JSON.parse(data) : {};
   } catch (e) {
     console.error('Failed to load multi-label presets:', e);
@@ -288,7 +400,7 @@ export function saveMultiLabelPreset(name, config) {
   };
 
   try {
-    localStorage.setItem(MULTI_LABEL_PRESETS_KEY, JSON.stringify(presets));
+    kv.setItem(MULTI_LABEL_PRESETS_KEY, JSON.stringify(presets));
     return true;
   } catch (e) {
     console.error('Failed to save multi-label preset:', e);
@@ -308,7 +420,7 @@ export function deleteMultiLabelPreset(name) {
 
   delete presets[name];
   try {
-    localStorage.setItem(MULTI_LABEL_PRESETS_KEY, JSON.stringify(presets));
+    kv.setItem(MULTI_LABEL_PRESETS_KEY, JSON.stringify(presets));
     return true;
   } catch (e) {
     console.error('Failed to delete multi-label preset:', e);
