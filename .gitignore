@@ -3,6 +3,7 @@
 *.md
 !README.md
 !docs/manual.md
+!ASSETS_LICENSE.md
 node_modules/
 
 # Playwright

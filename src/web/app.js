@@ -4,7 +4,7 @@
  * v116
  */
 
-import { CanvasRenderer } from './canvas.js?v=115';
+import { CanvasRenderer } from './canvas.js?v=116';
 import { BLETransport } from './ble.js?v=103';
 import { USBTransport } from './usb.js?v=101';
 import { print, printDensityTest, isDSeriesPrinter, isP12Printer, isA30Printer, isTapePrinter, isPM241Printer, isTSPLPrinter, isRotatedPrinter, getPrinterWidthBytes, getPrinterDpi, getPrinterAlignment, getPrinterDescription, isDeviceRecognized, getMatchedPattern, loadPrinterDefinitions, getAllPrinterDefinitions, getPrinterDefinition, getCustomPrinterDefinitions, saveCustomPrinterDefinition, deleteCustomPrinterDefinition, isBuiltinPrinter, resetBuiltinPrinter, getAvailableProtocols, getAvailableLabelPresets, getDetectedDefinition } from './printer.js?v=129';
@@ -57,6 +57,8 @@ import {
   updateDesignCounter,
 } from './storage.js?v=102';
 import { initAccountUI, showGuestNotice, showAccountDialog, isGuest } from './account-ui.js';
+import { initAssetsPanel, ASSET_DEFAULTS } from './assets-panel.js';
+import { createFrameElement, frameGeometryForLabel, FRAME_STYLES } from './frames.js';
 import {
   extractFields,
   hasTemplateFields,
@@ -2279,6 +2281,7 @@ function deselect() {
  */
 function modifyElement(id, changes) {
   state.elements = updateElement(state.elements, id, changes);
+  if (['x', 'y', 'width', 'height', 'rotation'].some(k => k in changes)) releaseMovedFrames();
 
   // Only clear cache if content or size changed (not just position/rotation)
   const contentKeys = ['width', 'height', 'text', 'fontSize', 'fontFamily', 'fontWeight', 'fontStyle', 'textDecoration', 'background', 'noWrap', 'clipOverflow', 'autoScale', 'verticalAlign', 'imageData', 'barcodeData', 'barcodeFormat', 'qrData', 'brightness', 'contrast', 'dither', 'showText', 'textFontSize', 'textBold'];
@@ -2447,6 +2450,7 @@ function updatePropertiesPanel() {
   $('#props-barcode').classList.add('hidden');
   $('#props-qr').classList.add('hidden');
   $('#props-shape').classList.add('hidden');
+  $('#props-frame').classList.add('hidden');
 
   // Show and populate type-specific panel
   switch (element.type) {
@@ -2539,6 +2543,16 @@ function updatePropertiesPanel() {
         btn.classList.toggle('ring-2', btn.dataset.stroke === strokeValue);
         btn.classList.toggle('ring-blue-400', btn.dataset.stroke === strokeValue);
       });
+      break;
+
+    case 'frame':
+      $('#props-frame').classList.remove('hidden');
+      $('#prop-frame-style').value = element.frameStyle || 'single';
+      $('#prop-frame-shape').value = element.frameShape === 'ellipse' ? 'ellipse' : 'rect';
+      $('#prop-frame-color').value = element.color === 'white' ? 'white' : 'black';
+      $('#prop-frame-stroke').value = element.strokeWidth || 3;
+      $('#prop-frame-margin').value = element.frameMargin ?? 8;
+      $('#prop-frame-fit').checked = !!element.fitToLabel;
       break;
   }
 
@@ -3452,6 +3466,7 @@ function handleCanvasMouseUp() {
   }
   // Auto-clone after drag/resize operations
   if (wasDragging) {
+    releaseMovedFrames();
     autoCloneIfEnabled();
     render();
   }
@@ -4088,6 +4103,7 @@ function handleCanvasPointerUp(e) {
   }
 
   if (wasDragging) {
+    releaseMovedFrames();
     autoCloneIfEnabled();
     render();
   }
@@ -4510,6 +4526,7 @@ function handleCanvasTouchEnd(e) {
   }
 
   if (wasDragging) {
+    releaseMovedFrames();
     autoCloneIfEnabled();
     render();
   }
@@ -4673,6 +4690,103 @@ function addShapeElement(shapeType = 'rectangle') {
   autoCloneIfEnabled();
   selectElement(element.id);
   setStatus(`${shapeType.charAt(0).toUpperCase() + shapeType.slice(1)} added`);
+}
+
+/**
+ * 素材パネル(#27)から選んだ素材を、画像要素として追加する
+ */
+function addAssetImage({ dataUrl, width, height, name, assetId }) {
+  const dims = state.renderer.getSingleLabelDimensions();
+  // 仮決め: ラベルの短い辺の半分の大きさで、真ん中に置く(ASSET_DEFAULTS.sizeRatio)
+  const target = Math.min(dims.width, dims.height) * ASSET_DEFAULTS.sizeRatio;
+  const scale = target / Math.max(width, height);
+  const w = Math.max(8, Math.round(width * scale));
+  const h = Math.max(8, Math.round(height * scale));
+  const element = createImageElement(dataUrl, {
+    x: (dims.width - w) / 2,
+    y: (dims.height - h) / 2,
+    width: w,
+    height: h,
+    naturalWidth: w,
+    naturalHeight: h,
+    zone: state.activeZone,
+  });
+  element.assetId = assetId;
+  saveHistory();
+  state.elements.push(element);
+  autoCloneIfEnabled();
+  selectElement(element.id);
+  setStatus(`素材「${name}」を追加しました`);
+}
+
+/**
+ * 枠(#28)を追加する。ほかの要素の下に敷きたいので、いちばん後ろに入れる
+ */
+function addFrameElement(frameStyle) {
+  const dims = state.renderer.getSingleLabelDimensions();
+  const element = createFrameElement({
+    frameStyle,
+    frameShape: state.renderer.isRound ? 'ellipse' : 'rect',
+    zone: state.activeZone,
+  });
+  Object.assign(element, frameGeometryForLabel(element, dims));
+  saveHistory();
+  state.elements.unshift(element);
+  autoCloneIfEnabled();
+  selectElement(element.id);
+  const style = FRAME_STYLES.find(s => s.id === frameStyle);
+  setStatus(`枠「${style ? style.name : frameStyle}」を追加しました`);
+}
+
+/**
+ * 手で動かしたりサイズを変えたりした枠は、「ラベルに合わせる」を外す
+ * (そのままだと、ラベルのサイズを変えたときに元の位置へ戻ってしまうため)
+ */
+function releaseMovedFrames() {
+  const dims = state.renderer?.getSingleLabelDimensions();
+  if (!dims) return;
+  let released = false;
+  for (const el of state.elements) {
+    if (el.type !== 'frame' || !el.fitToLabel) continue;
+    const g = frameGeometryForLabel(el, dims);
+    const same = Math.abs(el.x - g.x) < 0.5 && Math.abs(el.y - g.y) < 0.5 &&
+      Math.abs(el.width - g.width) < 0.5 && Math.abs(el.height - g.height) < 0.5 && !el.rotation;
+    if (!same) {
+      el.fitToLabel = false;
+      released = true;
+    }
+  }
+  if (released) updatePropertiesPanel();
+}
+
+function clampInt(value, min, max, fallback) {
+  const n = parseInt(value, 10);
+  if (!Number.isFinite(n)) return fallback;
+  return Math.min(max, Math.max(min, n));
+}
+
+/**
+ * 「ラベルに合わせる」がオンの枠を、今のラベルの大きさに合わせ直す
+ * @returns {boolean} 変わったものがあれば true
+ */
+function refitFramesToLabel({ syncShape = false } = {}) {
+  if (!state.renderer || !Array.isArray(state.elements)) return false;
+  const dims = state.renderer.getSingleLabelDimensions();
+  if (!dims.width || !dims.height) return false;
+  let changed = false;
+  // 同じオブジェクトを書き換える(モバイルのプロパティ画面が要素を参照で持っているため)
+  for (const el of state.elements) {
+    if (el.type !== 'frame' || !el.fitToLabel) continue;
+    if (syncShape) {
+      const shape = state.renderer.isRound ? 'ellipse' : 'rect';
+      if (el.frameShape !== shape) { el.frameShape = shape; changed = true; }
+    }
+    const g = frameGeometryForLabel(el, dims);
+    if (el.x === g.x && el.y === g.y && el.width === g.width && el.height === g.height && !el.rotation) continue;
+    Object.assign(el, g);
+    changed = true;
+  }
+  return changed;
 }
 
 /**
@@ -5413,6 +5527,7 @@ function getElementIcon(type) {
     barcode: '<svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h2M4 12h2m10 0h2"/></svg>',
     qr: '<svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h2M4 12h2m10 0h2"/></svg>',
     shape: '<svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v14a1 1 0 01-1 1H5a1 1 0 01-1-1V5z"/></svg>',
+    frame: '<svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2" stroke-width="2"/><rect x="6.5" y="7.5" width="11" height="9" rx="1" stroke-width="1.5" stroke-dasharray="2 2"/></svg>',
   };
   return icons[type] || icons.shape;
 }
@@ -5433,6 +5548,10 @@ function getElementLabel(el) {
     case 'shape':
       const shapeNames = { rectangle: 'Rectangle', ellipse: 'Ellipse', triangle: 'Triangle', line: 'Line' };
       return shapeNames[el.shapeType] || 'Shape';
+    case 'frame': {
+      const style = FRAME_STYLES.find(s => s.id === el.frameStyle);
+      return `枠: ${style ? style.name : ''}`;
+    }
     default:
       return 'Element';
   }
@@ -6287,6 +6406,7 @@ function populateMobileProps() {
     shape: selected.shapeType ? selected.shapeType.charAt(0).toUpperCase() + selected.shapeType.slice(1) : 'Shape',
     barcode: 'Barcode',
     qr: 'QR Code',
+    frame: '枠',
   };
   title.textContent = typeNames[selected.type] || 'Properties';
 
@@ -6541,6 +6661,36 @@ function populateMobileProps() {
         <input type="number" id="mobile-prop-cornerRadius" class="prop-input" value="${selected.cornerRadius || 0}" min="0" max="100">
       </div>
       ` : ''}
+    `;
+  } else if (selected.type === 'frame') {
+    html += `
+      <div class="prop-group">
+        <div class="prop-label">枠の種類</div>
+        <select id="mobile-prop-frameStyle" class="prop-input">
+          ${FRAME_STYLES.map(fs => `<option value="${fs.id}" ${selected.frameStyle === fs.id ? 'selected' : ''}>${fs.name}</option>`).join('')}
+        </select>
+      </div>
+      <div class="prop-group">
+        <div class="prop-label">形</div>
+        <select id="mobile-prop-frameShape" class="prop-input">
+          <option value="rect" ${selected.frameShape !== 'ellipse' ? 'selected' : ''}>四角</option>
+          <option value="ellipse" ${selected.frameShape === 'ellipse' ? 'selected' : ''}>丸</option>
+        </select>
+      </div>
+      <div class="prop-group">
+        <div class="prop-label">線の太さ(px)</div>
+        <input type="number" id="mobile-prop-frameStroke" class="prop-input" value="${selected.strokeWidth || 3}" min="1" max="20">
+      </div>
+      <div class="prop-group">
+        <div class="prop-label">余白(px)</div>
+        <input type="number" id="mobile-prop-frameMargin" class="prop-input" value="${selected.frameMargin ?? 8}" min="0" max="80">
+      </div>
+      <div class="prop-group">
+        <label class="flex items-center gap-2 py-1">
+          <input type="checkbox" id="mobile-prop-frameFit" class="w-5 h-5" ${selected.fitToLabel ? 'checked' : ''}>
+          <span class="text-sm">ラベルの大きさに合わせる</span>
+        </label>
+      </div>
     `;
   } else if (selected.type === 'image') {
     const scaleW = selected.naturalWidth ? (selected.width / selected.naturalWidth) * 100 : 100;
@@ -6849,6 +6999,19 @@ function wireUpMobilePropHandlers(element) {
   $('#mobile-prop-fill')?.addEventListener('change', (e) => updateProp('fill', e.target.value));
   $('#mobile-prop-strokeWidth')?.addEventListener('change', (e) => updateProp('strokeWidth', parseInt(e.target.value)));
   $('#mobile-prop-cornerRadius')?.addEventListener('change', (e) => updateProp('cornerRadius', parseInt(e.target.value)));
+
+  // 枠(#28)
+  $('#mobile-prop-frameStyle')?.addEventListener('change', (e) => updateProp('frameStyle', e.target.value));
+  $('#mobile-prop-frameShape')?.addEventListener('change', (e) => updateProp('frameShape', e.target.value));
+  $('#mobile-prop-frameStroke')?.addEventListener('change', (e) => updateProp('strokeWidth', clampInt(e.target.value, 1, 20, 3)));
+  $('#mobile-prop-frameMargin')?.addEventListener('change', (e) => {
+    updateProp('frameMargin', clampInt(e.target.value, 0, 80, 8));
+    if (element.fitToLabel && refitFramesToLabel()) render();
+  });
+  $('#mobile-prop-frameFit')?.addEventListener('change', (e) => {
+    updateProp('fitToLabel', e.target.checked);
+    if (e.target.checked && refitFramesToLabel()) { render(); updatePropertiesPanel(); }
+  });
 
   // Stroke buttons
   $$('[data-stroke]').forEach(btn => {
@@ -7274,6 +7437,17 @@ function init() {
   // Create canvas renderer
   const canvas = $('#preview-canvas');
   state.renderer = new CanvasRenderer(canvas);
+  // ラベルの大きさが変わったら、「ラベルに合わせる」枠を合わせ直す(#28)
+  // (ズームでも呼ばれるので、ラベルの大きさが本当に変わったときだけ動かす)
+  let lastLabelDims = '';
+  state.renderer.onDimensionsChange = () => {
+    const d = state.renderer.getSingleLabelDimensions();
+    const key = `${d.width}x${d.height}:${state.renderer.isRound ? 'r' : ''}`;
+    if (key === lastLabelDims) return;
+    const roundChanged = lastLabelDims !== '' && lastLabelDims.endsWith(':r') !== key.endsWith(':r');
+    lastLabelDims = key;
+    if (refitFramesToLabel({ syncShape: roundChanged })) requestAnimationFrame(() => { render(); updatePropertiesPanel(); });
+  };
   state.renderer.setDimensions(state.labelSize.width, state.labelSize.height, state.zoom, state.labelSize.round || false);
   // Re-render when async content (barcodes, QR codes) finishes loading
   // Use requestAnimationFrame to batch multiple async loads
@@ -7844,6 +8018,25 @@ function init() {
   bindNumericInput('#prop-stroke-width', 'strokeWidth', 'shape', bindCtx, { min: 1, max: 20, defaultVal: 2 });
   bindNumericInput('#prop-corner-radius', 'cornerRadius', 'shape', bindCtx, { min: 0, max: 50, defaultVal: 0 });
 
+  // === 枠(#28) ===
+  const frameStyleSelect = $('#prop-frame-style');
+  frameStyleSelect.innerHTML = FRAME_STYLES.map(fs => `<option value="${fs.id}">${fs.name}</option>`).join('');
+  bindSelect('#prop-frame-style', 'frameStyle', 'frame', bindCtx);
+  bindSelect('#prop-frame-shape', 'frameShape', 'frame', bindCtx);
+  bindSelect('#prop-frame-color', 'color', 'frame', bindCtx);
+  bindNumericInput('#prop-frame-stroke', 'strokeWidth', 'frame', bindCtx, { min: 1, max: 20, defaultVal: 3 });
+  bindNumericInput('#prop-frame-margin', 'frameMargin', 'frame', bindCtx, { min: 0, max: 80, defaultVal: 8 });
+  $('#prop-frame-margin').addEventListener('change', () => {
+    if (refitFramesToLabel()) { render(); updatePropertiesPanel(); }
+  });
+  $('#prop-frame-fit').addEventListener('change', (e) => {
+    const selected = getSelected();
+    if (!selected || selected.type !== 'frame') return;
+    saveHistory();
+    modifyElement(selected.id, { fitToLabel: e.target.checked });
+    if (e.target.checked && refitFramesToLabel()) { render(); updatePropertiesPanel(); }
+  });
+
   // Properties panel - image
   $('#prop-replace-image').addEventListener('click', () => $('#prop-image-input').click());
   $('#prop-image-input').addEventListener('change', async (e) => {
@@ -8352,6 +8545,14 @@ function init() {
 
   // Initialize mobile UI
   initMobileUI();
+
+  // 素材集(#27)・枠(#28)
+  initAssetsPanel({
+    insertImage: (asset) => addAssetImage(asset),
+    insertFrame: (styleId) => addFrameElement(styleId),
+    isRoundLabel: () => !!state.renderer?.isRound,
+    setStatus,
+  });
 
   // アカウント・同期(3.3)とゲストモード(3.4)
   initAccountUI({

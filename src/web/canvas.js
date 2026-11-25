@@ -5,6 +5,7 @@
 
 import { drawHandles, drawGroupHandles } from './handles.js?v=5';
 import { logError, ErrorLevel } from './utils/errors.js';
+import { drawFrame } from './frames.js';
 
 // Pixels per mm (203 DPI ≈ 8 px/mm)
 const PX_PER_MM = 8;
@@ -110,6 +111,9 @@ export class CanvasRenderer {
     // Scale label offset by zoom for rendering
     this.labelOffsetX = Math.round(this.baseLabelOffsetX * zoom);
     this.labelOffsetY = Math.round(this.baseLabelOffsetY * zoom);
+
+    // ラベルの大きさが変わったことを知らせる(枠の自動フィットなどで使う)
+    if (this.onDimensionsChange) this.onDimensionsChange();
 
     // Return label dimensions (what elements use for positioning - base resolution)
     return { width: this.labelWidth, height: this.labelHeight };
@@ -389,6 +393,8 @@ export class CanvasRenderer {
     // Scale label offset by zoom for rendering
     this.labelOffsetX = Math.round(this.baseLabelOffsetX * zoom);
     this.labelOffsetY = Math.round(this.baseLabelOffsetY * zoom);
+
+    if (this.onDimensionsChange) this.onDimensionsChange();
 
     // Return single label dimensions (what elements use for positioning)
     return { width: labelWidthPx, height: labelHeightPx };
@@ -884,6 +890,9 @@ export class CanvasRenderer {
         break;
       case 'shape':
         this.renderShapeElement(element, width, height);
+        break;
+      case 'frame':
+        drawFrame(this.ctx, element, width, height);
         break;
     }
 
