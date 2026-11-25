@@ -14,6 +14,10 @@ export default defineConfig({
     deviceScaleFactor: 2,
     screenshot: 'off',
     actionTimeout: 10_000,
+    // Allow using a preinstalled Chromium (e.g. in sandboxed dev environments)
+    ...(process.env.PW_CHROMIUM_PATH
+      ? { launchOptions: { executablePath: process.env.PW_CHROMIUM_PATH } }
+      : {}),
   },
 
   projects: [

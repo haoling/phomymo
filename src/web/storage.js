@@ -103,6 +103,22 @@ export function deleteDesign(name) {
 }
 
 /**
+ * Update only the counter state of a saved design (#31)
+ * 印刷のたびに呼ばれるので savedAt は変えない
+ * @param {string} name - Design name
+ * @param {{resume: boolean, next: number}} counter
+ * @returns {boolean} - false if the design does not exist
+ */
+export function updateDesignCounter(name, counter) {
+  const designs = getAllDesigns();
+  if (!(name in designs)) {
+    return false;
+  }
+  designs[name].counter = { resume: !!counter.resume, next: Math.max(0, counter.next | 0) };
+  return setAllDesigns(designs);
+}
+
+/**
  * Rename a design
  * @param {string} oldName - Current name
  * @param {string} newName - New name

@@ -804,6 +804,10 @@
                     <button data-expr="[[dt|MM/DD/YY]]" class="expr-option w-full px-3 py-1.5 text-left text-xs hover:bg-gray-100">[[dt|MM/DD/YY]]</button>
                     <button data-expr="[[dt|hh:mm A]]" class="expr-option w-full px-3 py-1.5 text-left text-xs hover:bg-gray-100">[[dt|hh:mm A]] - 12hr</button>
                     <button data-expr="[[dt|HH:mm]]" class="expr-option w-full px-3 py-1.5 text-left text-xs hover:bg-gray-100">[[dt|HH:mm]] - 24hr</button>
+                    <button data-expr="[[date|YYYY年M月D日]]" class="expr-option w-full px-3 py-1.5 text-left text-xs hover:bg-gray-100">[[date|YYYY年M月D日]]</button>
+                    <hr class="my-1 border-gray-100">
+                    <button data-expr="[[counter]]" class="expr-option w-full px-3 py-1.5 text-left text-xs hover:bg-gray-100">[[counter]] - 連番 (1, 2, 3…)</button>
+                    <button data-expr="[[counter|pad=3]]" class="expr-option w-full px-3 py-1.5 text-left text-xs hover:bg-gray-100">[[counter|pad=3]] - 連番 (001, 002…)</button>
                   </div>
                 </div>
                 <!-- Insert Field Button -->
@@ -1286,8 +1290,30 @@
 
         <!-- Copies -->
         <div>
-          <div class="prop-label">Copies</div>
+          <div class="prop-label">Copies(部数)</div>
           <input type="number" id="print-copies" min="1" max="99" value="1" class="prop-input w-20">
+        </div>
+
+        <!-- Counter / 連番 (#31) -->
+        <div id="counter-settings" class="rounded-lg border border-gray-200 p-3 space-y-2">
+          <div class="flex items-center justify-between">
+            <div class="prop-label mb-0">連番</div>
+            <span id="counter-preview" class="text-xs font-medium text-gray-700" data-has-counter="false"></span>
+          </div>
+          <p class="text-xs text-gray-500 leading-relaxed">
+            テキスト・バーコード・QRに <code class="px-1 bg-gray-100 rounded">[[counter]]</code> と書くと、1枚ごとに番号が進みます。<br>
+            例: <code class="px-1 bg-gray-100 rounded">No.[[counter|start=1,pad=3]]</code> → No.001, No.002, …
+          </p>
+          <label class="flex items-center gap-2 text-sm text-gray-700">
+            <input type="checkbox" id="counter-resume" class="rounded">
+            前回の続きから番号を振る
+          </label>
+          <div class="flex items-center gap-2 text-sm text-gray-700">
+            <input type="number" id="counter-next" min="1" value="1" class="prop-input w-24" disabled>
+            <span>枚目から</span>
+            <button id="counter-reset" type="button" class="ml-auto text-xs text-blue-600 hover:text-blue-800 hover:underline disabled:text-gray-300 disabled:no-underline" disabled>最初に戻す</button>
+          </div>
+          <p id="counter-unsaved-note" class="hidden text-xs text-amber-600">デザインを保存すると、続きの番号もデザインごとに記憶されます。</p>
         </div>
 
         <!-- Feed After Print -->
@@ -2143,7 +2169,7 @@
     pdfjsModule.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.379/pdf.worker.min.mjs';
     window.pdfjsLib = pdfjsModule;
   </script>
-  <script type="module" src="app.js?v=151"></script>
+  <script type="module" src="app.js?v=152"></script>
   <script>
     // Show body once styles are ready
     requestAnimationFrame(() => {
