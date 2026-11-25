@@ -36,7 +36,7 @@ import {
   collapseToSingleZone,
   hasElementsInHigherZones,
   removeElementsInHigherZones,
-} from './elements.js?v=100';
+} from './elements.js?v=101';
 import {
   HandleType,
   getHandleAtPoint,
@@ -54,7 +54,8 @@ import {
   loadDesign,
   listDesigns,
   deleteDesign,
-} from './storage.js?v=100';
+  updateDesignCounter,
+} from './storage.js?v=101';
 import {
   extractFields,
   hasTemplateFields,
@@ -64,7 +65,15 @@ import {
   createEmptyRecord,
   hasExpressions,
   evaluateExpressions,
-} from './templates.js?v=101';
+  hasCounter,
+  previewCounter,
+} from './templates.js?v=102';
+import {
+  injectJapaneseFontStylesheet,
+  addJapaneseFontsToSelect,
+  japaneseFontOptionsHtml,
+  waitForElementFonts,
+} from './fonts-ja.js?v=1';
 import {
   ZOOM,
   TEXT,
@@ -169,6 +178,10 @@ const state = {
     feed: 32,         // Feed after print in dots (8 dots = 1mm)
     printerModel: 'auto',  // 'auto', 'narrow-48', 'mini-54', 'wide-72', 'mid-76', 'wide-81', 'd-series'
   },
+  // Counter ([[counter]]) state (#31)
+  // resume: true のとき、前回の続きから番号を振る(デザインごとに保存)
+  // next:   次に印刷するラベルの位置(0 始まり)
+  counter: { resume: false, next: 0 },
   // Template state
   templateFields: [],     // Detected field names from elements
   templateData: [],       // Array of data records for batch printing
@@ -1241,9 +1254,105 @@ function zoomToFitIfNeeded() {
 function render() {
   // In print preview mode, evaluate expressions so users see actual values
   const elementsToRender = state.ditherPreview
-    ? evaluateExpressions(state.elements)
+    ? evaluateExpressions(state.elements, { counterIndex: counterIndexForLabel(0) })
     : state.elements;
   state.renderer.renderAll(elementsToRender, state.selectedIds, state.alignmentGuides);
+}
+
+// =============================================================================
+// COUNTER ([[counter]]) - #31
+// =============================================================================
+
+/** 番号を振り始める位置(「前回の続きから」が OFF なら常に 0) */
+function counterBase() {
+  return state.counter.resume ? Math.max(0, parseInt(state.counter.next, 10) || 0) : 0;
+}
+
+/** 印刷する n 枚目(0 始まり)の連番の位置 */
+function counterIndexForLabel(position) {
+  return counterBase() + position;
+}
+
+/** バッチ印刷で、そのレコードが何枚目に印刷されるか(0 始まり) */
+function batchPositionOf(recordIndex) {
+  const indices = state.selectedRecords.length > 0
+    ? state.selectedRecords
+    : state.templateData.map((_, i) => i);
+  const pos = indices.indexOf(recordIndex);
+  return pos >= 0 ? pos : recordIndex;
+}
+
+/** 印刷した枚数だけ番号を進める(「前回の続きから」が ON のときだけ) */
+function advanceCounter(count) {
+  if (!state.counter.resume || !(count > 0) || !hasCounter(state.elements)) return;
+  state.counter.next = counterBase() + count;
+  persistCounter();
+  updateCounterUI();
+}
+
+/** 保存済みのデザインなら、連番の状態をデザインに書き込む */
+function persistCounter() {
+  if (!state.currentDesignName) return;
+  try {
+    updateDesignCounter(state.currentDesignName, { ...state.counter });
+  } catch (e) {
+    logError(e, 'persistCounter');
+  }
+}
+
+/** 印刷設定ダイアログの「連番」欄を最新にする */
+function updateCounterUI() {
+  const resume = $('#counter-resume');
+  const next = $('#counter-next');
+  const preview = $('#counter-preview');
+  if (!resume || !next || !preview) return;
+
+  resume.checked = !!state.counter.resume;
+  next.value = counterBase() + 1;
+  next.disabled = !state.counter.resume;
+  $('#counter-reset').disabled = !state.counter.resume;
+
+  const value = previewCounter(state.elements, counterBase());
+  if (value === null) {
+    preview.textContent = 'このデザインには連番がありません';
+    preview.dataset.hasCounter = 'false';
+  } else {
+    preview.textContent = `次に印刷される番号: ${value}`;
+    preview.dataset.hasCounter = 'true';
+  }
+  const note = $('#counter-unsaved-note');
+  if (note) note.classList.toggle('hidden', !state.counter.resume || !!state.currentDesignName);
+}
+
+function initCounterSettings() {
+  $('#counter-resume')?.addEventListener('change', (e) => {
+    state.counter.resume = e.target.checked;
+    persistCounter();
+    updateCounterUI();
+  });
+  $('#counter-next')?.addEventListener('change', (e) => {
+    state.counter.next = Math.max(0, (parseInt(e.target.value, 10) || 1) - 1);
+    persistCounter();
+    updateCounterUI();
+  });
+  $('#counter-reset')?.addEventListener('click', () => {
+    state.counter.next = 0;
+    persistCounter();
+    updateCounterUI();
+  });
+}
+
+// =============================================================================
+// JAPANESE FONTS - #23
+// =============================================================================
+
+function initJapaneseFonts() {
+  injectJapaneseFontStylesheet();
+  addJapaneseFontsToSelect($('#prop-font-family'));
+  // Webフォントが届いたら描画し直す(届く前は代替フォントで表示されるため)
+  if (document.fonts?.addEventListener) {
+    document.fonts.addEventListener('loadingdone', () => render());
+  }
 }
 
 /**
@@ -1777,7 +1886,7 @@ function renderPreviewThumbnail(canvas, recordIndex) {
 
   // Substitute fields and evaluate expressions
   const substitutedElements = substituteFields(state.elements, record);
-  const mergedElements = evaluateExpressions(substitutedElements);
+  const mergedElements = evaluateExpressions(substitutedElements, { counterIndex: counterIndexForLabel(batchPositionOf(recordIndex)) });
 
   // Create a temporary renderer at smaller scale
   const scale = 0.5;
@@ -1802,7 +1911,7 @@ function showFullPreview(recordIndex) {
 
   const record = state.templateData[recordIndex];
   const substitutedElements = substituteFields(state.elements, record);
-  const mergedElements = evaluateExpressions(substitutedElements);
+  const mergedElements = evaluateExpressions(substitutedElements, { counterIndex: counterIndexForLabel(batchPositionOf(recordIndex)) });
 
   // Render to full preview canvas
   const canvas = $('#full-preview-canvas');
@@ -1900,6 +2009,8 @@ async function handleBatchPrint() {
       : `Printing ${totalRecords} Label${totalRecords !== 1 ? 's' : ''}`;
     showPrintProgress(labelText, totalRows);
 
+    let labelsPrinted = 0;
+    try {
     for (let rowIndex = 0; rowIndex < totalRows; rowIndex++) {
       // Check for cancellation
       if (isPrintCancelled()) {
@@ -1908,6 +2019,7 @@ async function handleBatchPrint() {
       }
 
       let substitutedElements;
+      let counterIndex;
 
       if (isMultiLabel && !cloneMode) {
         // Clone mode OFF: Different record per zone
@@ -1922,6 +2034,8 @@ async function handleBatchPrint() {
           // If no more records, zone will be empty (no substitution)
         }
         substitutedElements = substituteFieldsByZone(state.elements, rowRecords, labelsAcross);
+        // 連番: ゾーンごとに1つずつ進める
+        counterIndex = (el) => counterIndexForLabel(startIdx + (el.zone || 0));
 
         updatePrintProgress(rowIndex + 1, totalRows, `Printing row ${rowIndex + 1}...`);
         btn.textContent = `Printing row ${rowIndex + 1}/${totalRows}...`;
@@ -1930,13 +2044,16 @@ async function handleBatchPrint() {
         const recordIndex = recordsToPrint[rowIndex];
         const record = state.templateData[recordIndex];
         substitutedElements = substituteFields(state.elements, record);
+        // 連番: CSV の印刷順に番号を振る
+        counterIndex = counterIndexForLabel(rowIndex);
 
         updatePrintProgress(rowIndex + 1, totalRows, `Printing label ${rowIndex + 1}...`);
         btn.textContent = `Printing ${rowIndex + 1}/${totalRows}...`;
       }
 
-      // Evaluate instant expressions (date/time, etc.)
-      const mergedElements = evaluateExpressions(substitutedElements);
+      // Evaluate instant expressions (date/time, counter, etc.)
+      const mergedElements = evaluateExpressions(substitutedElements, { counterIndex });
+      await waitForElementFonts(mergedElements);
 
       // Render to raster (use raw format for rotated printers like D-series and P12)
       const deviceName = state.transport.getDeviceName?.() || '';
@@ -1964,11 +2081,18 @@ async function handleBatchPrint() {
         },
       });
 
+      labelsPrinted += isMultiLabel && !cloneMode
+        ? Math.min(labelsAcross, totalRecords - rowIndex * labelsAcross)
+        : 1;
+
       // Delay between prints
       if (rowIndex < totalRows - 1 && !isPrintCancelled()) {
         updatePrintProgress(rowIndex + 1, totalRows, 'Waiting...');
         await new Promise(r => setTimeout(r, 500));
       }
+    }
+    } finally {
+      advanceCounter(labelsPrinted);
     }
 
     if (!isPrintCancelled()) {
@@ -2023,7 +2147,8 @@ async function handlePrintSinglePreview() {
 
     // Substitute fields and evaluate expressions
     const substitutedElements = substituteFields(state.elements, record);
-    const mergedElements = evaluateExpressions(substitutedElements);
+    const mergedElements = evaluateExpressions(substitutedElements, { counterIndex: counterIndexForLabel(batchPositionOf(recordIndex)) });
+    await waitForElementFonts(mergedElements);
 
     // Render to raster (use raw format for rotated printers like D-series and P12)
     const deviceName = state.transport.getDeviceName?.() || '';
@@ -4760,29 +4885,48 @@ async function handlePrint() {
       ? substituteFields(state.elements, state.templateData[0])
       : state.elements;
 
-    // Evaluate instant expressions (date/time, etc.)
-    const elementsToRender = evaluateExpressions(elements);
-
     // Render to raster (use raw format for rotated printers like D-series and P12)
     const deviceName = state.transport.getDeviceName?.() || '';
     const printerWidth = getPrinterWidthBytes(deviceName, printerModel);
     const printerDpi = getPrinterDpi(deviceName, printerModel);
     const printerAlignment = getPrinterAlignment(deviceName, printerModel);
-    // Force threshold mode for TSPL printers (shipping labels need crisp barcodes)
-    // Auto-detection can incorrectly choose dithering due to anti-aliased edges
-    let ditherMode = getDitherMode(elementsToRender);
-    if (ditherMode === 'auto' && isTSPLPrinter(deviceName, printerModel)) {
-      ditherMode = 'threshold';
-      console.log('TSPL printer: forcing threshold mode for crisp barcodes');
-    }
-    const rasterData = isRotatedPrinter(deviceName, printerModel)
-      ? state.renderer.getRasterDataRaw(elementsToRender, ditherMode)
-      : state.renderer.getRasterData(elementsToRender, printerWidth, printerDpi, ditherMode, printerAlignment);
 
+    // 連番を使っているときは1枚ごとに描画し直す(番号が進むため)
+    const usesCounter = hasCounter(elements);
+    const labelsPerCopy = state.multiLabel.enabled ? state.multiLabel.labelsAcross : 1;
+
+    const buildRaster = async (copyIndex) => {
+      // Evaluate instant expressions (date/time, counter, etc.)
+      const counterIndex = state.multiLabel.enabled
+        ? (el) => counterIndexForLabel(copyIndex * labelsPerCopy + (el.zone || 0))
+        : counterIndexForLabel(copyIndex);
+      const elementsToRender = evaluateExpressions(elements, { counterIndex });
+      // 未ロードのフォントで印刷しないよう待つ
+      await waitForElementFonts(elementsToRender);
+      // Force threshold mode for TSPL printers (shipping labels need crisp barcodes)
+      // Auto-detection can incorrectly choose dithering due to anti-aliased edges
+      let ditherMode = getDitherMode(elementsToRender);
+      if (ditherMode === 'auto' && isTSPLPrinter(deviceName, printerModel)) {
+        ditherMode = 'threshold';
+        console.log('TSPL printer: forcing threshold mode for crisp barcodes');
+      }
+      return isRotatedPrinter(deviceName, printerModel)
+        ? state.renderer.getRasterDataRaw(elementsToRender, ditherMode)
+        : state.renderer.getRasterData(elementsToRender, printerWidth, printerDpi, ditherMode, printerAlignment);
+    };
+
+    let rasterData = await buildRaster(0);
+    let printedCopies = 0;
+
+    try {
     // Print multiple copies if requested
     for (let copy = 1; copy <= copies; copy++) {
       const copyText = copies > 1 ? ` (${copy}/${copies})` : '';
       setStatus(`Printing${copyText}...`);
+
+      if (usesCounter && copy > 1) {
+        rasterData = await buildRaster(copy - 1);
+      }
 
       await print(state.transport, rasterData, {
         isBLE: state.connectionType === 'ble',
@@ -4796,11 +4940,15 @@ async function handlePrint() {
           setStatus(`Printing${copyText}... ${progress}%`);
         },
       });
+      printedCopies++;
 
       // Small delay between copies
       if (copy < copies) {
         await new Promise(r => setTimeout(r, 500));
       }
+    }
+    } finally {
+      if (usesCounter) advanceCounter(printedCopies * labelsPerCopy);
     }
 
     setStatus(copies > 1 ? `Printed ${copies} copies!` : 'Print complete!');
@@ -4883,6 +5031,9 @@ function handleSave() {
     if (state.multiLabel.enabled) {
       designData.multiLabel = { ...state.multiLabel };
     }
+
+    // 連番の状態(前回の続きから振るためのもの)
+    designData.counter = { ...state.counter };
 
     saveDesign(name, designData);
     hideSaveDialog();
@@ -5020,14 +5171,15 @@ function handleExport() {
 /**
  * Export current design to PDF
  */
-function handleExportPDF() {
+async function handleExportPDF() {
   if (state.elements.length === 0) {
     setStatus('Nothing to export');
     return;
   }
 
   // Evaluate expressions (date/time substitutions)
-  const elementsToRender = evaluateExpressions(state.elements);
+  const elementsToRender = evaluateExpressions(state.elements, { counterIndex: counterIndexForLabel(0) });
+  await waitForElementFonts(elementsToRender);
 
   // Render to temporary canvas at high DPI for quality
   const scale = 4; // 4x scale for 300 DPI quality
@@ -5072,13 +5224,14 @@ function handleExportPDF() {
 /**
  * Export current design to PNG
  */
-function handleExportPNG() {
+async function handleExportPNG() {
   if (state.elements.length === 0) {
     setStatus('Nothing to export');
     return;
   }
 
-  const elementsToRender = evaluateExpressions(state.elements);
+  const elementsToRender = evaluateExpressions(state.elements, { counterIndex: counterIndexForLabel(0) });
+  await waitForElementFonts(elementsToRender);
 
   // Render at 4x scale for quality
   const scale = 4;
@@ -5277,6 +5430,12 @@ function handleLoad(name) {
   // Restore template data if present
   state.templateData = design.templateData || [];
   state.selectedRecords = state.templateData.map((_, i) => i); // Select all by default
+
+  // 連番の状態を復元
+  state.counter = {
+    resume: !!design.counter?.resume,
+    next: Math.max(0, parseInt(design.counter?.next, 10) || 0),
+  };
 
   // Restore multi-label config if present
   if (design.multiLabel && design.multiLabel.enabled) {
@@ -5800,6 +5959,7 @@ function initMobileUI() {
   $('#mobile-redo-btn')?.addEventListener('click', () => redo());
   $('#mobile-print-settings-btn')?.addEventListener('click', () => {
     closeMobileMenu();
+    updateCounterUI();
     $('#print-settings-dialog')?.classList.remove('hidden');
     $('#print-settings-dialog')?.classList.add('flex');
   });
@@ -6149,6 +6309,7 @@ function populateMobileProps() {
           <div class="flex-1">
             <div class="prop-label">Font</div>
             <select id="mobile-prop-fontFamily" class="prop-input">
+              ${japaneseFontOptionsHtml(fontFamily)}
               <optgroup label="Sans-Serif">
                 <option value="Inter, sans-serif" ${fontFamily === 'Inter, sans-serif' ? 'selected' : ''}>Inter</option>
                 <option value="Roboto, sans-serif" ${fontFamily === 'Roboto, sans-serif' ? 'selected' : ''}>Roboto</option>
@@ -7062,8 +7223,14 @@ function init() {
     setStatus: setStatus,
   });
 
+  // Japanese font presets (#23)
+  initJapaneseFonts();
+
   // Initialize local fonts (show button or auto-load if previously enabled)
   initLocalFonts();
+
+  // Counter settings (#31)
+  initCounterSettings();
 
   // Load printer definitions (built-in + custom) then populate dropdown
   loadPrinterDefinitions().then(() => {
@@ -7295,6 +7462,7 @@ function init() {
     copiesInput.value = state.printSettings.copies;
     feedSelect.value = state.printSettings.feed;
     printerModelSelect.value = state.printSettings.printerModel || 'auto';
+    updateCounterUI();
     printSettingsDialog.classList.remove('hidden');
   });
 

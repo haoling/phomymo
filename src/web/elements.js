@@ -3,6 +3,8 @@
  * Handles creation, manipulation, and hit testing of label elements
  */
 
+import { DEFAULT_TEXT_FONT } from './fonts-ja.js?v=1';
+
 /**
  * Generate unique ID
  */
@@ -29,7 +31,7 @@ export function createTextElement(text = 'Text', options = {}) {
     color: options.color ?? 'black',              // 'black' or 'white'
     align: options.align ?? 'left',                 // horizontal: 'left', 'center', 'right'
     verticalAlign: options.verticalAlign ?? 'middle', // vertical: 'top', 'middle', 'bottom'
-    fontFamily: options.fontFamily ?? 'Inter, sans-serif',
+    fontFamily: options.fontFamily ?? DEFAULT_TEXT_FONT,
     fontWeight: options.fontWeight ?? 'normal',    // 'normal' or 'bold'
     fontStyle: options.fontStyle ?? 'normal',      // 'normal' or 'italic'
     textDecoration: options.textDecoration ?? 'none', // 'none' or 'underline'

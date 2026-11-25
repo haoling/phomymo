@@ -348,36 +348,136 @@ export function hasExpressions(elements) {
  * Evaluate instant expressions in elements
  * Replaces [[expression]] with evaluated values at call time
  * @param {Array} elements - Array of label elements
+ * @param {Object} [context] - Evaluation context
+ * @param {number|Function} [context.counterIndex] - 0-based position of the label
+ *   being printed (used by [[counter]]). Either a number, or a function
+ *   (element) => number for multi-label layouts where each zone gets its own number.
  * @returns {Array} - New array of elements with evaluated expressions
  */
-export function evaluateExpressions(elements) {
+export function evaluateExpressions(elements, context = {}) {
   return elements.map(el => {
     const clone = { ...el };
+    const counterIndex = typeof context.counterIndex === 'function'
+      ? context.counterIndex(el)
+      : (context.counterIndex ?? 0);
+    const ctx = { counterIndex };
 
     if (clone.text) {
-      clone.text = evaluateExpressionsInString(clone.text);
+      clone.text = evaluateExpressionsInString(clone.text, ctx);
     }
     if (clone.barcodeData) {
-      clone.barcodeData = evaluateExpressionsInString(clone.barcodeData);
+      clone.barcodeData = evaluateExpressionsInString(clone.barcodeData, ctx);
     }
     if (clone.qrData) {
-      clone.qrData = evaluateExpressionsInString(clone.qrData);
+      clone.qrData = evaluateExpressionsInString(clone.qrData, ctx);
     }
 
     return clone;
   });
 }
 
+// =============================================================================
+// COUNTER - [[counter|start=1,step=1,pad=3]] (#31)
+// =============================================================================
+
+/** Names that evaluate as a counter (serial number) */
+export const COUNTER_NAMES = ['counter', 'serial', 'seq', '連番'];
+
+/** Default counter options (仮決め: 1 から 1 ずつ、ゼロ埋めなし) */
+export const COUNTER_DEFAULTS = Object.freeze({ start: 1, step: 1, pad: 0 });
+
+const COUNTER_PATTERN = new RegExp(
+  `\\[\\[\\s*(?:${COUNTER_NAMES.join('|')})\\s*(?:\\|([^\\]]*))?\\]\\]`, 'gi'
+);
+
+/**
+ * Parse counter options: "start=1,step=1,pad=3"
+ * Separators "," ";" and spaces are accepted. Unknown keys are ignored.
+ * @param {string|null} formatStr
+ * @returns {{start: number, step: number, pad: number}}
+ */
+export function parseCounterOptions(formatStr) {
+  const opts = { ...COUNTER_DEFAULTS };
+  if (!formatStr) return opts;
+  for (const part of formatStr.split(/[,;\s]+/)) {
+    const m = part.match(/^(start|step|pad)\s*[=:]\s*(-?\d+)$/i);
+    if (!m) continue;
+    const key = m[1].toLowerCase();
+    const value = parseInt(m[2], 10);
+    if (key === 'pad') {
+      opts.pad = Math.max(0, Math.min(20, value));
+    } else {
+      opts[key] = value;
+    }
+  }
+  return opts;
+}
+
+/**
+ * Format the counter value for the given label position
+ * @param {number} index - 0-based label position
+ * @param {{start: number, step: number, pad: number}} opts
+ * @returns {string}
+ */
+export function formatCounter(index, opts = COUNTER_DEFAULTS) {
+  const value = opts.start + index * opts.step;
+  const digits = String(Math.abs(value)).padStart(opts.pad, '0');
+  return value < 0 ? `-${digits}` : digits;
+}
+
+/**
+ * Check whether any element uses [[counter]]
+ * @param {Array} elements
+ * @returns {boolean}
+ */
+export function hasCounter(elements) {
+  for (const el of elements || []) {
+    for (const str of [el.text, el.barcodeData, el.qrData]) {
+      if (!str) continue;
+      COUNTER_PATTERN.lastIndex = 0;
+      if (COUNTER_PATTERN.test(str)) {
+        COUNTER_PATTERN.lastIndex = 0;
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+/**
+ * Return the first counter expression's value at a position (for UI preview)
+ * @param {Array} elements
+ * @param {number} index - 0-based label position
+ * @returns {string|null} - null when the design has no counter
+ */
+export function previewCounter(elements, index) {
+  for (const el of elements || []) {
+    for (const str of [el.text, el.barcodeData, el.qrData]) {
+      if (!str) continue;
+      COUNTER_PATTERN.lastIndex = 0;
+      const m = COUNTER_PATTERN.exec(str);
+      COUNTER_PATTERN.lastIndex = 0;
+      if (m) return formatCounter(index, parseCounterOptions(m[1] || null));
+    }
+  }
+  return null;
+}
+
 /**
  * Evaluate expressions in a string
  * @param {string} str - String with [[expression]] placeholders
+ * @param {Object} [ctx] - { counterIndex }
  * @returns {string} - String with evaluated values
  */
-function evaluateExpressionsInString(str) {
+function evaluateExpressionsInString(str, ctx = {}) {
   EXPRESSION_PATTERN.lastIndex = 0;
   return str.replace(EXPRESSION_PATTERN, (match, expr, format) => {
     const expression = expr.trim().toLowerCase();
     const formatStr = format?.trim() || null;
+
+    if (COUNTER_NAMES.includes(expression)) {
+      return formatCounter(ctx.counterIndex ?? 0, parseCounterOptions(formatStr));
+    }
 
     switch (expression) {
       case 'dt':
