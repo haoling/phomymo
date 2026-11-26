@@ -13,6 +13,7 @@ import {
   BARCODE,
   QR,
 } from '../constants.js';
+import { t } from '../i18n.js';
 
 /**
  * Clamp a number within a range
@@ -156,13 +157,13 @@ export function validateCornerRadius(value) {
  */
 export function validateBarcodeData(data, format = 'CODE128') {
   if (!data || typeof data !== 'string') {
-    return { valid: false, error: 'Barcode data is required', sanitized: '' };
+    return { valid: false, error: t('val_barcode_required'), sanitized: '' };
   }
 
   const trimmed = data.trim();
 
   if (trimmed.length === 0) {
-    return { valid: false, error: 'Barcode data cannot be empty', sanitized: '' };
+    return { valid: false, error: t('val_barcode_empty'), sanitized: '' };
   }
 
   const maxLength = BARCODE.MAX_LENGTH[format] || BARCODE.MAX_LENGTH.CODE128;
@@ -171,21 +172,21 @@ export function validateBarcodeData(data, format = 'CODE128') {
   if (trimmed.length > maxLength) {
     return {
       valid: false,
-      error: `Data too long (max ${maxLength} characters for ${format})`,
+      error: t('val_barcode_too_long', { maxLength: maxLength, format: format }),
       sanitized: trimmed.slice(0, maxLength)
     };
   }
 
   if (!pattern.test(trimmed)) {
     const formatErrors = {
-      EAN13: 'EAN-13 requires exactly 13 digits',
-      UPC: 'UPC requires exactly 12 digits',
-      CODE39: 'Code 39 only allows A-Z, 0-9, and -. $/+%',
-      CODE128: 'Code 128 only allows ASCII characters',
+      EAN13: t('val_ean13_digits'),
+      UPC: t('val_upc_digits'),
+      CODE39: t('val_code39_chars'),
+      CODE128: t('val_code128_chars'),
     };
     return {
       valid: false,
-      error: formatErrors[format] || 'Invalid characters in barcode data',
+      error: formatErrors[format] || t('val_barcode_invalid_chars'),
       sanitized: trimmed
     };
   }
@@ -193,20 +194,20 @@ export function validateBarcodeData(data, format = 'CODE128') {
   // Additional format-specific validation
   if (format === 'EAN13') {
     if (trimmed.length !== 13) {
-      return { valid: false, error: 'EAN-13 requires exactly 13 digits', sanitized: trimmed };
+      return { valid: false, error: t('val_ean13_digits'), sanitized: trimmed };
     }
     // Validate EAN-13 check digit
     if (!validateEAN13CheckDigit(trimmed)) {
-      return { valid: false, error: 'Invalid EAN-13 check digit', sanitized: trimmed };
+      return { valid: false, error: t('val_ean13_check'), sanitized: trimmed };
     }
   }
   if (format === 'UPC') {
     if (trimmed.length !== 12) {
-      return { valid: false, error: 'UPC requires exactly 12 digits', sanitized: trimmed };
+      return { valid: false, error: t('val_upc_digits'), sanitized: trimmed };
     }
     // Validate UPC-A check digit
     if (!validateUPCCheckDigit(trimmed)) {
-      return { valid: false, error: 'Invalid UPC-A check digit', sanitized: trimmed };
+      return { valid: false, error: t('val_upc_check'), sanitized: trimmed };
     }
   }
 
@@ -252,19 +253,19 @@ function validateUPCCheckDigit(code) {
  */
 export function validateQRData(data) {
   if (!data || typeof data !== 'string') {
-    return { valid: false, error: 'QR data is required', sanitized: '' };
+    return { valid: false, error: t('val_qr_required'), sanitized: '' };
   }
 
   const trimmed = data.trim();
 
   if (trimmed.length === 0) {
-    return { valid: false, error: 'QR data cannot be empty', sanitized: '' };
+    return { valid: false, error: t('val_qr_empty'), sanitized: '' };
   }
 
   if (trimmed.length > QR.MAX_DATA_LENGTH) {
     return {
       valid: false,
-      error: `Data too long (max ${QR.MAX_DATA_LENGTH} characters)`,
+      error: t('val_qr_too_long', { MAX_DATA_LENGTH: QR.MAX_DATA_LENGTH }),
       sanitized: trimmed.slice(0, QR.MAX_DATA_LENGTH)
     };
   }
@@ -288,7 +289,7 @@ export function validateTextContent(text, maxLength = 10000) {
   if (str.length > maxLength) {
     return {
       valid: false,
-      error: `Text too long (max ${maxLength} characters)`,
+      error: t('val_text_too_long', { maxLength: maxLength }),
       sanitized: str.slice(0, maxLength)
     };
   }
@@ -303,19 +304,19 @@ export function validateTextContent(text, maxLength = 10000) {
  */
 export function validateDesignName(name) {
   if (!name || typeof name !== 'string') {
-    return { valid: false, error: 'Design name is required', sanitized: '' };
+    return { valid: false, error: t('err_design_name_required'), sanitized: '' };
   }
 
   const trimmed = name.trim();
 
   if (trimmed.length === 0) {
-    return { valid: false, error: 'Design name cannot be empty', sanitized: '' };
+    return { valid: false, error: t('val_design_name_empty'), sanitized: '' };
   }
 
   if (trimmed.length > 100) {
     return {
       valid: false,
-      error: 'Design name too long (max 100 characters)',
+      error: t('val_design_name_too_long'),
       sanitized: trimmed.slice(0, 100)
     };
   }
@@ -325,7 +326,7 @@ export function validateDesignName(name) {
   if (invalidChars.test(trimmed)) {
     return {
       valid: false,
-      error: 'Name contains invalid characters',
+      error: t('val_name_invalid_chars'),
       sanitized: trimmed.replace(invalidChars, '')
     };
   }
@@ -341,7 +342,7 @@ export function validateDesignName(name) {
  */
 export function validateImageFile(file, maxSizeMB = 10) {
   if (!file) {
-    return { valid: false, error: 'No file provided' };
+    return { valid: false, error: t('val_no_file') };
   }
 
   const validTypes = ['image/png', 'image/jpeg', 'image/gif', 'image/webp', 'image/svg+xml', 'application/pdf'];
@@ -349,7 +350,7 @@ export function validateImageFile(file, maxSizeMB = 10) {
   if (!validTypes.includes(file.type)) {
     return {
       valid: false,
-      error: 'Invalid file type. Use PNG, JPEG, GIF, WebP, SVG, or PDF'
+      error: t('val_image_type')
     };
   }
 
@@ -357,7 +358,7 @@ export function validateImageFile(file, maxSizeMB = 10) {
   if (file.size > maxBytes) {
     return {
       valid: false,
-      error: `File too large (max ${maxSizeMB}MB)`
+      error: t('val_file_too_large', { maxSizeMB: maxSizeMB })
     };
   }
 
@@ -372,7 +373,7 @@ export function validateImageFile(file, maxSizeMB = 10) {
  */
 export function validateCSVFile(file, maxSizeMB = 5) {
   if (!file) {
-    return { valid: false, error: 'No file provided' };
+    return { valid: false, error: t('val_no_file') };
   }
 
   const validTypes = ['text/csv', 'application/vnd.ms-excel', 'text/plain'];
@@ -382,12 +383,12 @@ export function validateCSVFile(file, maxSizeMB = 5) {
   const hasValidExtension = validExtensions.some(ext => file.name.toLowerCase().endsWith(ext));
 
   if (!hasValidType && !hasValidExtension) {
-    return { valid: false, error: 'Invalid file type. Use CSV or TXT files' };
+    return { valid: false, error: t('val_csv_type') };
   }
 
   const maxBytes = maxSizeMB * 1024 * 1024;
   if (file.size > maxBytes) {
-    return { valid: false, error: `File too large (max ${maxSizeMB}MB)` };
+    return { valid: false, error: t('val_file_too_large', { maxSizeMB: maxSizeMB }) };
   }
 
   return { valid: true };
@@ -401,7 +402,7 @@ export function validateCSVFile(file, maxSizeMB = 5) {
  */
 export function validateJSONFile(file, maxSizeMB = 10) {
   if (!file) {
-    return { valid: false, error: 'No file provided' };
+    return { valid: false, error: t('val_no_file') };
   }
 
   const validTypes = ['application/json', 'text/plain'];
@@ -411,12 +412,12 @@ export function validateJSONFile(file, maxSizeMB = 10) {
   const hasValidExtension = validExtensions.some(ext => file.name.toLowerCase().endsWith(ext));
 
   if (!hasValidType && !hasValidExtension) {
-    return { valid: false, error: 'Invalid file type. Use JSON files' };
+    return { valid: false, error: t('val_json_type') };
   }
 
   const maxBytes = maxSizeMB * 1024 * 1024;
   if (file.size > maxBytes) {
-    return { valid: false, error: `File too large (max ${maxSizeMB}MB)` };
+    return { valid: false, error: t('val_file_too_large', { maxSizeMB: maxSizeMB }) };
   }
 
   return { valid: true };

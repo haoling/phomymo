@@ -3,6 +3,8 @@
  * Handles field detection, substitution, and CSV parsing
  */
 
+import { t } from './i18n.js';
+
 // Field pattern: {{FieldName}}
 const FIELD_PATTERN = /\{\{([^}]+)\}\}/g;
 
@@ -128,20 +130,20 @@ export function parseCSV(csvString) {
   const records = [];
 
   if (lines.length === 0) {
-    return { headers: [], records: [], errors: ['Empty CSV file'] };
+    return { headers: [], records: [], errors: [t('err_csv_empty')] };
   }
 
   // Parse header row
   const headers = parseCSVLine(lines[0]);
   if (headers.length === 0) {
-    return { headers: [], records: [], errors: ['No headers found in CSV'] };
+    return { headers: [], records: [], errors: [t('err_csv_no_headers')] };
   }
 
   // Parse data rows
   for (let i = 1; i < lines.length; i++) {
     // Check record limit
     if (records.length >= MAX_CSV_RECORDS) {
-      errors.push(`CSV truncated: Maximum ${MAX_CSV_RECORDS} records allowed`);
+      errors.push(t('err_csv_truncated', { MAX_CSV_RECORDS: MAX_CSV_RECORDS }));
       break;
     }
 
@@ -151,7 +153,7 @@ export function parseCSV(csvString) {
     const values = parseCSVLine(line);
 
     if (values.length !== headers.length) {
-      errors.push(`Row ${i + 1}: Expected ${headers.length} columns, got ${values.length}`);
+      errors.push(t('err_csv_row_columns', { row: i + 1, expected: headers.length, actual: values.length }));
       continue;
     }
 

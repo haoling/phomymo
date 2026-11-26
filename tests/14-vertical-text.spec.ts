@@ -133,7 +133,7 @@ test.describe('縦書き(画面と印刷)', () => {
 
     await resetDrawnTexts(page);
     await printAndWait(page);
-    await expect(page.locator('#status-message')).toHaveText('Print complete!');
+    await expect(page.locator('#status-message')).toHaveText('印刷が終わりました!');
     let drawn = await getDrawnTexts(page);
     expect(drawn).not.toContain('たて12月');
     for (const t of ['た', 'て', '12', '月']) expect(drawn).toContain(t);

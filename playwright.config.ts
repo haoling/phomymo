@@ -12,6 +12,8 @@ export default defineConfig({
     baseURL: 'http://localhost:8081',
     viewport: { width: 1440, height: 900 },
     deviceScaleFactor: 2,
+    // 画面の文言は日本語を基準にテストする(英語は 15-i18n.spec.ts で確かめる)
+    locale: 'ja-JP',
     screenshot: 'off',
     actionTimeout: 10_000,
     // Allow using a preinstalled Chromium (e.g. in sandboxed dev environments)

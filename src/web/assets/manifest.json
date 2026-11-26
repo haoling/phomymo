@@ -3,47 +3,58 @@
  "categories": [
   {
    "id": "marks",
-   "name": "記号・マーク"
+   "name": "記号・マーク",
+   "nameEn": "Marks & symbols"
   },
   {
    "id": "living",
-   "name": "暮らし・収納"
+   "name": "暮らし・収納",
+   "nameEn": "Home & storage"
   },
   {
    "id": "food",
-   "name": "キッチン・食べ物"
+   "name": "キッチン・食べ物",
+   "nameEn": "Kitchen & food"
   },
   {
    "id": "office",
-   "name": "文具・しごと"
+   "name": "文具・しごと",
+   "nameEn": "Stationery & work"
   },
   {
    "id": "caution",
-   "name": "注意・取り扱い"
+   "name": "注意・取り扱い",
+   "nameEn": "Caution & handling"
   },
   {
    "id": "nature",
-   "name": "天気・自然"
+   "name": "天気・自然",
+   "nameEn": "Weather & nature"
   },
   {
    "id": "animals",
-   "name": "動物"
+   "name": "動物",
+   "nameEn": "Animals"
   },
   {
    "id": "hobby",
-   "name": "趣味・推し活"
+   "name": "趣味・推し活",
+   "nameEn": "Hobbies & fandom"
   },
   {
    "id": "arrows",
-   "name": "矢印"
+   "name": "矢印",
+   "nameEn": "Arrows"
   },
   {
    "id": "emoji",
-   "name": "絵文字"
+   "name": "絵文字",
+   "nameEn": "Emoji"
   },
   {
    "id": "stickers",
-   "name": "ステッカー"
+   "name": "ステッカー",
+   "nameEn": "Stickers"
   }
  ],
  "sources": {
@@ -79,7 +90,8 @@
     "check"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Check"
   },
   {
    "id": "tabler:circle-check",
@@ -95,7 +107,8 @@
     "circle check"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Circle check"
   },
   {
    "id": "tabler:x",
@@ -111,7 +124,8 @@
     "x"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Cross"
   },
   {
    "id": "tabler:circle-x",
@@ -126,7 +140,8 @@
     "circle x"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Circle x"
   },
   {
    "id": "tabler:star:filled",
@@ -142,7 +157,8 @@
     "star"
    ],
    "kind": "fill",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Star (filled)"
   },
   {
    "id": "tabler:star",
@@ -158,7 +174,8 @@
     "star"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Star"
   },
   {
    "id": "tabler:heart:filled",
@@ -174,7 +191,8 @@
     "heart"
    ],
    "kind": "fill",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Heart (filled)"
   },
   {
    "id": "tabler:heart",
@@ -190,7 +208,8 @@
     "heart"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Heart"
   },
   {
    "id": "tabler:circle:filled",
@@ -205,7 +224,8 @@
     "circle"
    ],
    "kind": "fill",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Circle (filled)"
   },
   {
    "id": "tabler:circle",
@@ -219,7 +239,8 @@
     "circle"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Circle"
   },
   {
    "id": "tabler:square-rounded:filled",
@@ -233,7 +254,8 @@
     "square rounded"
    ],
    "kind": "fill",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Square rounded (filled)"
   },
   {
    "id": "tabler:triangle",
@@ -247,7 +269,8 @@
     "triangle"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Triangle"
   },
   {
    "id": "tabler:diamond",
@@ -262,7 +285,8 @@
     "diamond"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Diamond"
   },
   {
    "id": "tabler:crown",
@@ -278,7 +302,8 @@
     "crown"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Crown"
   },
   {
    "id": "tabler:award",
@@ -293,7 +318,8 @@
     "award"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Award"
   },
   {
    "id": "tabler:rosette",
@@ -308,7 +334,8 @@
     "rosette"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Rosette"
   },
   {
    "id": "tabler:flag",
@@ -323,7 +350,8 @@
     "flag"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Flag"
   },
   {
    "id": "tabler:map-pin",
@@ -338,7 +366,8 @@
     "map pin"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Map pin"
   },
   {
    "id": "tabler:bell",
@@ -353,7 +382,8 @@
     "bell"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Bell"
   },
   {
    "id": "tabler:sparkles",
@@ -368,7 +398,8 @@
     "sparkles"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Sparkles"
   },
   {
    "id": "tabler:question-mark",
@@ -383,7 +414,8 @@
     "question mark"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Question mark"
   },
   {
    "id": "tabler:exclamation-mark",
@@ -398,7 +430,8 @@
     "exclamation mark"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Exclamation mark"
   },
   {
    "id": "tabler:info-circle",
@@ -413,7 +446,8 @@
     "info circle"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Info circle"
   },
   {
    "id": "tabler:number-1",
@@ -428,7 +462,8 @@
     "number 1"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "1"
   },
   {
    "id": "tabler:number-2",
@@ -443,7 +478,8 @@
     "number 2"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "2"
   },
   {
    "id": "tabler:number-3",
@@ -458,7 +494,8 @@
     "number 3"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "3"
   },
   {
    "id": "tabler:plus",
@@ -473,7 +510,8 @@
     "plus"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Plus"
   },
   {
    "id": "tabler:minus",
@@ -487,7 +525,8 @@
     "minus"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Minus"
   },
   {
    "id": "tabler:percentage",
@@ -503,7 +542,8 @@
     "percentage"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Percentage"
   },
   {
    "id": "tabler:currency-yen",
@@ -519,7 +559,8 @@
     "currency yen"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Yen"
   },
   {
    "id": "tabler:qrcode",
@@ -533,7 +574,8 @@
     "qrcode"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "QR"
   },
   {
    "id": "tabler:wifi",
@@ -548,7 +590,8 @@
     "wifi"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Wi-Fi"
   },
   {
    "id": "tabler:home",
@@ -563,7 +606,8 @@
     "home"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Home"
   },
   {
    "id": "tabler:box",
@@ -578,7 +622,8 @@
     "box"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Box"
   },
   {
    "id": "tabler:package",
@@ -594,7 +639,8 @@
     "package"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Package"
   },
   {
    "id": "tabler:archive",
@@ -610,7 +656,8 @@
     "archive"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Archive"
   },
   {
    "id": "tabler:basket",
@@ -625,7 +672,8 @@
     "basket"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Basket"
   },
   {
    "id": "tabler:shopping-bag",
@@ -639,7 +687,8 @@
     "shopping bag"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Shopping bag"
   },
   {
    "id": "tabler:shopping-cart",
@@ -653,7 +702,8 @@
     "shopping cart"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Shopping cart"
   },
   {
    "id": "tabler:shirt",
@@ -668,7 +718,8 @@
     "shirt"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Shirt"
   },
   {
    "id": "tabler:hanger",
@@ -683,7 +734,8 @@
     "hanger"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Hanger"
   },
   {
    "id": "tabler:shoe",
@@ -698,7 +750,8 @@
     "shoe"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Shoe"
   },
   {
    "id": "tabler:key",
@@ -713,7 +766,8 @@
     "key"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Key"
   },
   {
    "id": "tabler:lock",
@@ -728,7 +782,8 @@
     "lock"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Lock"
   },
   {
    "id": "tabler:bulb",
@@ -743,7 +798,8 @@
     "bulb"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Bulb"
   },
   {
    "id": "tabler:plug",
@@ -758,7 +814,8 @@
     "plug"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Plug"
   },
   {
    "id": "tabler:battery",
@@ -772,7 +829,8 @@
     "battery"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Battery"
   },
   {
    "id": "tabler:trash",
@@ -787,7 +845,8 @@
     "trash"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Trash"
   },
   {
    "id": "tabler:recycle",
@@ -803,7 +862,8 @@
     "recycle"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Recycle"
   },
   {
    "id": "tabler:bath",
@@ -818,7 +878,8 @@
     "bath"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Bath"
   },
   {
    "id": "tabler:bed",
@@ -833,7 +894,8 @@
     "bed"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Bed"
   },
   {
    "id": "tabler:armchair",
@@ -848,7 +910,8 @@
     "armchair"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Armchair"
   },
   {
    "id": "tabler:door",
@@ -863,7 +926,8 @@
     "door"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Door"
   },
   {
    "id": "tabler:wash-machine",
@@ -878,7 +942,8 @@
     "wash machine"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Wash machine"
   },
   {
    "id": "tabler:scissors",
@@ -893,7 +958,8 @@
     "scissors"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Scissors"
   },
   {
    "id": "tabler:needle-thread",
@@ -908,7 +974,8 @@
     "needle thread"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Needle thread"
   },
   {
    "id": "tabler:tool",
@@ -923,7 +990,8 @@
     "tool"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Tool"
   },
   {
    "id": "tabler:hammer",
@@ -938,7 +1006,8 @@
     "hammer"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Hammer"
   },
   {
    "id": "tabler:first-aid-kit",
@@ -953,7 +1022,8 @@
     "first aid kit"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "First aid kit"
   },
   {
    "id": "tabler:pill",
@@ -968,7 +1038,8 @@
     "pill"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Pill"
   },
   {
    "id": "tabler:dental",
@@ -983,7 +1054,8 @@
     "dental"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Dental"
   },
   {
    "id": "tabler:baby-bottle",
@@ -998,7 +1070,8 @@
     "baby bottle"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Baby bottle"
   },
   {
    "id": "tabler:plant",
@@ -1013,7 +1086,8 @@
     "plant"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Plant"
   },
   {
    "id": "tabler:car",
@@ -1028,7 +1102,8 @@
     "car"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Car"
   },
   {
    "id": "tabler:bike",
@@ -1042,7 +1117,8 @@
     "bike"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Bike"
   },
   {
    "id": "tabler:tools-kitchen-2",
@@ -1057,7 +1133,8 @@
     "tools kitchen 2"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Tools kitchen"
   },
   {
    "id": "tabler:chef-hat",
@@ -1072,7 +1149,8 @@
     "chef hat"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Chef hat"
   },
   {
    "id": "tabler:coffee",
@@ -1087,7 +1165,8 @@
     "coffee"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Coffee"
   },
   {
    "id": "tabler:cup",
@@ -1102,7 +1181,8 @@
     "cup"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Cup"
   },
   {
    "id": "tabler:glass-full",
@@ -1117,7 +1197,8 @@
     "glass full"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Glass full"
   },
   {
    "id": "tabler:beer",
@@ -1132,7 +1213,8 @@
     "beer"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Beer"
   },
   {
    "id": "tabler:bottle",
@@ -1148,7 +1230,8 @@
     "bottle"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Bottle"
   },
   {
    "id": "tabler:milk",
@@ -1163,7 +1246,8 @@
     "milk"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Milk"
   },
   {
    "id": "tabler:egg",
@@ -1178,7 +1262,8 @@
     "egg"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Egg"
   },
   {
    "id": "tabler:apple",
@@ -1193,7 +1278,8 @@
     "apple"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Apple"
   },
   {
    "id": "tabler:lemon",
@@ -1208,7 +1294,8 @@
     "lemon"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Lemon"
   },
   {
    "id": "tabler:carrot",
@@ -1222,7 +1309,8 @@
     "carrot"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Carrot"
   },
   {
    "id": "tabler:pepper",
@@ -1237,7 +1325,8 @@
     "pepper"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Pepper"
   },
   {
    "id": "tabler:mushroom",
@@ -1251,7 +1340,8 @@
     "mushroom"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Mushroom"
   },
   {
    "id": "tabler:fish",
@@ -1266,7 +1356,8 @@
     "fish"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Fish"
   },
   {
    "id": "tabler:meat",
@@ -1280,7 +1371,8 @@
     "meat"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Meat"
   },
   {
    "id": "tabler:bread",
@@ -1294,7 +1386,8 @@
     "bread"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Bread"
   },
   {
    "id": "tabler:pizza",
@@ -1308,7 +1401,8 @@
     "pizza"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Pizza"
   },
   {
    "id": "tabler:cake",
@@ -1324,7 +1418,8 @@
     "cake"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Cake"
   },
   {
    "id": "tabler:ice-cream",
@@ -1339,7 +1434,8 @@
     "ice cream"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Ice cream"
   },
   {
    "id": "tabler:cookie",
@@ -1354,7 +1450,8 @@
     "cookie"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Cookie"
   },
   {
    "id": "tabler:candy",
@@ -1369,7 +1466,8 @@
     "candy"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Candy"
   },
   {
    "id": "tabler:salt",
@@ -1384,7 +1482,8 @@
     "salt"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Salt"
   },
   {
    "id": "tabler:soup",
@@ -1399,7 +1498,8 @@
     "soup"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Soup"
   },
   {
    "id": "tabler:bowl-chopsticks",
@@ -1415,7 +1515,8 @@
     "bowl chopsticks"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Bowl chopsticks"
   },
   {
    "id": "tabler:cooker",
@@ -1430,7 +1531,8 @@
     "cooker"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Cooker"
   },
   {
    "id": "tabler:fridge",
@@ -1445,7 +1547,8 @@
     "fridge"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Fridge"
   },
   {
    "id": "tabler:microwave",
@@ -1460,7 +1563,8 @@
     "microwave"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Microwave"
   },
   {
    "id": "tabler:pencil",
@@ -1475,7 +1579,8 @@
     "pencil"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Pencil"
   },
   {
    "id": "tabler:ballpen",
@@ -1490,7 +1595,8 @@
     "ballpen"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Ballpen"
   },
   {
    "id": "tabler:highlight",
@@ -1504,7 +1610,8 @@
     "highlight"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Highlight"
   },
   {
    "id": "tabler:eraser",
@@ -1518,7 +1625,8 @@
     "eraser"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Eraser"
   },
   {
    "id": "tabler:ruler-2",
@@ -1533,7 +1641,8 @@
     "ruler 2"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Ruler"
   },
   {
    "id": "tabler:paperclip",
@@ -1547,7 +1656,8 @@
     "paperclip"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Paperclip"
   },
   {
    "id": "tabler:pin",
@@ -1561,7 +1671,8 @@
     "pin"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Pin"
   },
   {
    "id": "tabler:notebook",
@@ -1576,7 +1687,8 @@
     "notebook"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Notebook"
   },
   {
    "id": "tabler:book",
@@ -1591,7 +1703,8 @@
     "book"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Book"
   },
   {
    "id": "tabler:books",
@@ -1606,7 +1719,8 @@
     "books"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Books"
   },
   {
    "id": "tabler:clipboard",
@@ -1620,7 +1734,8 @@
     "clipboard"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Clipboard"
   },
   {
    "id": "tabler:note",
@@ -1635,7 +1750,8 @@
     "note"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Note"
   },
   {
    "id": "tabler:calendar",
@@ -1650,7 +1766,8 @@
     "calendar"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Calendar"
   },
   {
    "id": "tabler:clock",
@@ -1665,7 +1782,8 @@
     "clock"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Clock"
   },
   {
    "id": "tabler:alarm",
@@ -1680,7 +1798,8 @@
     "alarm"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Alarm"
   },
   {
    "id": "tabler:hourglass",
@@ -1695,7 +1814,8 @@
     "hourglass"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Hourglass"
   },
   {
    "id": "tabler:mail",
@@ -1710,7 +1830,8 @@
     "mail"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Mail"
   },
   {
    "id": "tabler:phone",
@@ -1724,7 +1845,8 @@
     "phone"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Phone"
   },
   {
    "id": "tabler:device-mobile",
@@ -1739,7 +1861,8 @@
     "device mobile"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Device mobile"
   },
   {
    "id": "tabler:device-laptop",
@@ -1753,7 +1876,8 @@
     "device laptop"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Device laptop"
   },
   {
    "id": "tabler:printer",
@@ -1767,7 +1891,8 @@
     "printer"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Printer"
   },
   {
    "id": "tabler:camera",
@@ -1781,7 +1906,8 @@
     "camera"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Camera"
   },
   {
    "id": "tabler:file",
@@ -1796,7 +1922,8 @@
     "file"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "File"
   },
   {
    "id": "tabler:folder",
@@ -1811,7 +1938,8 @@
     "folder"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Folder"
   },
   {
    "id": "tabler:tag",
@@ -1826,7 +1954,8 @@
     "tag"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Tag"
   },
   {
    "id": "tabler:tags",
@@ -1841,7 +1970,8 @@
     "tags"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Tags"
   },
   {
    "id": "tabler:plug-connected",
@@ -1856,7 +1986,8 @@
     "plug connected"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Plug connected"
   },
   {
    "id": "tabler:usb",
@@ -1870,7 +2001,8 @@
     "usb"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "USB"
   },
   {
    "id": "tabler:device-sd-card",
@@ -1884,7 +2016,8 @@
     "device sd card"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Device sd card"
   },
   {
    "id": "tabler:palette",
@@ -1899,7 +2032,8 @@
     "palette"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Palette"
   },
   {
    "id": "tabler:brush",
@@ -1914,7 +2048,8 @@
     "brush"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Brush"
   },
   {
    "id": "tabler:school",
@@ -1929,7 +2064,8 @@
     "school"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "School"
   },
   {
    "id": "tabler:alert-triangle",
@@ -1944,7 +2080,8 @@
     "alert triangle"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Alert triangle"
   },
   {
    "id": "tabler:alert-octagon",
@@ -1959,7 +2096,8 @@
     "alert octagon"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Alert octagon"
   },
   {
    "id": "tabler:ban",
@@ -1974,7 +2112,8 @@
     "ban"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Ban"
   },
   {
    "id": "tabler:hand-stop",
@@ -1989,7 +2128,8 @@
     "hand stop"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Hand stop"
   },
   {
    "id": "tabler:glass",
@@ -2005,7 +2145,8 @@
     "glass"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Glass"
   },
   {
    "id": "tabler:umbrella",
@@ -2021,7 +2162,8 @@
     "umbrella"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Umbrella"
   },
   {
    "id": "tabler:arrow-bar-up",
@@ -2036,7 +2178,8 @@
     "arrow bar up"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Arrow bar up"
   },
   {
    "id": "tabler:temperature",
@@ -2050,7 +2193,8 @@
     "temperature"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Temperature"
   },
   {
    "id": "tabler:temperature-snow",
@@ -2066,7 +2210,8 @@
     "temperature snow"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Temperature snow"
   },
   {
    "id": "tabler:flame",
@@ -2082,7 +2227,8 @@
     "flame"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Flame"
   },
   {
    "id": "tabler:bolt",
@@ -2098,7 +2244,8 @@
     "bolt"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Bolt"
   },
   {
    "id": "tabler:radioactive",
@@ -2112,7 +2259,8 @@
     "radioactive"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Radioactive"
   },
   {
    "id": "tabler:biohazard",
@@ -2126,7 +2274,8 @@
     "biohazard"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Biohazard"
   },
   {
    "id": "tabler:skull",
@@ -2141,7 +2290,8 @@
     "skull"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Skull"
   },
   {
    "id": "tabler:eye-off",
@@ -2156,7 +2306,8 @@
     "eye off"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Eye off"
   },
   {
    "id": "tabler:lock-square",
@@ -2171,7 +2322,8 @@
     "lock square"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Lock square"
   },
   {
    "id": "tabler:smoking-no",
@@ -2185,7 +2337,8 @@
     "smoking no"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Smoking no"
   },
   {
    "id": "tabler:paw-off",
@@ -2199,7 +2352,8 @@
     "paw off"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Paw off"
   },
   {
    "id": "tabler:wheelchair",
@@ -2213,7 +2367,8 @@
     "wheelchair"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Wheelchair"
   },
   {
    "id": "tabler:sun",
@@ -2228,7 +2383,8 @@
     "sun"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Sun"
   },
   {
    "id": "tabler:cloud",
@@ -2243,7 +2399,8 @@
     "cloud"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Cloud"
   },
   {
    "id": "tabler:cloud-rain",
@@ -2257,7 +2414,8 @@
     "cloud rain"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Cloud rain"
   },
   {
    "id": "tabler:snowflake",
@@ -2272,7 +2430,8 @@
     "snowflake"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Snowflake"
   },
   {
    "id": "tabler:moon",
@@ -2287,7 +2446,8 @@
     "moon"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Moon"
   },
   {
    "id": "tabler:moon:filled",
@@ -2302,7 +2462,8 @@
     "moon"
    ],
    "kind": "fill",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Moon (filled)"
   },
   {
    "id": "tabler:rainbow",
@@ -2316,7 +2477,8 @@
     "rainbow"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Rainbow"
   },
   {
    "id": "tabler:droplet",
@@ -2331,7 +2493,8 @@
     "droplet"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Droplet"
   },
   {
    "id": "tabler:leaf",
@@ -2346,7 +2509,8 @@
     "leaf"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Leaf"
   },
   {
    "id": "tabler:flower",
@@ -2361,7 +2525,8 @@
     "flower"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Flower"
   },
   {
    "id": "tabler:plant-2",
@@ -2376,7 +2541,8 @@
     "plant 2"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Plant"
   },
   {
    "id": "tabler:tree",
@@ -2391,7 +2557,8 @@
     "tree"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Tree"
   },
   {
    "id": "tabler:cactus",
@@ -2405,7 +2572,8 @@
     "cactus"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Cactus"
   },
   {
    "id": "tabler:clover",
@@ -2420,7 +2588,8 @@
     "clover"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Clover"
   },
   {
    "id": "tabler:mountain",
@@ -2434,7 +2603,8 @@
     "mountain"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Mountain"
   },
   {
    "id": "tabler:ripple",
@@ -2449,7 +2619,8 @@
     "ripple"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Ripple"
   },
   {
    "id": "tabler:cat",
@@ -2464,7 +2635,8 @@
     "cat"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Cat"
   },
   {
    "id": "tabler:dog",
@@ -2479,7 +2651,8 @@
     "dog"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Dog"
   },
   {
    "id": "tabler:paw",
@@ -2494,7 +2667,8 @@
     "paw"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Paw"
   },
   {
    "id": "tabler:butterfly",
@@ -2509,7 +2683,8 @@
     "butterfly"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Butterfly"
   },
   {
    "id": "tabler:bug",
@@ -2523,7 +2698,8 @@
     "bug"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Bug"
   },
   {
    "id": "tabler:spider",
@@ -2537,7 +2713,8 @@
     "spider"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Spider"
   },
   {
    "id": "tabler:pig",
@@ -2552,7 +2729,8 @@
     "pig"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Pig"
   },
   {
    "id": "tabler:deer",
@@ -2567,7 +2745,8 @@
     "deer"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Deer"
   },
   {
    "id": "tabler:feather",
@@ -2582,7 +2761,8 @@
     "feather"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Feather"
   },
   {
    "id": "tabler:bone",
@@ -2597,7 +2777,8 @@
     "bone"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Bone"
   },
   {
    "id": "tabler:fish-bone",
@@ -2612,7 +2793,8 @@
     "fish bone"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Fish bone"
   },
   {
    "id": "tabler:music",
@@ -2627,7 +2809,8 @@
     "music"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Music"
   },
   {
    "id": "tabler:microphone-2",
@@ -2643,7 +2826,8 @@
     "microphone 2"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Microphone"
   },
   {
    "id": "tabler:headphones",
@@ -2657,7 +2841,8 @@
     "headphones"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Headphones"
   },
   {
    "id": "tabler:device-gamepad-2",
@@ -2671,7 +2856,8 @@
     "device gamepad 2"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Device gamepad"
   },
   {
    "id": "tabler:ticket",
@@ -2686,7 +2872,8 @@
     "ticket"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Ticket"
   },
   {
    "id": "tabler:gift",
@@ -2701,7 +2888,8 @@
     "gift"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Gift"
   },
   {
    "id": "tabler:balloon",
@@ -2716,7 +2904,8 @@
     "balloon"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Balloon"
   },
   {
    "id": "tabler:confetti",
@@ -2731,7 +2920,8 @@
     "confetti"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Confetti"
   },
   {
    "id": "tabler:wand",
@@ -2745,7 +2935,8 @@
     "wand"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Wand"
   },
   {
    "id": "tabler:photo",
@@ -2760,7 +2951,8 @@
     "photo"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Photo"
   },
   {
    "id": "tabler:movie",
@@ -2774,7 +2966,8 @@
     "movie"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Movie"
   },
   {
    "id": "tabler:brand-youtube",
@@ -2789,7 +2982,8 @@
     "brand youtube"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Brand youtube"
   },
   {
    "id": "tabler:broadcast",
@@ -2804,7 +2998,8 @@
     "broadcast"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Broadcast"
   },
   {
    "id": "tabler:device-tv",
@@ -2818,7 +3013,8 @@
     "device tv"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Device tv"
   },
   {
    "id": "tabler:ball-football",
@@ -2833,7 +3029,8 @@
     "ball football"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Ball football"
   },
   {
    "id": "tabler:ball-baseball",
@@ -2848,7 +3045,8 @@
     "ball baseball"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Ball baseball"
   },
   {
    "id": "tabler:plane",
@@ -2863,7 +3061,8 @@
     "plane"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Plane"
   },
   {
    "id": "tabler:map",
@@ -2878,7 +3077,8 @@
     "map"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Map"
   },
   {
    "id": "tabler:tent",
@@ -2892,7 +3092,8 @@
     "tent"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Tent"
   },
   {
    "id": "tabler:christmas-tree",
@@ -2906,7 +3107,8 @@
     "christmas tree"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Christmas tree"
   },
   {
    "id": "tabler:pumpkin-scary",
@@ -2920,7 +3122,8 @@
     "pumpkin scary"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Pumpkin scary"
   },
   {
    "id": "tabler:arrow-up",
@@ -2935,7 +3138,8 @@
     "arrow up"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Arrow up"
   },
   {
    "id": "tabler:arrow-down",
@@ -2950,7 +3154,8 @@
     "arrow down"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Arrow down"
   },
   {
    "id": "tabler:arrow-left",
@@ -2965,7 +3170,8 @@
     "arrow left"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Arrow left"
   },
   {
    "id": "tabler:arrow-right",
@@ -2980,7 +3186,8 @@
     "arrow right"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Arrow right"
   },
   {
    "id": "tabler:arrow-up-right",
@@ -2995,7 +3202,8 @@
     "arrow up right"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Arrow up right"
   },
   {
    "id": "tabler:arrows-up-down",
@@ -3009,7 +3217,8 @@
     "arrows up down"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Arrows up down"
   },
   {
    "id": "tabler:arrows-left-right",
@@ -3023,7 +3232,8 @@
     "arrows left right"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Arrows left right"
   },
   {
    "id": "tabler:arrow-big-right",
@@ -3037,7 +3247,8 @@
     "arrow big right"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Arrow big right"
   },
   {
    "id": "tabler:arrow-big-up",
@@ -3051,7 +3262,8 @@
     "arrow big up"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Arrow big up"
   },
   {
    "id": "tabler:corner-down-right",
@@ -3065,7 +3277,8 @@
     "corner down right"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Corner down right"
   },
   {
    "id": "tabler:refresh",
@@ -3080,7 +3293,8 @@
     "refresh"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Refresh"
   },
   {
    "id": "tabler:rotate-clockwise",
@@ -3094,7 +3308,8 @@
     "rotate clockwise"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Rotate clockwise"
   },
   {
    "id": "tabler:chevron-right",
@@ -3109,7 +3324,8 @@
     "chevron right"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Chevron right"
   },
   {
    "id": "tabler:chevrons-right",
@@ -3123,7 +3339,8 @@
     "chevrons right"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Chevrons right"
   },
   {
    "id": "tabler:hand-finger-right",
@@ -3138,7 +3355,8 @@
     "hand finger right"
    ],
    "kind": "line",
-   "source": "tabler"
+   "source": "tabler",
+   "nameEn": "Hand finger right"
   },
   {
    "id": "twemoji:2764",
@@ -3152,7 +3370,8 @@
     "好き"
    ],
    "kind": "color",
-   "source": "twemoji"
+   "source": "twemoji",
+   "nameEn": "Heart"
   },
   {
    "id": "twemoji:1f495",
@@ -3166,7 +3385,8 @@
     "ラブ"
    ],
    "kind": "color",
-   "source": "twemoji"
+   "source": "twemoji",
+   "nameEn": "Two hearts"
   },
   {
    "id": "twemoji:2b50",
@@ -3179,7 +3399,8 @@
     "ほし"
    ],
    "kind": "color",
-   "source": "twemoji"
+   "source": "twemoji",
+   "nameEn": "Star"
   },
   {
    "id": "twemoji:2728",
@@ -3192,7 +3413,8 @@
     "きらきら"
    ],
    "kind": "color",
-   "source": "twemoji"
+   "source": "twemoji",
+   "nameEn": "Sparkles"
   },
   {
    "id": "twemoji:1f338",
@@ -3206,7 +3428,8 @@
     "花"
    ],
    "kind": "color",
-   "source": "twemoji"
+   "source": "twemoji",
+   "nameEn": "Cherry blossom"
   },
   {
    "id": "twemoji:1f340",
@@ -3220,7 +3443,8 @@
     "幸運"
    ],
    "kind": "color",
-   "source": "twemoji"
+   "source": "twemoji",
+   "nameEn": "Four-leaf clover"
   },
   {
    "id": "twemoji:1f380",
@@ -3233,7 +3457,8 @@
     "りぼん"
    ],
    "kind": "color",
-   "source": "twemoji"
+   "source": "twemoji",
+   "nameEn": "Ribbon"
   },
   {
    "id": "twemoji:1f381",
@@ -3246,7 +3471,8 @@
     "ギフト"
    ],
    "kind": "color",
-   "source": "twemoji"
+   "source": "twemoji",
+   "nameEn": "Gift"
   },
   {
    "id": "twemoji:1f382",
@@ -3259,7 +3485,8 @@
     "誕生日"
    ],
    "kind": "color",
-   "source": "twemoji"
+   "source": "twemoji",
+   "nameEn": "Birthday cake"
   },
   {
    "id": "twemoji:1f389",
@@ -3272,7 +3499,8 @@
     "お祝い"
    ],
    "kind": "color",
-   "source": "twemoji"
+   "source": "twemoji",
+   "nameEn": "Party popper"
   },
   {
    "id": "twemoji:1f431",
@@ -3285,7 +3513,8 @@
     "猫"
    ],
    "kind": "color",
-   "source": "twemoji"
+   "source": "twemoji",
+   "nameEn": "Cat"
   },
   {
    "id": "twemoji:1f436",
@@ -3298,7 +3527,8 @@
     "犬"
    ],
    "kind": "color",
-   "source": "twemoji"
+   "source": "twemoji",
+   "nameEn": "Dog"
   },
   {
    "id": "twemoji:1f430",
@@ -3311,7 +3541,8 @@
     "兎"
    ],
    "kind": "color",
-   "source": "twemoji"
+   "source": "twemoji",
+   "nameEn": "Rabbit"
   },
   {
    "id": "twemoji:1f43b",
@@ -3324,7 +3555,8 @@
     "熊"
    ],
    "kind": "color",
-   "source": "twemoji"
+   "source": "twemoji",
+   "nameEn": "Bear"
   },
   {
    "id": "twemoji:1f43c",
@@ -3337,7 +3569,8 @@
     "ぱんだ"
    ],
    "kind": "color",
-   "source": "twemoji"
+   "source": "twemoji",
+   "nameEn": "Panda"
   },
   {
    "id": "twemoji:1f427",
@@ -3350,7 +3583,8 @@
     "ぺんぎん"
    ],
    "kind": "color",
-   "source": "twemoji"
+   "source": "twemoji",
+   "nameEn": "Penguin"
   },
   {
    "id": "twemoji:1f98a",
@@ -3363,7 +3597,8 @@
     "狐"
    ],
    "kind": "color",
-   "source": "twemoji"
+   "source": "twemoji",
+   "nameEn": "Fox"
   },
   {
    "id": "twemoji:1f41f",
@@ -3376,7 +3611,8 @@
     "魚"
    ],
    "kind": "color",
-   "source": "twemoji"
+   "source": "twemoji",
+   "nameEn": "Fish"
   },
   {
    "id": "twemoji:1f34e",
@@ -3389,7 +3625,8 @@
     "果物"
    ],
    "kind": "color",
-   "source": "twemoji"
+   "source": "twemoji",
+   "nameEn": "Apple"
   },
   {
    "id": "twemoji:1f353",
@@ -3403,7 +3640,8 @@
     "果物"
    ],
    "kind": "color",
-   "source": "twemoji"
+   "source": "twemoji",
+   "nameEn": "Strawberry"
   },
   {
    "id": "twemoji:1f359",
@@ -3416,7 +3654,8 @@
     "ご飯"
    ],
    "kind": "color",
-   "source": "twemoji"
+   "source": "twemoji",
+   "nameEn": "Rice ball"
   },
   {
    "id": "twemoji:1f370",
@@ -3429,7 +3668,8 @@
     "ケーキ"
    ],
    "kind": "color",
-   "source": "twemoji"
+   "source": "twemoji",
+   "nameEn": "Shortcake"
   },
   {
    "id": "twemoji:1f361",
@@ -3443,7 +3683,8 @@
     "和菓子"
    ],
    "kind": "color",
-   "source": "twemoji"
+   "source": "twemoji",
+   "nameEn": "Dango"
   },
   {
    "id": "twemoji:2615",
@@ -3456,7 +3697,8 @@
     "ホット"
    ],
    "kind": "color",
-   "source": "twemoji"
+   "source": "twemoji",
+   "nameEn": "Coffee"
   },
   {
    "id": "twemoji:1f375",
@@ -3469,7 +3711,8 @@
     "緑茶"
    ],
    "kind": "color",
-   "source": "twemoji"
+   "source": "twemoji",
+   "nameEn": "Tea"
   },
   {
    "id": "twemoji:1f37a",
@@ -3482,7 +3725,8 @@
     "お酒"
    ],
    "kind": "color",
-   "source": "twemoji"
+   "source": "twemoji",
+   "nameEn": "Beer"
   },
   {
    "id": "twemoji:1f377",
@@ -3495,7 +3739,8 @@
     "お酒"
    ],
    "kind": "color",
-   "source": "twemoji"
+   "source": "twemoji",
+   "nameEn": "Wine"
   },
   {
    "id": "twemoji:1f95b",
@@ -3508,7 +3753,8 @@
     "ミルク"
    ],
    "kind": "color",
-   "source": "twemoji"
+   "source": "twemoji",
+   "nameEn": "Milk"
   },
   {
    "id": "twemoji:1f35e",
@@ -3521,7 +3767,8 @@
     "食パン"
    ],
    "kind": "color",
-   "source": "twemoji"
+   "source": "twemoji",
+   "nameEn": "Bread"
   },
   {
    "id": "twemoji:1f95a",
@@ -3534,7 +3781,8 @@
     "卵"
    ],
    "kind": "color",
-   "source": "twemoji"
+   "source": "twemoji",
+   "nameEn": "Egg"
   },
   {
    "id": "twemoji:1f9c2",
@@ -3547,7 +3795,8 @@
     "調味料"
    ],
    "kind": "color",
-   "source": "twemoji"
+   "source": "twemoji",
+   "nameEn": "Salt"
   },
   {
    "id": "twemoji:1f373",
@@ -3561,7 +3810,8 @@
     "料理"
    ],
    "kind": "color",
-   "source": "twemoji"
+   "source": "twemoji",
+   "nameEn": "Fried egg"
   },
   {
    "id": "twemoji:2705",
@@ -3575,7 +3825,8 @@
     "OK"
    ],
    "kind": "color",
-   "source": "twemoji"
+   "source": "twemoji",
+   "nameEn": "Check"
   },
   {
    "id": "twemoji:274c",
@@ -3588,7 +3839,8 @@
     "NG"
    ],
    "kind": "color",
-   "source": "twemoji"
+   "source": "twemoji",
+   "nameEn": "Cross"
   },
   {
    "id": "twemoji:26a0",
@@ -3601,7 +3853,8 @@
     "警告"
    ],
    "kind": "color",
-   "source": "twemoji"
+   "source": "twemoji",
+   "nameEn": "Warning"
   },
   {
    "id": "twemoji:26d4",
@@ -3614,7 +3867,8 @@
     "禁止"
    ],
    "kind": "color",
-   "source": "twemoji"
+   "source": "twemoji",
+   "nameEn": "No entry"
   },
   {
    "id": "twemoji:2757",
@@ -3627,7 +3881,8 @@
     "!"
    ],
    "kind": "color",
-   "source": "twemoji"
+   "source": "twemoji",
+   "nameEn": "Exclamation"
   },
   {
    "id": "twemoji:2753",
@@ -3640,7 +3895,8 @@
     "?"
    ],
    "kind": "color",
-   "source": "twemoji"
+   "source": "twemoji",
+   "nameEn": "Question"
   },
   {
    "id": "twemoji:1f4a1",
@@ -3653,7 +3909,8 @@
     "アイデア"
    ],
    "kind": "color",
-   "source": "twemoji"
+   "source": "twemoji",
+   "nameEn": "Light bulb"
   },
   {
    "id": "twemoji:1f4e6",
@@ -3666,7 +3923,8 @@
     "箱"
    ],
    "kind": "color",
-   "source": "twemoji"
+   "source": "twemoji",
+   "nameEn": "Package"
   },
   {
    "id": "twemoji:1f4cc",
@@ -3679,7 +3937,8 @@
     "ピン"
    ],
    "kind": "color",
-   "source": "twemoji"
+   "source": "twemoji",
+   "nameEn": "Pushpin"
   },
   {
    "id": "twemoji:1f4ce",
@@ -3692,7 +3951,8 @@
     "くりっぷ"
    ],
    "kind": "color",
-   "source": "twemoji"
+   "source": "twemoji",
+   "nameEn": "Paperclip"
   },
   {
    "id": "twemoji:2702",
@@ -3705,7 +3965,8 @@
     "ハサミ"
    ],
    "kind": "color",
-   "source": "twemoji"
+   "source": "twemoji",
+   "nameEn": "Scissors"
   },
   {
    "id": "twemoji:1f4da",
@@ -3718,7 +3979,8 @@
     "書籍"
    ],
    "kind": "color",
-   "source": "twemoji"
+   "source": "twemoji",
+   "nameEn": "Books"
   },
   {
    "id": "twemoji:1f4dd",
@@ -3731,7 +3993,8 @@
     "ノート"
    ],
    "kind": "color",
-   "source": "twemoji"
+   "source": "twemoji",
+   "nameEn": "Memo"
   },
   {
    "id": "twemoji:1f4c5",
@@ -3744,7 +4007,8 @@
     "日付"
    ],
    "kind": "color",
-   "source": "twemoji"
+   "source": "twemoji",
+   "nameEn": "Calendar"
   },
   {
    "id": "twemoji:23f0",
@@ -3757,7 +4021,8 @@
     "時間"
    ],
    "kind": "color",
-   "source": "twemoji"
+   "source": "twemoji",
+   "nameEn": "Alarm clock"
   },
   {
    "id": "twemoji:1f511",
@@ -3770,7 +4035,8 @@
     "キー"
    ],
    "kind": "color",
-   "source": "twemoji"
+   "source": "twemoji",
+   "nameEn": "Key"
   },
   {
    "id": "twemoji:1f512",
@@ -3783,7 +4049,8 @@
     "ロック"
    ],
    "kind": "color",
-   "source": "twemoji"
+   "source": "twemoji",
+   "nameEn": "Lock"
   },
   {
    "id": "twemoji:1f3e0",
@@ -3796,7 +4063,8 @@
     "ホーム"
    ],
    "kind": "color",
-   "source": "twemoji"
+   "source": "twemoji",
+   "nameEn": "House"
   },
   {
    "id": "twemoji:1f9fa",
@@ -3809,7 +4077,8 @@
     "バスケット"
    ],
    "kind": "color",
-   "source": "twemoji"
+   "source": "twemoji",
+   "nameEn": "Basket"
   },
   {
    "id": "twemoji:1f9f4",
@@ -3822,7 +4091,8 @@
     "ローション"
    ],
    "kind": "color",
-   "source": "twemoji"
+   "source": "twemoji",
+   "nameEn": "Bottle"
   },
   {
    "id": "twemoji:1f9fb",
@@ -3835,7 +4105,8 @@
     "日用品"
    ],
    "kind": "color",
-   "source": "twemoji"
+   "source": "twemoji",
+   "nameEn": "Toilet paper"
   },
   {
    "id": "twemoji:1f48a",
@@ -3848,7 +4119,8 @@
     "薬"
    ],
    "kind": "color",
-   "source": "twemoji"
+   "source": "twemoji",
+   "nameEn": "Medicine"
   },
   {
    "id": "twemoji:1fa79",
@@ -3861,7 +4133,8 @@
     "絆創膏"
    ],
    "kind": "color",
-   "source": "twemoji"
+   "source": "twemoji",
+   "nameEn": "Bandage"
   },
   {
    "id": "twemoji:1f3b5",
@@ -3874,7 +4147,8 @@
     "音楽"
    ],
    "kind": "color",
-   "source": "twemoji"
+   "source": "twemoji",
+   "nameEn": "Music note"
   },
   {
    "id": "twemoji:1f3ae",
@@ -3887,7 +4161,8 @@
     "コントローラー"
    ],
    "kind": "color",
-   "source": "twemoji"
+   "source": "twemoji",
+   "nameEn": "Game"
   },
   {
    "id": "twemoji:1f3a4",
@@ -3901,7 +4176,8 @@
     "歌"
    ],
    "kind": "color",
-   "source": "twemoji"
+   "source": "twemoji",
+   "nameEn": "Microphone"
   },
   {
    "id": "twemoji:1f4f7",
@@ -3914,7 +4190,8 @@
     "写真"
    ],
    "kind": "color",
-   "source": "twemoji"
+   "source": "twemoji",
+   "nameEn": "Camera"
   },
   {
    "id": "twemoji:1f319",
@@ -3928,7 +4205,8 @@
     "夜"
    ],
    "kind": "color",
-   "source": "twemoji"
+   "source": "twemoji",
+   "nameEn": "Crescent moon"
   },
   {
    "id": "twemoji:2600",
@@ -3941,7 +4219,8 @@
     "太陽"
    ],
    "kind": "color",
-   "source": "twemoji"
+   "source": "twemoji",
+   "nameEn": "Sunny"
   },
   {
    "id": "twemoji:2601",
@@ -3954,7 +4233,8 @@
     "雲"
    ],
    "kind": "color",
-   "source": "twemoji"
+   "source": "twemoji",
+   "nameEn": "Cloudy"
   },
   {
    "id": "twemoji:2614",
@@ -3967,7 +4247,8 @@
     "傘"
    ],
    "kind": "color",
-   "source": "twemoji"
+   "source": "twemoji",
+   "nameEn": "Rain"
   },
   {
    "id": "twemoji:2744",
@@ -3980,7 +4261,8 @@
     "冷凍"
    ],
    "kind": "color",
-   "source": "twemoji"
+   "source": "twemoji",
+   "nameEn": "Snow"
   },
   {
    "id": "twemoji:1f525",
@@ -3994,7 +4276,8 @@
     "熱い"
    ],
    "kind": "color",
-   "source": "twemoji"
+   "source": "twemoji",
+   "nameEn": "Fire"
   },
   {
    "id": "twemoji:1f4a7",
@@ -4007,7 +4290,8 @@
     "水"
    ],
    "kind": "color",
-   "source": "twemoji"
+   "source": "twemoji",
+   "nameEn": "Droplet"
   },
   {
    "id": "twemoji:1f308",
@@ -4020,7 +4304,8 @@
     "にじ"
    ],
    "kind": "color",
-   "source": "twemoji"
+   "source": "twemoji",
+   "nameEn": "Rainbow"
   },
   {
    "id": "twemoji:1f600",
@@ -4034,7 +4319,8 @@
     "顔"
    ],
    "kind": "color",
-   "source": "twemoji"
+   "source": "twemoji",
+   "nameEn": "Grinning face"
   },
   {
    "id": "twemoji:1f60a",
@@ -4048,7 +4334,8 @@
     "顔"
    ],
    "kind": "color",
-   "source": "twemoji"
+   "source": "twemoji",
+   "nameEn": "Smiling face"
   },
   {
    "id": "twemoji:1f60d",
@@ -4062,7 +4349,8 @@
     "顔"
    ],
    "kind": "color",
-   "source": "twemoji"
+   "source": "twemoji",
+   "nameEn": "Heart eyes"
   },
   {
    "id": "twemoji:1f602",
@@ -4076,7 +4364,8 @@
     "顔"
    ],
    "kind": "color",
-   "source": "twemoji"
+   "source": "twemoji",
+   "nameEn": "Tears of joy"
   },
   {
    "id": "twemoji:1f622",
@@ -4090,7 +4379,8 @@
     "顔"
    ],
    "kind": "color",
-   "source": "twemoji"
+   "source": "twemoji",
+   "nameEn": "Crying face"
   },
   {
    "id": "twemoji:1f621",
@@ -4104,7 +4394,8 @@
     "顔"
    ],
    "kind": "color",
-   "source": "twemoji"
+   "source": "twemoji",
+   "nameEn": "Angry face"
   },
   {
    "id": "twemoji:1f970",
@@ -4118,7 +4409,8 @@
     "顔"
    ],
    "kind": "color",
-   "source": "twemoji"
+   "source": "twemoji",
+   "nameEn": "Smiling face with hearts"
   },
   {
    "id": "twemoji:1f60e",
@@ -4132,7 +4424,8 @@
     "顔"
    ],
    "kind": "color",
-   "source": "twemoji"
+   "source": "twemoji",
+   "nameEn": "Sunglasses"
   },
   {
    "id": "twemoji:1f914",
@@ -4146,7 +4439,8 @@
     "顔"
    ],
    "kind": "color",
-   "source": "twemoji"
+   "source": "twemoji",
+   "nameEn": "Thinking face"
   },
   {
    "id": "twemoji:1f44d",
@@ -4159,7 +4453,8 @@
     "グッド"
    ],
    "kind": "color",
-   "source": "twemoji"
+   "source": "twemoji",
+   "nameEn": "Thumbs up"
   },
   {
    "id": "twemoji:1f44f",
@@ -4172,7 +4467,8 @@
     "ぱちぱち"
    ],
    "kind": "color",
-   "source": "twemoji"
+   "source": "twemoji",
+   "nameEn": "Clapping"
   },
   {
    "id": "twemoji:1f64f",
@@ -4185,7 +4481,8 @@
     "ありがとう"
    ],
    "kind": "color",
-   "source": "twemoji"
+   "source": "twemoji",
+   "nameEn": "Please"
   },
   {
    "id": "twemoji:1f4af",
@@ -4198,7 +4495,8 @@
     "満点"
    ],
    "kind": "color",
-   "source": "twemoji"
+   "source": "twemoji",
+   "nameEn": "100 points"
   },
   {
    "id": "twemoji:1f197",
@@ -4211,7 +4509,8 @@
     "おけ"
    ],
    "kind": "color",
-   "source": "twemoji"
+   "source": "twemoji",
+   "nameEn": "OK"
   },
   {
    "id": "twemoji:1f195",
@@ -4224,7 +4523,8 @@
     "新しい"
    ],
    "kind": "color",
-   "source": "twemoji"
+   "source": "twemoji",
+   "nameEn": "NEW"
   },
   {
    "id": "twemoji:1f250",
@@ -4237,7 +4537,8 @@
     "お得"
    ],
    "kind": "color",
-   "source": "twemoji"
+   "source": "twemoji",
+   "nameEn": "Bargain"
   },
   {
    "id": "twemoji:1f530",
@@ -4250,7 +4551,8 @@
     "若葉"
    ],
    "kind": "color",
-   "source": "twemoji"
+   "source": "twemoji",
+   "nameEn": "Beginner"
   },
   {
    "id": "twemoji:2668",
@@ -4263,7 +4565,8 @@
     "おんせん"
    ],
    "kind": "color",
-   "source": "twemoji"
+   "source": "twemoji",
+   "nameEn": "Hot springs"
   },
   {
    "id": "twemoji:1f5fb",
@@ -4276,7 +4579,8 @@
     "山"
    ],
    "kind": "color",
-   "source": "twemoji"
+   "source": "twemoji",
+   "nameEn": "Mount Fuji"
   },
   {
    "id": "twemoji:1f38d",
@@ -4289,7 +4593,8 @@
     "お正月"
    ],
    "kind": "color",
-   "source": "twemoji"
+   "source": "twemoji",
+   "nameEn": "Kadomatsu"
   },
   {
    "id": "sticker:starburst",
@@ -4304,7 +4609,8 @@
     "ばくはつ"
    ],
    "kind": "fill",
-   "source": "original"
+   "source": "original",
+   "nameEn": "Starburst badge"
   },
   {
    "id": "sticker:rosette",
@@ -4319,7 +4625,8 @@
     "1位"
    ],
    "kind": "fill",
-   "source": "original"
+   "source": "original",
+   "nameEn": "Rosette"
   },
   {
    "id": "sticker:ribbon-banner",
@@ -4333,7 +4640,8 @@
     "タイトル"
    ],
    "kind": "fill",
-   "source": "original"
+   "source": "original",
+   "nameEn": "Ribbon banner"
   },
   {
    "id": "sticker:speech-bubble",
@@ -4347,7 +4655,8 @@
     "セリフ"
    ],
    "kind": "fill",
-   "source": "original"
+   "source": "original",
+   "nameEn": "Speech bubble"
   },
   {
    "id": "sticker:thought-bubble",
@@ -4361,7 +4670,8 @@
     "吹き出し"
    ],
    "kind": "fill",
-   "source": "original"
+   "source": "original",
+   "nameEn": "Thought bubble"
   },
   {
    "id": "sticker:tag-shape",
@@ -4375,7 +4685,8 @@
     "値札"
    ],
    "kind": "fill",
-   "source": "original"
+   "source": "original",
+   "nameEn": "Tag"
   },
   {
    "id": "sticker:circle-badge",
@@ -4389,7 +4700,8 @@
     "判子"
    ],
    "kind": "fill",
-   "source": "original"
+   "source": "original",
+   "nameEn": "Double circle badge"
   },
   {
    "id": "sticker:heart-badge",
@@ -4402,7 +4714,8 @@
     "かわいい"
    ],
    "kind": "fill",
-   "source": "original"
+   "source": "original",
+   "nameEn": "Heart badge"
   },
   {
    "id": "sticker:cloud-badge",
@@ -4416,7 +4729,8 @@
     "かわいい"
    ],
    "kind": "fill",
-   "source": "original"
+   "source": "original",
+   "nameEn": "Cloud badge"
   },
   {
    "id": "sticker:flower-badge",
@@ -4430,7 +4744,8 @@
     "かわいい"
    ],
    "kind": "fill",
-   "source": "original"
+   "source": "original",
+   "nameEn": "Flower badge"
   },
   {
    "id": "sticker:price-plate",
@@ -4444,7 +4759,8 @@
     "名札"
    ],
    "kind": "fill",
-   "source": "original"
+   "source": "original",
+   "nameEn": "Plate"
   },
   {
    "id": "sticker:arrow-banner",
@@ -4458,7 +4774,8 @@
     "矢印"
    ],
    "kind": "fill",
-   "source": "original"
+   "source": "original",
+   "nameEn": "Arrow banner"
   }
  ]
 }

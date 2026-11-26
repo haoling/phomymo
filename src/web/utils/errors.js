@@ -4,6 +4,7 @@
  */
 
 import * as kv from '../kv.js';
+import { t } from '../i18n.js';
 
 // Error severity levels
 export const ErrorLevel = {
@@ -97,7 +98,7 @@ export function showToast(message, type = 'error') {
 export function safe(fn, options = {}) {
   const {
     fallback = null,
-    errorMessage = 'Operation failed',
+    errorMessage = t('err_operation_failed'),
     context = fn.name || 'anonymous',
     onError = null,
   } = options;
@@ -123,7 +124,7 @@ export function safe(fn, options = {}) {
 export function safeAsync(fn, options = {}) {
   const {
     fallback = null,
-    errorMessage = 'Operation failed',
+    errorMessage = t('err_operation_failed'),
     context = fn.name || 'anonymous',
     onError = null,
     showStatus = true,
@@ -266,7 +267,7 @@ export function safeStorageSet(key, value) {
     logError(error, `storage set: ${key}`, ErrorLevel.WARNING);
     // Check if it's a quota exceeded error
     if (error.name === 'QuotaExceededError') {
-      showError('Storage is full. Some data may not be saved.');
+      showError(t('err_storage_full_some'));
     }
     return false;
   }
@@ -365,25 +366,26 @@ export const ErrorCodes = {
 /**
  * User-friendly error messages for error codes
  */
+/** 値は i18n-messages.js のキー。文言は getErrorMessage() で引く */
 export const ErrorMessages = {
-  [ErrorCodes.BLE_NOT_SUPPORTED]: 'Bluetooth is not supported in this browser',
-  [ErrorCodes.BLE_CONNECTION_FAILED]: 'Failed to connect to printer',
-  [ErrorCodes.BLE_DEVICE_NOT_FOUND]: 'No printer found',
-  [ErrorCodes.USB_NOT_SUPPORTED]: 'USB is not supported in this browser',
-  [ErrorCodes.USB_CONNECTION_FAILED]: 'Failed to connect to USB device',
-  [ErrorCodes.PRINT_FAILED]: 'Print failed',
-  [ErrorCodes.PRINT_NO_DEVICE]: 'No printer connected',
-  [ErrorCodes.PRINT_CANCELLED]: 'Print cancelled',
-  [ErrorCodes.FILE_LOAD_FAILED]: 'Failed to load file',
-  [ErrorCodes.FILE_TOO_LARGE]: 'File is too large',
-  [ErrorCodes.FILE_INVALID_TYPE]: 'Invalid file type',
-  [ErrorCodes.STORAGE_FULL]: 'Storage is full',
-  [ErrorCodes.STORAGE_READ_FAILED]: 'Failed to read saved data',
-  [ErrorCodes.STORAGE_WRITE_FAILED]: 'Failed to save data',
-  [ErrorCodes.VALIDATION_FAILED]: 'Validation failed',
-  [ErrorCodes.INVALID_INPUT]: 'Invalid input',
-  [ErrorCodes.UNKNOWN]: 'An error occurred',
-  [ErrorCodes.OPERATION_CANCELLED]: 'Operation cancelled',
+  [ErrorCodes.BLE_NOT_SUPPORTED]: 'errmsg_ble_not_supported',
+  [ErrorCodes.BLE_CONNECTION_FAILED]: 'errmsg_ble_connection_failed',
+  [ErrorCodes.BLE_DEVICE_NOT_FOUND]: 'errmsg_ble_device_not_found',
+  [ErrorCodes.USB_NOT_SUPPORTED]: 'errmsg_usb_not_supported',
+  [ErrorCodes.USB_CONNECTION_FAILED]: 'errmsg_usb_connection_failed',
+  [ErrorCodes.PRINT_FAILED]: 'errmsg_print_failed',
+  [ErrorCodes.PRINT_NO_DEVICE]: 'errmsg_print_no_device',
+  [ErrorCodes.PRINT_CANCELLED]: 'errmsg_print_cancelled',
+  [ErrorCodes.FILE_LOAD_FAILED]: 'errmsg_file_load_failed',
+  [ErrorCodes.FILE_TOO_LARGE]: 'errmsg_file_too_large',
+  [ErrorCodes.FILE_INVALID_TYPE]: 'errmsg_file_invalid_type',
+  [ErrorCodes.STORAGE_FULL]: 'errmsg_storage_full',
+  [ErrorCodes.STORAGE_READ_FAILED]: 'errmsg_storage_read_failed',
+  [ErrorCodes.STORAGE_WRITE_FAILED]: 'errmsg_storage_write_failed',
+  [ErrorCodes.VALIDATION_FAILED]: 'errmsg_validation_failed',
+  [ErrorCodes.INVALID_INPUT]: 'errmsg_invalid_input',
+  [ErrorCodes.UNKNOWN]: 'errmsg_unknown',
+  [ErrorCodes.OPERATION_CANCELLED]: 'errmsg_operation_cancelled',
 };
 
 /**
@@ -392,5 +394,5 @@ export const ErrorMessages = {
  * @returns {string} User-friendly message
  */
 export function getErrorMessage(code) {
-  return ErrorMessages[code] || ErrorMessages[ErrorCodes.UNKNOWN];
+  return t(ErrorMessages[code] || ErrorMessages[ErrorCodes.UNKNOWN]);
 }

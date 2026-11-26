@@ -13,6 +13,7 @@
 
 import { STORAGE_KEYS } from './constants.js';
 import * as kv from './kv.js';
+import { t } from './i18n.js';
 
 const RECORDS_KEY = STORAGE_KEYS.DESIGN_RECORDS;
 const LEGACY_DESIGNS_KEY = STORAGE_KEYS.DESIGNS;
@@ -104,7 +105,7 @@ function touch(record) {
  */
 export function saveDesign(name, design) {
   if (!name || !name.trim()) {
-    throw new Error('Design name is required');
+    throw new Error(t('err_design_name_required'));
   }
   const trimmed = name.trim();
   const records = readRecords();
@@ -118,7 +119,7 @@ export function saveDesign(name, design) {
   touch(record);
 
   if (!writeRecords(records)) {
-    throw new Error('Failed to save design');
+    throw new Error(t('err_save_design_failed'));
   }
   return true;
 }
@@ -198,18 +199,18 @@ export function updateDesignCounter(name, counter) {
  */
 export function renameDesign(oldName, newName) {
   if (!newName || !newName.trim()) {
-    throw new Error('New name is required');
+    throw new Error(t('err_new_name_required'));
   }
 
   const records = readRecords();
   const record = findLiveByName(records, oldName);
   if (!record) {
-    throw new Error('Design not found');
+    throw new Error(t('status_design_not_found'));
   }
 
   const trimmedNew = newName.trim();
   if (trimmedNew !== oldName && findLiveByName(records, trimmedNew)) {
-    throw new Error('A design with that name already exists');
+    throw new Error(t('err_design_name_exists'));
   }
 
   record.name = trimmedNew;
@@ -274,7 +275,7 @@ export const DESIGN_RECORDS_KEY = RECORDS_KEY;
 export function exportDesign(name) {
   const design = loadDesign(name);
   if (!design) {
-    throw new Error('Design not found');
+    throw new Error(t('status_design_not_found'));
   }
 
   return JSON.stringify({
@@ -295,14 +296,14 @@ export function importDesign(jsonString, overrideName = null) {
     const data = JSON.parse(jsonString);
 
     if (!data.elements || !Array.isArray(data.elements)) {
-      throw new Error('Invalid design format: missing elements');
+      throw new Error(t('err_design_missing_elements'));
     }
 
     if (!data.labelSize || typeof data.labelSize.width !== 'number') {
-      throw new Error('Invalid design format: missing label size');
+      throw new Error(t('err_design_missing_label_size'));
     }
 
-    const name = overrideName || data.name || `Imported ${new Date().toLocaleString()}`;
+    const name = overrideName || data.name || t('imported_at', { date: new Date().toLocaleString() });
 
     const designData = {
       elements: data.elements,
@@ -342,7 +343,7 @@ export function importDesign(jsonString, overrideName = null) {
     };
   } catch (e) {
     if (e instanceof SyntaxError) {
-      throw new Error('Invalid JSON format');
+      throw new Error(t('err_invalid_json'));
     }
     throw e;
   }
@@ -388,7 +389,7 @@ export function getMultiLabelPresets() {
  */
 export function saveMultiLabelPreset(name, config) {
   if (!name || !name.trim()) {
-    throw new Error('Preset name is required');
+    throw new Error(t('err_preset_name_required'));
   }
 
   const presets = getMultiLabelPresets();
@@ -404,7 +405,7 @@ export function saveMultiLabelPreset(name, config) {
     return true;
   } catch (e) {
     console.error('Failed to save multi-label preset:', e);
-    throw new Error('Failed to save preset');
+    throw new Error(t('err_save_preset_failed'));
   }
 }
 

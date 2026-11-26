@@ -8,6 +8,7 @@
 
 import { STORAGE_KEYS } from './constants.js';
 import * as kv from './kv.js';
+import { t } from './i18n.js';
 
 // =============================================================================
 // PRINTER DEFINITIONS MANAGER
@@ -122,13 +123,13 @@ export function resetBuiltinPrinter(id) {
  */
 export function getAvailableProtocols() {
   return [
-    { value: 'm-series', label: 'M-series (ESC/POS Raster)' },
-    { value: 'm02', label: 'M02-series (ESC/POS with Prefix)' },
-    { value: 'm04', label: 'M04-series (300 DPI)' },
-    { value: 'm110', label: 'M110-series (phomemo-tools)' },
-    { value: 'd-series', label: 'D-series (Rotated)' },
-    { value: 'p12', label: 'P12/Tape (Rotated, Continuous)' },
-    { value: 'tspl', label: 'TSPL (Shipping Label)' },
+    { value: 'm-series', label: t('proto_m_series') },
+    { value: 'm02', label: t('proto_m02') },
+    { value: 'm04', label: t('proto_m04') },
+    { value: 'm110', label: t('proto_m110') },
+    { value: 'd-series', label: t('proto_d_series') },
+    { value: 'p12', label: t('proto_p12') },
+    { value: 'tspl', label: t('proto_tspl') },
   ];
 }
 
@@ -137,10 +138,10 @@ export function getAvailableProtocols() {
  */
 export function getAvailableLabelPresets() {
   return [
-    { value: 'm-series', label: 'M-series (standard labels)' },
-    { value: 'd-series', label: 'D-series (small labels)' },
-    { value: 'tape', label: 'Tape (continuous tape)' },
-    { value: 'pm241', label: 'PM-241 (shipping labels)' },
+    { value: 'm-series', label: t('preset_m_series') },
+    { value: 'd-series', label: t('preset_d_series') },
+    { value: 'tape', label: t('preset_tape') },
+    { value: 'pm241', label: t('preset_pm241') },
   ];
 }
 

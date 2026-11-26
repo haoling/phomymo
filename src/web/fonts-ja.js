@@ -9,6 +9,8 @@
  *   - 新しく作るテキストの既定フォントは DEFAULT_TEXT_FONT
  */
 
+import { t } from './i18n.js';
+
 /**
  * 日本語フォントの一覧
  * family:   CSS の font-family 名
@@ -17,15 +19,17 @@
  * weights:  読み込むウェイト。感熱紙でかすれにくいよう 500/700 も読み込む
  */
 export const JA_FONTS = [
-  { family: 'Noto Sans JP', fallback: 'sans-serif', label: 'Noto Sans JP(ゴシック)', weights: [400, 500, 700] },
-  { family: 'BIZ UDPGothic', fallback: 'sans-serif', label: 'BIZ UDPゴシック', weights: [400, 700] },
-  { family: 'M PLUS Rounded 1c', fallback: 'sans-serif', label: 'M PLUS Rounded 1c(丸ゴシック)', weights: [400, 500, 700] },
-  { family: 'Zen Maru Gothic', fallback: 'sans-serif', label: 'Zen Maru Gothic(丸ゴシック)', weights: [400, 500, 700] },
-  { family: 'Noto Serif JP', fallback: 'serif', label: 'Noto Serif JP(明朝)', weights: [400, 500, 700] },
+  { family: 'Noto Sans JP', fallback: 'sans-serif', label: 'Noto Sans JP(ゴシック)', labelKey: 'font_noto_sans_jp', weights: [400, 500, 700] },
+  { family: 'BIZ UDPGothic', fallback: 'sans-serif', label: 'BIZ UDPゴシック', labelKey: 'font_biz_udpgothic', weights: [400, 700] },
+  { family: 'M PLUS Rounded 1c', fallback: 'sans-serif', label: 'M PLUS Rounded 1c(丸ゴシック)', labelKey: 'font_m_plus_rounded', weights: [400, 500, 700] },
+  { family: 'Zen Maru Gothic', fallback: 'sans-serif', label: 'Zen Maru Gothic(丸ゴシック)', labelKey: 'font_zen_maru_gothic', weights: [400, 500, 700] },
+  { family: 'Noto Serif JP', fallback: 'serif', label: 'Noto Serif JP(明朝)', labelKey: 'font_noto_serif_jp', weights: [400, 500, 700] },
 ];
 
 /** UI 上のグループ名 */
 export const JA_FONT_GROUP_LABEL = '日本語';
+const JA_FONT_GROUP_KEY = 'japanese_fonts';
+const fontLabel = (f) => (f.labelKey ? t(f.labelKey) : f.label);
 
 /**
  * 新しく作るテキスト要素の既定フォント(仮決め: Noto Sans JP)
@@ -82,9 +86,9 @@ export function japaneseFontOptionsHtml(selectedValue) {
   const opts = JA_FONTS.map(f => {
     const value = fontValue(f);
     const sel = value === selectedValue ? ' selected' : '';
-    return `<option value='${value}'${sel}>${f.label}</option>`;
+    return `<option value='${value}'${sel}>${fontLabel(f)}</option>`;
   }).join('');
-  return `<optgroup label="${JA_FONT_GROUP_LABEL}">${opts}</optgroup>`;
+  return `<optgroup label="${t(JA_FONT_GROUP_KEY)}">${opts}</optgroup>`;
 }
 
 /**
@@ -93,12 +97,14 @@ export function japaneseFontOptionsHtml(selectedValue) {
 export function addJapaneseFontsToSelect(select) {
   if (!select || select.querySelector(`optgroup[data-ja-fonts]`)) return;
   const group = select.ownerDocument.createElement('optgroup');
-  group.label = JA_FONT_GROUP_LABEL;
+  group.label = t(JA_FONT_GROUP_KEY);
+  group.dataset.i18nLabel = JA_FONT_GROUP_KEY;
   group.dataset.jaFonts = 'true';
   for (const f of JA_FONTS) {
     const opt = select.ownerDocument.createElement('option');
     opt.value = fontValue(f);
-    opt.textContent = f.label;
+    opt.textContent = fontLabel(f);
+    if (f.labelKey) opt.dataset.i18n = f.labelKey;
     group.appendChild(opt);
   }
   select.insertBefore(group, select.firstChild);

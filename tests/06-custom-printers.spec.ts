@@ -50,7 +50,7 @@ test.describe.serial('Custom Printer Definitions', () => {
 
     // Verify it appears in the list with custom badge
     await expect(page.locator('#printer-defs-list')).toContainText('Test Custom Printer');
-    await expect(page.locator('#printer-defs-list')).toContainText('custom');
+    await expect(page.locator('#printer-defs-list')).toContainText('追加');
 
     await screenshot(page, CH, 4, 'custom-printer-in-list');
   });
@@ -73,7 +73,7 @@ test.describe.serial('Custom Printer Definitions', () => {
     await page.waitForTimeout(300);
 
     // Verify modified badge
-    await expect(page.locator('#printer-defs-list')).toContainText('modified');
+    await expect(page.locator('#printer-defs-list')).toContainText('変更あり');
 
     await screenshot(page, CH, 6, 'modified-builtin-in-list');
   });
@@ -119,7 +119,7 @@ test.describe.serial('Custom Printer Definitions', () => {
     await page.click('#printer-def-save');
     await page.waitForTimeout(300);
 
-    await expect(page.locator('#printer-defs-list')).toContainText('modified');
+    await expect(page.locator('#printer-defs-list')).toContainText('変更あり');
 
     // Accept confirm dialog
     page.on('dialog', dialog => dialog.accept());
@@ -131,7 +131,7 @@ test.describe.serial('Custom Printer Definitions', () => {
 
     // The modified badge should be gone for m260
     const m260Row = page.locator('#printer-defs-list > div').filter({ hasText: 'M260' });
-    await expect(m260Row).not.toContainText('modified');
+    await expect(m260Row).not.toContainText('変更あり');
 
     await screenshot(page, CH, 8, 'after-reset');
   });

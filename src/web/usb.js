@@ -2,6 +2,8 @@
  * WebUSB transport for Phomymo
  */
 
+import { t } from './i18n.js';
+
 // Known USB IDs for Phomemo printers
 const USB_DEVICE_FILTERS = [
   // Standard Phomemo printers (M110, M220, etc.)
@@ -90,7 +92,7 @@ export class USBTransport {
    */
   async connect(options = {}) {
     if (!USBTransport.isAvailable()) {
-      throw new Error('WebUSB is not supported in this browser');
+      throw new Error(t('err_webusb_unsupported'));
     }
 
     // Try to reconnect to existing device first
@@ -155,7 +157,7 @@ export class USBTransport {
     }
 
     if (!this.endpointOut) {
-      throw new Error('No OUT endpoint found');
+      throw new Error(t('err_usb_no_out_endpoint'));
     }
 
     this.connected = true;
@@ -183,7 +185,7 @@ export class USBTransport {
    */
   async send(data) {
     if (!this.connected || !this.device || !this.endpointOut) {
-      throw new Error('Not connected');
+      throw new Error(t('err_not_connected'));
     }
 
     const buffer = data instanceof Uint8Array ? data : new Uint8Array(data);
@@ -228,6 +230,6 @@ export class USBTransport {
    * Get device name
    */
   getDeviceName() {
-    return this.device?.productName || 'USB Printer';
+    return this.device?.productName || t('usb_printer');
   }
 }

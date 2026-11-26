@@ -29,6 +29,7 @@ import {
   layoutVertical,
   verticalBlockWidth,
 } from './text-layout.js';
+import { t } from './i18n.js';
 
 const PX_PER_MM = 8;
 
@@ -115,7 +116,7 @@ export function setArcEnabled(ctx, element, enabled) {
       width: size,
       height: size,
     });
-    ctx.setStatus?.('曲線文字にしました');
+    ctx.setStatus?.(t('status_arc_on'));
   } else {
     const apexY = current.direction === 'down' ? cy + current.radius : cy - current.radius;
     const width = Math.max(40, Math.ceil(firstLineWidth(element) + 12));
@@ -127,7 +128,7 @@ export function setArcEnabled(ctx, element, enabled) {
       width,
       height,
     });
-    ctx.setStatus?.('まっすぐな文字に戻しました');
+    ctx.setStatus?.(t('status_arc_off'));
   }
   ctx.refresh();
 }
@@ -197,7 +198,7 @@ export function setWritingMode(ctx, element, mode) {
     Object.assign(changes, verticalOptions(element));
   }
   ctx.modifyElement(element.id, changes);
-  ctx.setStatus?.(next === 'vertical' ? '縦書きにしました' : '横書きにしました');
+  ctx.setStatus?.(next === 'vertical' ? t('status_vertical_on') : t('status_horizontal_on'));
   ctx.refresh();
 }
 
@@ -236,7 +237,7 @@ export function fitArcToLabel(ctx, element) {
     rotation: 0,
   });
   ctx.refresh();
-  ctx.setStatus?.('ラベルの縁に沿わせました');
+  ctx.setStatus?.(t('status_arc_fit'));
 }
 
 // ---------------------------------------------------------------------------
@@ -364,39 +365,39 @@ export function mobileTextStyleHtml(element) {
   const vopts = verticalOptions(element);
   return `
     <div class="prop-group">
-      <div class="prop-label">文字の向き</div>
+      <div class="prop-label">${t('writing_direction')}</div>
       <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px">
-        <button type="button" ${btn} data-mobile-writing-mode="horizontal" aria-pressed="${!vertical}">横書き</button>
-        <button type="button" ${btn} data-mobile-writing-mode="vertical" aria-pressed="${vertical}">縦書き</button>
+        <button type="button" ${btn} data-mobile-writing-mode="horizontal" aria-pressed="${!vertical}">${t('horizontal')}</button>
+        <button type="button" ${btn} data-mobile-writing-mode="vertical" aria-pressed="${vertical}">${t('vertical')}</button>
       </div>
       ${vertical ? `
         <label class="flex items-center gap-2" style="margin-top:8px">
           <input type="checkbox" id="mobile-prop-tcy" class="w-5 h-5" ${vopts.tcy ? 'checked' : ''}>
-          <span class="text-sm">縦中横(2桁までの数字を横に並べる)</span>
+          <span class="text-sm">${t('tate_chu_yoko_numbers_up_to')}</span>
         </label>
         <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;margin-top:8px">
-          <button type="button" ${btn} data-mobile-latin-mode="rotate" aria-pressed="${vopts.latinMode === 'rotate'}">英数字を寝かせる</button>
-          <button type="button" ${btn} data-mobile-latin-mode="upright" aria-pressed="${vopts.latinMode === 'upright'}">英数字を立てる</button>
+          <button type="button" ${btn} data-mobile-latin-mode="rotate" aria-pressed="${vopts.latinMode === 'rotate'}">${t('latin_rotate')}</button>
+          <button type="button" ${btn} data-mobile-latin-mode="upright" aria-pressed="${vopts.latinMode === 'upright'}">${t('latin_upright')}</button>
         </div>
       ` : ''}
     </div>
     <div class="prop-group">
-      <div class="prop-label">字間: <span id="mobile-prop-letterSpacing-value">${percent}</span>%</div>
+      <div class="prop-label">${t('letter_spacing')}: <span id="mobile-prop-letterSpacing-value">${percent}</span>%</div>
       <input type="range" id="mobile-prop-letterSpacing" class="w-full" min="${SPACING_UI.min}" max="${SPACING_UI.max}" step="${SPACING_UI.step}" value="${percent}">
     </div>
     <div class="prop-group">
       <label class="flex items-center gap-2">
         <input type="checkbox" id="mobile-prop-arc" class="w-5 h-5" ${arc ? 'checked' : ''}>
-        <span class="text-sm">円弧に沿わせる(曲線文字)</span>
+        <span class="text-sm">${t('follow_an_arc_curved_text')}</span>
       </label>
       ${arc ? `
         <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;margin-top:8px">
-          <button type="button" ${btn} data-mobile-arc-direction="up" aria-pressed="${arc.direction === 'up'}">⌒ 上に沿う</button>
-          <button type="button" ${btn} data-mobile-arc-direction="down" aria-pressed="${arc.direction === 'down'}">◡ 下に沿う</button>
+          <button type="button" ${btn} data-mobile-arc-direction="up" aria-pressed="${arc.direction === 'up'}">${t('top_arc')}</button>
+          <button type="button" ${btn} data-mobile-arc-direction="down" aria-pressed="${arc.direction === 'down'}">${t('bottom_arc')}</button>
         </div>
-        <div class="prop-label" style="margin-top:8px">半径: <span id="mobile-prop-arcRadius-value">${mm}</span>mm</div>
+        <div class="prop-label" style="margin-top:8px">${t('radius')}: <span id="mobile-prop-arcRadius-value">${mm}</span>mm</div>
         <input type="range" id="mobile-prop-arcRadius" class="w-full" min="${RADIUS_UI.min}" max="${RADIUS_UI.max}" step="${RADIUS_UI.step}" value="${mm}">
-        <button type="button" id="mobile-prop-arcFit" class="img-tool-btn" style="padding:10px 4px;font-size:13px;width:100%;margin-top:6px">ラベルいっぱいに合わせる</button>
+        <button type="button" id="mobile-prop-arcFit" class="img-tool-btn" style="padding:10px 4px;font-size:13px;width:100%;margin-top:6px">${t('fit_to_label')}</button>
       ` : ''}
     </div>
   `;
