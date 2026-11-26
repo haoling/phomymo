@@ -214,8 +214,28 @@ function detectPrinterConfig(deviceName) {
       };
     }
   }
+  // 先頭で合わなければ、名前の途中に区切られて入っている型番も拾う
+  // (例: "Phomemo M120", "PHOMEMO_M110-1234")。短い型番("D" など)は誤判定しやすいので
+  // NAME_CONTAINS_MIN_LENGTH 文字以上のものだけ。後ろに数字が続くもの("M1100")は別物とみなす
+  for (const { pattern, def } of patterns) {
+    if (pattern.length < NAME_CONTAINS_MIN_LENGTH) continue;
+    const escaped = pattern.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    if (new RegExp(`[^A-Z0-9]${escaped}(?![0-9])`).test(name)) {
+      return {
+        width: def.widthBytes,
+        protocol: def.protocol,
+        dpi: def.dpi || 203,
+        recognized: true,
+        matchedPattern: pattern,
+        definition: def,
+      };
+    }
+  }
   return { ...DEFAULT_CONFIG, recognized: false, matchedPattern: null, definition: null };
 }
+
+// 名前の途中の型番で判別するときの、型番の最短の長さ
+const NAME_CONTAINS_MIN_LENGTH = 3;
 
 /**
  * Get printer configuration from manual model override

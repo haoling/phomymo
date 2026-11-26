@@ -50,6 +50,19 @@ test.describe('Phomemo M120', () => {
     await expect(page.locator('#printer-model-prompt')).toHaveClass(/hidden/);
   });
 
+  // Q244J… は実機の M120 が名乗る製造番号型の名前
+  for (const name of ['Phomemo M120', 'PHOMEMO_M120-0A1B', 'Q244J3CB0350030']) {
+    test(`M120 の名前を自動判別する: ${name}`, async ({ page }) => {
+      await setup(page, name);
+      await printAndWait(page);
+      await expect(page.locator('#printer-model-prompt')).toHaveClass(/hidden/);
+      const log = await getLog(page);
+      const header = log.findIndex(isRasterHeader);
+      expect(header).toBeGreaterThan(0);
+      expect(log.slice(0, header).some((e) => same(e, SPEED))).toBe(true);
+    });
+  }
+
   test('接続直後に印刷しても、状態の問い合わせがラスタの途中に混ざらない', async ({ page }) => {
     await setup(page, 'M120');
     // 未接続のまま印刷ボタン → 接続 → すぐ印刷。接続 0.5 秒後に問い合わせが走る
