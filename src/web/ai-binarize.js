@@ -22,8 +22,13 @@ export const AI_CONFIG = {
   models: {
     // U²-Net small(Apache-2.0)。このサイトに同梱(src/web/models/)
     removeBg: { url: 'models/u2netp.onnx', bytes: 4574861 },
-    // Informative Drawings の line art(MIT)。17MB あるので Hugging Face から読む
-    lineArt: { url: 'https://huggingface.co/rocca/informative-drawings-line-art-onnx/resolve/main/model.onnx', bytes: 17200000 },
+    // Informative Drawings の line art(MIT)。同じサイトに置いたものを先に読み、
+    // 無ければ(または読めなければ)Hugging Face から読む
+    lineArt: {
+      url: 'models/informative-drawings-lineart.onnx',
+      fallbackUrls: ['https://huggingface.co/rocca/informative-drawings-line-art-onnx/resolve/main/model.onnx'],
+      bytes: 17200000,
+    },
   },
   cacheName: 'phomymo-ai-models-v1',
   // 処理する大きさ(長い辺の画素)。感熱プリンタ(203dpi)なら 1024 で 128mm 分ある
@@ -105,8 +110,19 @@ async function fetchModel(mode, onProgress) {
       return new Uint8Array(await hit.arrayBuffer());
     }
   }
-  const res = await fetch(url, { mode: 'cors' });
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  // 先頭の読み込み先から順に試す(保存するときの名前は先頭の url にそろえる)
+  let res = null;
+  let lastError = null;
+  for (const u of [model.url, ...(model.fallbackUrls || [])]) {
+    try {
+      const r = await fetch(new URL(u, location.href).href, { mode: 'cors' });
+      if (r.ok) { res = r; break; }
+      lastError = new Error(`HTTP ${r.status}`);
+    } catch (e) {
+      lastError = e;
+    }
+  }
+  if (!res) throw lastError || new Error('fetch failed');
   const total = Number(res.headers.get('content-length')) || model.bytes;
   let bytes;
   if (res.body && res.body.getReader) {
