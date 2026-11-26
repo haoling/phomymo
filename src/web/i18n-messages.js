@@ -708,4 +708,7 @@ export const MESSAGES = {
   gallery_thumb_failed: { ja: "プレビューなし", en: "No preview" },
   gallery_has_images: { ja: "画像あり", en: "Has images" },
   gallery_round_size: { ja: "丸 {width}mm", en: "{width}mm round" },
+  gallery_samples: { ja: "サンプル({n})", en: "Samples ({n})" },
+  gallery_samples_hint: { ja: "押すと、サンプルをもとに新しいデザインを作れます(元のサンプルは変わりません)", en: "Click one to start a new design from it (the sample itself stays unchanged)" },
+  status_sample_opened: { ja: "サンプル「{name}」を開きました。保存すると自分のデザインになります", en: "Opened sample \"{name}\". Save it to keep it as your own design" },
 };

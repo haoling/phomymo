@@ -106,3 +106,45 @@ test.describe('デザインを開く: グリッド表示', () => {
     await expect(page.locator('#status-message')).toContainText("A&amp;B 'x'");
   });
 });
+
+test.describe('サンプルデザイン', () => {
+  test('ゲストでもサンプルが10件並び、押すと名前のないデザインとして開ける', async ({ page }) => {
+    await page.goto('http://localhost:8081/', { waitUntil: 'networkidle' });
+    await waitForAppReady(page);
+    await dismissInfoDialog(page);
+
+    await page.click('#load-btn');
+    await expect(page.locator('#load-guest-notice')).toBeVisible();
+    const samples = page.locator('#design-samples');
+    await expect(samples).toHaveAttribute('open', '');
+    const cards = samples.locator('.design-card');
+    await expect(cards).toHaveCount(10);
+    await expect(samples.locator('.delete-design')).toHaveCount(0);
+
+    // 素材(アイコン)入りのサンプルもサムネイルが出る
+    const salt = cards.filter({ hasText: '調味料ラベル' });
+    await expect(salt.locator('img.design-thumb')).toHaveAttribute('src', /^data:image\/png/, { timeout: 15_000 });
+
+    await salt.click();
+    await expect(page.locator('#load-dialog')).toHaveClass(/\bhidden\b/);
+    await expect(page.locator('#status-message')).toContainText('サンプル「調味料ラベル」を開きました');
+  });
+
+  test('保存したデザインがあるときは、サンプルの欄は閉じておく', async ({ page }) => {
+    await installFakeGoogle(page, new FakeDrive());
+    await page.goto('http://localhost:8081/', { waitUntil: 'networkidle' });
+    await waitForAppReady(page);
+    await dismissInfoDialog(page);
+    await loginViaUI(page);
+    await addText(page, 'a');
+    await saveAs(page, '自分の');
+    await page.click('#load-btn');
+    await expect(page.locator('#design-samples')).not.toHaveAttribute('open', '');
+    await page.click('#design-samples summary');
+    await expect(page.locator('#design-samples .design-card')).toHaveCount(10);
+    // サンプルを開いても、保存したデザインは増えない
+    await page.locator('#design-samples .design-card').first().click();
+    await page.click('#load-btn');
+    await expect(page.locator('#design-grid .design-card')).toHaveCount(1);
+  });
+});

@@ -39,7 +39,7 @@ async function saveAs(page: Page, name: string) {
 
 async function designNamesInLoadDialog(page: Page) {
   await page.click('#load-btn');
-  const names = await page.locator('#design-list .design-item').evaluateAll(els => els.map(e => (e as HTMLElement).dataset.name));
+  const names = await page.locator('#design-list .design-item:not([data-sample])').evaluateAll(els => els.map(e => (e as HTMLElement).dataset.name));
   await page.click('#load-cancel');
   return names;
 }

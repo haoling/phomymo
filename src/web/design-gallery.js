@@ -5,7 +5,7 @@
  * サムネイルは保存しない。開くたびにデザインのデータから描き、メモリにだけ覚えておく。
  * (保存の量が増えない・Drive 同期で届いたデザインにもそのまま付く・古い絵が残らない)
  *
- * app.js からは renderDesignList() だけを使う。
+ * app.js からは renderDesignList() だけを使う。サンプル(samples.js)も同じ一覧の下に並べる。
  */
 
 import { CanvasRenderer } from './canvas.js?v=119';
@@ -170,23 +170,25 @@ function sizeText(d) {
 
 function listItemHtml(d) {
   const badges = badgesHtml(d);
+  const sampleAttr = d.isSample ? ` data-sample="${esc(d.sampleId)}"` : '';
   const badgeHtml = badges.length > 0 ? `<div class="flex flex-wrap gap-1 mt-1">${badges.join('')}</div>` : '';
   return `
-    <div class="design-item flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg cursor-pointer border border-gray-100 mb-2" data-name="${esc(d.name)}">
+    <div class="design-item flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg cursor-pointer border border-gray-100 mb-2" data-name="${esc(d.name)}"${sampleAttr}>
       <div class="flex-1 min-w-0">
         <div class="font-medium text-sm text-gray-900 truncate">${esc(d.name)}</div>
         <div class="text-xs text-gray-400">${sizeText(d)} · ${t('n_elements', { n: d.elementCount })}</div>
         ${badgeHtml}
       </div>
-      <button class="delete-design text-red-500 hover:text-red-700 text-xs px-2 py-1 ml-2" data-name="${esc(d.name)}">${t('delete')}</button>
+      ${d.isSample ? '' : `<button class="delete-design text-red-500 hover:text-red-700 text-xs px-2 py-1 ml-2" data-name="${esc(d.name)}">${t('delete')}</button>`}
     </div>`;
 }
 
 function gridItemHtml(d) {
   const badges = badgesHtml(d);
+  const sampleAttr = d.isSample ? ` data-sample="${esc(d.sampleId)}"` : '';
   return `
     <div class="design-item design-card group relative flex flex-col rounded-lg border border-gray-200 hover:border-blue-400 hover:shadow cursor-pointer overflow-hidden bg-white"
-         data-name="${esc(d.name)}" data-id="${esc(d.id)}" title="${esc(d.name)}">
+         data-name="${esc(d.name)}" data-id="${esc(d.id)}" title="${esc(d.name)}"${sampleAttr}>
       <div class="design-thumb-box flex items-center justify-center bg-gray-100 p-2" style="height:${THUMB_BOX.height + 16}px">
         <img class="design-thumb max-w-full max-h-full shadow-sm hidden${d.labelSize?.round && !d.isMultiLabel ? ' rounded-full' : ''}" alt="">
         <div class="design-thumb-loading text-xs text-gray-400">${t('gallery_thumb_loading')}</div>
@@ -196,8 +198,8 @@ function gridItemHtml(d) {
         <div class="text-[11px] text-gray-400 truncate">${sizeText(d)} · ${t('n_elements', { n: d.elementCount })}</div>
         ${badges.length ? `<div class="flex flex-wrap gap-1 mt-1">${badges.join('')}</div>` : ''}
       </div>
-      <button class="delete-design absolute top-1 right-1 w-6 h-6 rounded-full bg-white/90 border border-gray-200 text-red-500 hover:text-red-700 hover:bg-red-50 text-sm leading-none opacity-70 group-hover:opacity-100"
-              data-name="${esc(d.name)}" title="${esc(t('delete'))}" aria-label="${esc(t('delete'))}">×</button>
+      ${d.isSample ? '' : `<button class="delete-design absolute top-1 right-1 w-6 h-6 rounded-full bg-white/90 border border-gray-200 text-red-500 hover:text-red-700 hover:bg-red-50 text-sm leading-none opacity-70 group-hover:opacity-100"
+              data-name="${esc(d.name)}" title="${esc(t('delete'))}" aria-label="${esc(t('delete'))}">×</button>`}
     </div>`;
 }
 
@@ -218,6 +220,16 @@ function toggleHtml(view) {
 
 let renderToken = 0;
 
+/** サンプルの欄を開いておくか(一度開け閉めしたら、このページを開いている間は覚えておく) */
+let samplesOpenOverride = null;
+
+function sectionHtml(view, items, idAttr) {
+  if (!items.length) return '';
+  return view === 'grid'
+    ? `<div ${idAttr} class="design-grid grid gap-3" style="display:grid;gap:0.75rem;grid-template-columns:repeat(auto-fill,minmax(${THUMB_BOX.width}px,1fr))">${items.map(gridItemHtml).join('')}</div>`
+    : `<div ${idAttr}>${items.map(listItemHtml).join('')}</div>`;
+}
+
 /**
  * 一覧を描く
  * @param {HTMLElement} listEl - #design-list
@@ -227,17 +239,32 @@ let renderToken = 0;
  * @param {(name:string)=>void} opts.onOpen
  * @param {(name:string)=>void} opts.onDelete
  * @param {(view:string)=>void} [opts.onViewChange] - 表示を切り替えたとき(ダイアログの幅を変える)
+ * @param {string} [opts.headerHtml] - 一覧の上に出す案内(ゲストモード・空のとき)
+ * @param {(root:HTMLElement)=>void} [opts.onHeaderRendered]
+ * @param {Array} [opts.samples] - samples.listSamples() の結果
+ * @param {(sampleId:string)=>Promise<object|null>} [opts.getSample]
+ * @param {(sampleId:string)=>void} [opts.onOpenSample]
  */
 export function renderDesignList(listEl, designs, opts) {
   const view = getDesignListView();
   const token = ++renderToken;
+  const samples = opts.samples || [];
+  const samplesOpen = samplesOpenOverride ?? designs.length === 0;
 
-  const items = view === 'grid'
-    ? `<div id="design-grid" class="grid gap-3" style="display:grid;gap:0.75rem;grid-template-columns:repeat(auto-fill,minmax(${THUMB_BOX.width}px,1fr))">${designs.map(gridItemHtml).join('')}</div>`
-    : designs.map(listItemHtml).join('');
-  listEl.innerHTML = toggleHtml(view) + items;
+  const samplesHtml = samples.length ? `
+    <details id="design-samples" class="mt-3" ${samplesOpen ? 'open' : ''}>
+      <summary class="cursor-pointer select-none text-sm font-medium text-gray-700 py-1">${t('gallery_samples', { n: samples.length })}</summary>
+      <p class="text-xs text-gray-500 mb-2">${t('gallery_samples_hint')}</p>
+      ${sectionHtml(view, samples, 'id="design-sample-grid"')}
+    </details>` : '';
+
+  listEl.innerHTML = toggleHtml(view)
+    + (opts.headerHtml || '')
+    + sectionHtml(view, designs, view === 'grid' ? 'id="design-grid"' : 'id="design-rows"')
+    + samplesHtml;
   listEl.dataset.view = view;
   opts.onViewChange?.(view);
+  opts.onHeaderRendered?.(listEl);
 
   listEl.querySelectorAll('.design-view-btn').forEach(btn => {
     btn.addEventListener('click', (e) => {
@@ -248,8 +275,18 @@ export function renderDesignList(listEl, designs, opts) {
     });
   });
 
+  const details = listEl.querySelector('#design-samples');
+  details?.addEventListener('toggle', () => {
+    samplesOpenOverride = details.open;
+    if (details.open && view === 'grid') fillThumbnails(listEl, samples, opts, token, '#design-sample-grid');
+  });
+
   listEl.querySelectorAll('.design-item').forEach(item => {
     item.addEventListener('click', (e) => {
+      if (item.dataset.sample) {
+        opts.onOpenSample?.(item.dataset.sample);
+        return;
+      }
       const del = e.target.closest('.delete-design');
       if (del) {
         e.stopPropagation();
@@ -260,36 +297,56 @@ export function renderDesignList(listEl, designs, opts) {
     });
   });
 
-  if (view === 'grid') fillThumbnails(listEl, designs, opts.getDesign, token);
+  if (view === 'grid') {
+    fillThumbnails(listEl, designs, opts, token, '#design-grid').then(() => {
+      if (details?.open) fillThumbnails(listEl, samples, opts, token, '#design-sample-grid');
+    });
+  }
 }
 
 /** サムネイルを1枚ずつ描いて差し込む(覚えているものはすぐ出す) */
-async function fillThumbnails(listEl, designs, getDesign, token) {
-  const byId = new Map(designs.map(d => [d.id, d]));
+async function fillThumbnails(listEl, items, opts, token, containerSel) {
+  const byId = new Map(items.map(d => [d.id, d]));
   const pending = [];
-  for (const card of listEl.querySelectorAll('.design-card')) {
+  for (const card of listEl.querySelectorAll(`${containerSel} .design-card`)) {
+    if (card.dataset.thumb) continue; // もう描いた・描いている
     const summary = byId.get(card.dataset.id);
-    const design = summary && getDesign(summary.name);
+    if (!summary) continue;
+    card.dataset.thumb = '1';
+    if (summary.isSample) {
+      const key = `${summary.id}:${getLangKey()}`;
+      if (thumbCache.has(key)) showThumb(card, thumbCache.get(key));
+      else pending.push({ card, key, load: () => opts.getSample(summary.sampleId) });
+      continue;
+    }
+    const design = opts.getDesign(summary.name);
     if (!design) {
       showThumb(card, null);
       continue;
     }
     const key = cacheKey(summary, design);
     if (thumbCache.has(key)) showThumb(card, thumbCache.get(key));
-    else pending.push({ card, design, key });
+    else pending.push({ card, key, load: async () => design });
   }
-  for (const { card, design, key } of pending) {
+  for (const { card, key, load } of pending) {
     if (token !== renderToken) return; // 描き直された
     let url = null;
     try {
-      url = await renderDesignThumbnail(design);
-      remember(key, url);
+      const design = await load();
+      if (design) {
+        url = await renderDesignThumbnail(design);
+        remember(key, url);
+      }
     } catch (e) {
       console.warn('thumbnail failed:', e);
     }
     if (token !== renderToken) return;
     showThumb(card, url);
   }
+}
+
+function getLangKey() {
+  return document.documentElement.lang || '';
 }
 
 function showThumb(card, url) {

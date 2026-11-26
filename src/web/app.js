@@ -64,6 +64,7 @@ import { createFrameElement, frameGeometryForLabel, FRAME_STYLES, frameStyleName
 import { t, onLangChange } from './i18n.js';
 import { openCropDialog } from './image-crop.js';
 import { renderDesignList } from './design-gallery.js';
+import { listSamples, buildSampleDesign, SAMPLES, sampleName } from './samples.js';
 import { initTextStylePanel, updateTextStylePanel, mobileTextStyleHtml, wireMobileTextStyle } from './text-style-panel.js';
 import { isVertical } from './text-layout.js';
 import {
@@ -5340,35 +5341,41 @@ function showLoadDialog() {
   const designs = isGuest() ? [] : listDesigns();
   const listEl = $('#design-list');
 
+  let headerHtml = '';
   if (isGuest()) {
-    // ゲストモード(3.4): 保存したデザインは無い。ファイルからの読み込みは使える
-    listEl.innerHTML = `
+    // ゲストモード(3.4): 保存したデザインは無い。ファイルからの読み込みとサンプルは使える
+    headerHtml = `
       <div id="load-guest-notice" class="text-sm text-gray-500 text-center py-6 px-2">
         <p class="mb-3">${t('load_guest_notice_html')}</p>
         <button id="load-guest-login" class="px-3 py-1.5 bg-gray-900 text-white rounded-lg text-sm">${t('about_signing_in')}</button>
       </div>`;
-    $('#load-guest-login').addEventListener('click', () => {
-      hideLoadDialog();
-      showAccountDialog(t('account_reason_load'));
-    });
   } else if (designs.length === 0) {
-    listEl.innerHTML = `<div class="text-sm text-gray-400 text-center py-8">${t('no_saved_designs')}</div>`;
-  } else {
-    // グリッド(サムネイル)/リスト表示は design-gallery.js
-    renderDesignList(listEl, designs, {
-      getDesign: loadDesign,
-      onOpen: (name) => handleLoad(name),
-      onDelete: (name) => {
-        if (confirm(t('confirm_delete_design', { name }))) {
-          deleteDesign(name);
-          showLoadDialog(); // Refresh list
-          setStatus(t('status_design_deleted', { name }));
-        }
-      },
-      onViewChange: setLoadDialogWidth,
-    });
+    headerHtml = `<div class="text-sm text-gray-400 text-center py-8">${t('no_saved_designs')}</div>`;
   }
-  if (isGuest() || designs.length === 0) setLoadDialogWidth('list');
+
+  // グリッド(サムネイル)/リスト表示とサンプルは design-gallery.js / samples.js
+  renderDesignList(listEl, designs, {
+    headerHtml,
+    onHeaderRendered: (root) => {
+      root.querySelector('#load-guest-login')?.addEventListener('click', () => {
+        hideLoadDialog();
+        showAccountDialog(t('account_reason_load'));
+      });
+    },
+    getDesign: loadDesign,
+    onOpen: (name) => handleLoad(name),
+    onDelete: (name) => {
+      if (confirm(t('confirm_delete_design', { name }))) {
+        deleteDesign(name);
+        showLoadDialog(); // Refresh list
+        setStatus(t('status_design_deleted', { name }));
+      }
+    },
+    samples: listSamples(),
+    getSample: (id) => buildSampleDesign(id),
+    onOpenSample: (id) => handleOpenSample(id),
+    onViewChange: setLoadDialogWidth,
+  });
 
   $('#load-dialog').classList.remove('hidden');
   $('#load-dialog').hidden = false;
@@ -5690,8 +5697,19 @@ function getElementLabel(el) {
 /**
  * Load a design
  */
-function handleLoad(name) {
-  const design = loadDesign(name);
+/**
+ * サンプルを開く。保存はしないので「名前のないデザイン」として読み込む
+ */
+async function handleOpenSample(sampleId) {
+  const sample = SAMPLES.find(x => x.id === sampleId);
+  const design = await buildSampleDesign(sampleId);
+  if (!sample || !design) return;
+  handleLoad(null, design);
+  setStatus(t('status_sample_opened', { name: sampleName(sample) }));
+}
+
+function handleLoad(name, sampleDesign = null) {
+  const design = sampleDesign || loadDesign(name);
   if (!design) {
     setStatus(t('status_design_not_found'));
     return;
