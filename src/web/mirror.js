@@ -17,8 +17,19 @@ export const MIRROR_AXES = ['x', 'y'];
 /** 写しの向きの選択肢 */
 export const MIRROR_ORIENTS = ['mirror', 'upright', 'rotate180'];
 
-/** ミラー配置をオンにしたときの既定値(仮決め。ここを変えれば既定が変わる) */
-export const DEFAULT_MIRROR = Object.freeze({ axis: 'x', orient: 'rotate180' });
+/**
+ * 折る向きごとの、写しの向きの既定(はおりんの指定)
+ * 左右に折る → 反転しない / 上下に折る → 180°回転(どちらも折って裏から見ると読める向き)
+ */
+export const DEFAULT_ORIENT_BY_AXIS = Object.freeze({ x: 'upright', y: 'rotate180' });
+
+/** ミラー配置をオンにしたときの既定値(ここを変えれば既定が変わる) */
+export const DEFAULT_MIRROR = Object.freeze({ axis: 'x', orient: DEFAULT_ORIENT_BY_AXIS.x });
+
+/** その折る向きのときの写しの向きの既定 */
+export function defaultOrientFor(axis) {
+  return DEFAULT_ORIENT_BY_AXIS[axis] || DEFAULT_MIRROR.orient;
+}
 
 /**
  * 要素の mirror を正しい形にそろえる。ミラー配置しないなら null
@@ -28,7 +39,7 @@ export const DEFAULT_MIRROR = Object.freeze({ axis: 'x', orient: 'rotate180' });
 export function normalizeMirror(mirror) {
   if (!mirror || typeof mirror !== 'object') return null;
   const axis = MIRROR_AXES.includes(mirror.axis) ? mirror.axis : DEFAULT_MIRROR.axis;
-  const orient = MIRROR_ORIENTS.includes(mirror.orient) ? mirror.orient : DEFAULT_MIRROR.orient;
+  const orient = MIRROR_ORIENTS.includes(mirror.orient) ? mirror.orient : defaultOrientFor(axis);
   return { axis, orient };
 }
 

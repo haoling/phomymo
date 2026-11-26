@@ -7,7 +7,7 @@
 import { CanvasRenderer } from './canvas.js?v=119';
 import { BLETransport } from './ble.js?v=103';
 import { USBTransport } from './usb.js?v=101';
-import { normalizeMirror, DEFAULT_MIRROR } from './mirror.js';
+import { normalizeMirror, defaultOrientFor, DEFAULT_MIRROR } from './mirror.js';
 import { print, printDensityTest, isDSeriesPrinter, isP12Printer, isA30Printer, isTapePrinter, isPM241Printer, isTSPLPrinter, isRotatedPrinter, getPrinterWidthBytes, getPrinterDpi, getPrinterAlignment, getPrinterDescription, isDeviceRecognized, getMatchedPattern, loadPrinterDefinitions, getAllPrinterDefinitions, getPrinterDefinition, getCustomPrinterDefinitions, saveCustomPrinterDefinition, deleteCustomPrinterDefinition, isBuiltinPrinter, resetBuiltinPrinter, getAvailableProtocols, getAvailableLabelPresets, getDetectedDefinition } from './printer.js?v=129';
 import {
   createTextElement,
@@ -4785,14 +4785,15 @@ function addShapeElement(shapeType = 'rectangle') {
 // ---------------------------------------------------------------------------
 
 /**
- * ミラー配置を変える(mirror.js)。axis が空ならオフ。orient を省けば今の向き(なければ既定)
+ * ミラー配置を変える(mirror.js)。axis が空ならオフ。
+ * orient を省いたとき: 折る向きが今と同じなら今の向き、オンにした・折る向きを変えたときはその折り方の既定
  */
 function setElementMirror(id, axis, orient) {
   const element = state.elements.find(e => e.id === id);
   if (!element) return;
   const current = normalizeMirror(element.mirror);
   const next = axis
-    ? normalizeMirror({ axis, orient: orient || current?.orient || DEFAULT_MIRROR.orient })
+    ? normalizeMirror({ axis, orient: orient || (current?.axis === axis ? current.orient : defaultOrientFor(axis)) })
     : null;
   if (JSON.stringify(current) === JSON.stringify(next)) return;
   saveHistory();
