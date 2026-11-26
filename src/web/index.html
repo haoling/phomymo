@@ -1151,6 +1151,7 @@
               <button type="button" id="prop-image-flip-y" class="img-tool-btn" aria-pressed="false" title="上下反転" data-i18n-title="flip_vertically"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h18"/><path d="M7 16h10v5z"/><path d="M7 8h10V3z"/></svg><span data-i18n="vert">上下</span></button>
             </div>
             <button type="button" id="prop-image-crop-clear" class="text-[10px] text-blue-600 hover:underline mt-1" hidden data-i18n="remove_crop">トリミングを解除</button>
+            <button type="button" id="prop-image-ai-bw" class="img-tool-btn" style="width:100%;margin-top:4px" title="背景を消したり、線画にしたりして、感熱印刷で見栄えのする白黒にします" data-i18n-title="aibw_button_title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 0 0 18z" fill="currentColor"/></svg><span data-i18n="aibw_button">AIで白黒に</span></button>
           </div>
           <div>
             <label class="text-[10px] text-gray-400 uppercase tracking-wide" data-i18n="scale">拡大率</label>
@@ -2471,7 +2472,7 @@
     pdfjsModule.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.379/pdf.worker.min.mjs';
     window.pdfjsLib = pdfjsModule;
   </script>
-  <script type="module" src="app.js?v=159"></script>
+  <script type="module" src="app.js?v=160"></script>
   <script>
     // Show body once styles are ready
     requestAnimationFrame(() => {

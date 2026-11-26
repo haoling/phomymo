@@ -63,6 +63,7 @@ import { initAssetsPanel, ASSET_DEFAULTS } from './assets-panel.js';
 import { createFrameElement, frameGeometryForLabel, FRAME_STYLES, frameStyleName } from './frames.js';
 import { t, onLangChange } from './i18n.js';
 import { openCropDialog } from './image-crop.js';
+import { openAiBinarizeDialog } from './ai-binarize-dialog.js';
 import { initTextStylePanel, updateTextStylePanel, mobileTextStyleHtml, wireMobileTextStyle } from './text-style-panel.js';
 import { isVertical } from './text-layout.js';
 import {
@@ -4831,6 +4832,26 @@ async function openImageCrop(id) {
   if (result) applyImageCrop(id, result.crop);
 }
 
+/**
+ * 「AIで白黒に」の画面を開き、決定したら画像を差し替える。
+ * 画像の大きさ(縦横比)は変わらないので、トリミングや拡大率はそのまま使える。
+ * 線の加工は白黒にしてあるので、ディザは「なし(しきい値)」にする
+ */
+async function openAiBinarize(id) {
+  const element = state.elements.find(e => e.id === id);
+  if (!element || element.type !== 'image' || !element.imageData) return;
+  const result = await openAiBinarizeDialog({ imageData: element.imageData });
+  if (!result) return;
+  if (!state.elements.some(e => e.id === id)) return;
+  saveHistory();
+  const changes = { imageData: result.imageData };
+  if (result.lineMode) changes.dither = 'none';
+  modifyElement(id, changes);
+  updatePropertiesPanel();
+  refreshMobilePropsIfOpen();
+  setStatus(t('status_aibw_applied'));
+}
+
 /** #24 字間・曲線文字のパネルに渡すもの */
 const textStyleCtx = {
   getSelected: () => getSelected(),
@@ -6864,6 +6885,7 @@ function populateMobileProps() {
           <button type="button" id="mobile-prop-flipY" class="img-tool-btn" style="padding:10px 4px;font-size:13px" aria-pressed="${!!selected.flipY}">${t('flip_vertically')}</button>
         </div>
         ${hasCrop ? `<button type="button" id="mobile-prop-crop-clear" class="text-sm text-blue-600 mt-2">${t('remove_crop')}</button>` : ''}
+        <button type="button" id="mobile-prop-ai-bw" class="img-tool-btn" style="width:100%;margin-top:6px;padding:10px 4px;font-size:13px">${t('aibw_button')}</button>
       </div>
       <div class="prop-group">
         <div class="prop-label">${t('scale')}: ${currentScale}%</div>
@@ -7193,6 +7215,7 @@ function wireUpMobilePropHandlers(element) {
   // Image properties - use live update for sliders
   // #26 トリミング・反転
   $('#mobile-prop-crop')?.addEventListener('click', () => openImageCrop(element.id));
+  $('#mobile-prop-ai-bw')?.addEventListener('click', () => openAiBinarize(element.id));
   $('#mobile-prop-crop-clear')?.addEventListener('click', () => applyImageCrop(element.id, null));
   $('#mobile-prop-flipX')?.addEventListener('click', () => toggleImageFlip(element.id, 'flipX'));
   $('#mobile-prop-flipY')?.addEventListener('click', () => toggleImageFlip(element.id, 'flipY'));
@@ -8244,6 +8267,10 @@ function init() {
   $('#prop-image-crop').addEventListener('click', () => {
     const element = getSelected();
     if (element && element.type === 'image') openImageCrop(element.id);
+  });
+  $('#prop-image-ai-bw')?.addEventListener('click', () => {
+    const element = getSelected();
+    if (element && element.type === 'image') openAiBinarize(element.id);
   });
   $('#prop-image-crop-clear').addEventListener('click', () => {
     const element = getSelected();

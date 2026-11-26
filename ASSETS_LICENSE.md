@@ -27,6 +27,19 @@
 - 条件は帰属表示(作者名・ライセンス名・ライセンスへのリンク)。アプリでは素材パネルの下部に「絵文字: Twemoji (CC-BY 4.0)」と出している
 - 白黒印刷で色がディザに置き換わるのは「改変」にあたりうるが、CC-BY 4.0 は改変を認めている
 
+## AIモデル(「AIで白黒に」)
+
+ライセンス文と出どころは `src/web/models/LICENSES.txt` にも置いている。
+
+| モデル | 置き場所 | 大きさ | ライセンス | 使い道 |
+|---|---|---|---|---|
+| U²-Net small(u2netp) | `src/web/models/u2netp.onnx`(同梱) | 4.6MB | Apache-2.0(Xuebin Qin ほか) | 背景を消す |
+| Informative Drawings(line art) | 同梱しない。初回に `https://huggingface.co/rocca/informative-drawings-line-art-onnx` から読む | 17.2MB | MIT(Caroline Chan) | 線画にする |
+
+- u2netp は rembg のリリース(https://github.com/danielgatis/rembg/releases/tag/v0.0.0)の ONNX を手を加えずに置いている
+- 実行は ONNX Runtime Web(MIT、jsDelivr から読み込み)。どちらも使うときに初めて読み込み、Cache Storage に保存する
+- line art は Cloudflare の1ファイル 25MiB の上限には収まるが、リポジトリを重くしないため同梱しなかった(読み込み先は `src/web/ai-binarize.js` の `AI_CONFIG` で変えられる)
+
 ## 検討したが入れなかったもの
 
 - **Material Symbols**(Apache 2.0): ライセンス上は問題ないが、Tabler Icons と用途が重なるので今回は見送り。足すときは `NOTICE` の同梱が必要
