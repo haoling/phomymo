@@ -74,6 +74,7 @@ test.describe('保存: 上書き保存と別名で保存', () => {
     // 新しい画面で開き直してから編集する
     await page.reload({ waitUntil: 'networkidle' });
     await waitForAppReady(page);
+    await dismissInfoDialog(page);
     await openDesign(page, '棚');
     await editFirstText(page, 'かえた');
 
