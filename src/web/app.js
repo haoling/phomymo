@@ -64,6 +64,7 @@ import {
   updateDesignPrintRotation,
 } from './storage.js?v=103';
 import { initAccountUI, showGuestNotice, showAccountDialog, isGuest } from './account-ui.js';
+import { onTokenChange } from './auth.js';
 import { initAssetsPanel, ASSET_DEFAULTS } from './assets-panel.js';
 import { createFrameElement, frameGeometryForLabel, FRAME_STYLES, frameStyleName } from './frames.js';
 import { t, onLangChange } from './i18n.js';
@@ -94,6 +95,18 @@ import {
   findMissingFields,
   SPREADSHEET_ACCEPT,
 } from './spreadsheet.js';
+import {
+  isSheetsAvailable,
+  canReadSilently,
+  ensureSheetsScope,
+  pickSpreadsheet,
+  readSpreadsheet,
+  preloadPicker,
+  makeSource,
+  normalizeSource,
+  findSheetIndex,
+  spreadsheetUrl,
+} from './gsheets.js';
 import {
   injectJapaneseFontStylesheet,
   addJapaneseFontsToSelect,
@@ -219,6 +232,9 @@ const state = {
   templateColumns: [],    // Column names of the imported table (in order)
   templateSheets: null,   // [{ name, headers, records, truncated }] of the last .xlsx (in memory only)
   templateSheetIndex: 0,
+  // 連携した Googleスプレッドシート(デザインの mergeSource として保存する)
+  templateSource: null,   // { type: 'gsheet', spreadsheetId, name, sheetId, sheetName, rowRange? }
+  templateSourceStatus: { loading: false, loadedAt: 0 },
   mergePreview: { enabled: false, row: 0 },
   // Inline text editing state
   editingTextId: null,    // ID of text element being inline-edited
@@ -1550,6 +1566,7 @@ function detectTemplateFields() {
  * Update template mode indicator in UI
  */
 function updateTemplateIndicator() {
+  updateGsheetUI();
   const fieldCount = $('#template-field-count');
   const fieldTags = $('#template-field-tags');
   const dataCount = $('#template-data-count');
@@ -1808,6 +1825,7 @@ function clearTemplateData() {
   state.selectedRecords = [];
   state.templateColumns = [];
   state.templateSheets = null;
+  setTemplateSource(null);
   clampMergePreviewRow();
   updateTemplateDataTable();
 }
@@ -1975,6 +1993,7 @@ function bindTemplateTableEvents() {
 async function handleCSVFileImport(file) {
   try {
     const { sheets } = await readSpreadsheetFile(file);
+    setTemplateSource(null);
     if (sheets.length > 1) {
       state.templateSheets = sheets;
       // 差し込み項目と合う列がいちばん多いシートを選ぶ
@@ -2008,6 +2027,7 @@ async function handleCSVFileImport(file) {
  */
 function importCSVData(csvString, sheetName = '') {
   state.templateSheets = null;
+  setTemplateSource(null);
   applyImportedTable({ name: sheetName, ...parseDelimitedTable(csvString) }, 0);
 }
 
@@ -2042,6 +2062,7 @@ function applyImportedTable(table, sheetIndex = 0) {
 /** 読み込んだ表の情報(シート・列・見つからない項目)を出す */
 function updateImportInfo() {
   const info = $('#template-import-info');
+  updateGsheetUI();
   if (!info) return;
   const hasTable = state.templateColumns.length > 0 && state.templateData.length > 0;
   info.classList.toggle('hidden', !hasTable);
@@ -2066,6 +2087,208 @@ function updateImportInfo() {
   missingEl.textContent = missing.length
     ? t('merge_missing_fields', { fields: missing.map(f => `{{${f}}}`).join(' ') })
     : '';
+}
+
+// =============================================================================
+// GOOGLE SHEETS - 連携したスプレッドシートから読み込む(デザインごとに保存)
+// =============================================================================
+
+function setTemplateSource(src) {
+  state.templateSource = src;
+  if (!src) state.templateSourceStatus = { loading: false, loadedAt: 0 };
+  updateGsheetUI();
+}
+
+/** 保存されていた mergeSource を戻し、読めるなら最新を読み込む */
+function restoreTemplateSource(raw) {
+  const src = normalizeSource(raw);
+  state.templateSource = src;
+  state.templateSourceStatus = { loading: false, loadedAt: 0 };
+  if (src?.rowRange && state.templateData.length > 0) {
+    const { indices, error } = parseRowRange(src.rowRange, state.templateData.length);
+    if (!error) state.selectedRecords = indices;
+  }
+  updateGsheetUI();
+  // 許可済みなら(ポップアップ無しで読めるなら)そのまま最新にする
+  if (src && isSheetsAvailable() && canReadSilently()) {
+    reloadGsheet({ interactive: false });
+  }
+}
+
+/** 保存する mergeSource(印刷する行の指定も一緒に) */
+function currentMergeSourceForSave() {
+  const src = state.templateSource;
+  if (!src) return null;
+  const out = { ...src };
+  delete out.rowRange;
+  const n = state.templateData.length;
+  if (n > 0 && state.selectedRecords.length !== n) {
+    out.rowRange = formatRowRange(state.selectedRecords, n);
+  }
+  return out;
+}
+
+/**
+ * 読み込んだスプレッドシートを差し込みデータにする
+ * @param {{spreadsheetId: string, name: string}} file
+ * @param {{title: string, sheets: Array}} book
+ * @param {object|null} saved - 前の連携(シートと印刷する行を引き継ぐ)
+ */
+function applyGsheetBook(file, book, saved = null) {
+  const sheets = book.sheets;
+  const name = book.title || file.name || '';
+  let index = findSheetIndex(sheets, saved);
+  let missingSheet = '';
+  if (index < 0) {
+    if (saved && (saved.sheetName || saved.sheetId != null)) missingSheet = saved.sheetName || String(saved.sheetId);
+    // 差し込み項目と合う列がいちばん多いシート
+    let bestScore = -1;
+    index = 0;
+    sheets.forEach((sh, i) => {
+      const score = sh.records.length > 0
+        ? state.templateFields.length - findMissingFields(state.templateFields, sh.headers).length
+        : -1;
+      if (score > bestScore) { index = i; bestScore = score; }
+    });
+  }
+  const sheet = sheets[index];
+  state.templateSheets = sheets.length > 1 ? sheets : null;
+  const prevRow = state.mergePreview.row;
+  const prevPreview = state.mergePreview.enabled;
+  if (!applyImportedTable(sheet, index)) {
+    // 行が無いシートでも連携は残す(あとで行を足してから読み直せる)
+    state.templateSource = { ...makeSource({ spreadsheetId: file.spreadsheetId, name }, sheet) };
+    state.templateSourceStatus = { loading: false, loadedAt: Date.now() };
+    updateGsheetUI();
+    return false;
+  }
+  const src = makeSource({ spreadsheetId: file.spreadsheetId, name }, sheet);
+  // 印刷する行の指定を引き継ぐ(同じシートを読み直したときだけ)
+  if (saved?.rowRange && missingSheet === '' && saved.spreadsheetId === file.spreadsheetId) {
+    const { indices, error } = parseRowRange(saved.rowRange, state.templateData.length);
+    if (!error) {
+      state.selectedRecords = indices;
+      src.rowRange = saved.rowRange;
+    }
+  }
+  if (saved && saved.spreadsheetId === file.spreadsheetId && missingSheet === '') {
+    state.mergePreview.row = prevRow;
+    state.mergePreview.enabled = prevPreview;
+    clampMergePreviewRow();
+  }
+  state.templateSource = src;
+  state.templateSourceStatus = { loading: false, loadedAt: Date.now() };
+  updateTemplateDataTable();
+  updateImportInfo();
+  render();
+  const msg = missingSheet
+    ? t('status_gsheet_sheet_missing', { sheet: missingSheet, used: sheet.name })
+    : t('status_gsheet_imported', { name: name || t('gsheet_untitled'), sheet: sheet.name, n: sheet.records.length });
+  setStatus(msg);
+  if (missingSheet) showToast(msg, 'warning');
+  return true;
+}
+
+function showGsheetError(e) {
+  if (e?.name === 'AuthRequiredError') {
+    showToast(e.message, 'error');
+    setStatus(e.message);
+    return;
+  }
+  const msg = e?.name === 'SheetsError' ? e.message : t('err_gsheet_failed', { message: e?.message || '' });
+  if (e?.name !== 'SheetsError') logError(e, 'gsheet');
+  showToast(msg, 'error');
+  setStatus(msg);
+}
+
+/** Picker でスプレッドシートを選んで読み込む(クリックから呼ぶ) */
+async function handleGsheetPick() {
+  if (!isSheetsAvailable()) {
+    showAccountDialog(t('gsheet_login_to_reload'));
+    return;
+  }
+  let file;
+  try {
+    file = await pickSpreadsheet();
+  } catch (e) {
+    showGsheetError(e);
+    return;
+  }
+  if (!file) return;
+  state.templateSourceStatus = { loading: true, loadedAt: 0 };
+  updateGsheetUI();
+  setStatus(t('gsheet_loading'));
+  try {
+    const book = await readSpreadsheet(file.spreadsheetId);
+    const same = state.templateSource?.spreadsheetId === file.spreadsheetId ? state.templateSource : null;
+    applyGsheetBook(file, book, same);
+  } catch (e) {
+    state.templateSourceStatus = { loading: false, loadedAt: state.templateSourceStatus.loadedAt };
+    updateGsheetUI();
+    showGsheetError(e);
+  }
+}
+
+/**
+ * 連携中のスプレッドシートを読み直す
+ * @param {{interactive: boolean}} opts - interactive: クリックから(許可のポップアップを出してよい)
+ */
+async function reloadGsheet({ interactive }) {
+  const saved = state.templateSource;
+  if (!saved || state.templateSourceStatus.loading) return;
+  // 許可のポップアップはクリック直後に開く必要があるので、await の前に始める
+  const scopeReady = interactive ? ensureSheetsScope() : Promise.resolve();
+  state.templateSourceStatus = { loading: true, loadedAt: state.templateSourceStatus.loadedAt };
+  updateGsheetUI();
+  try {
+    await scopeReady;
+    const book = await readSpreadsheet(saved.spreadsheetId);
+    // 読み込みのあいだに別の表に変えられていたら捨てる
+    if (state.templateSource?.spreadsheetId !== saved.spreadsheetId) return;
+    applyGsheetBook({ spreadsheetId: saved.spreadsheetId, name: saved.name }, book, state.templateSource);
+  } catch (e) {
+    if (state.templateSource?.spreadsheetId === saved.spreadsheetId) {
+      state.templateSourceStatus = { loading: false, loadedAt: state.templateSourceStatus.loadedAt };
+      updateGsheetUI();
+    }
+    if (interactive) showGsheetError(e);
+    else console.warn('[gsheet] reload skipped:', e);
+  }
+}
+
+/** スプレッドシートのボタンと「連携中」の表示を最新にする */
+function updateGsheetUI() {
+  const available = isSheetsAvailable();
+  const src = state.templateSource;
+  $('#template-panel-gsheet')?.classList.toggle('hidden', !available || !!src);
+  $('#template-gsheet-btn')?.classList.toggle('hidden', !available);
+
+  const box = $('#gsheet-link');
+  if (box) {
+    box.classList.toggle('hidden', !src);
+    if (src) {
+      const link = $('#gsheet-link-name');
+      link.textContent = src.name || t('gsheet_untitled');
+      link.href = spreadsheetUrl(src);
+      link.title = src.name || '';
+      $('#gsheet-link-sheet').textContent = src.sheetName ? t('gsheet_sheet_name', { sheet: src.sheetName }) : '';
+      const st = state.templateSourceStatus;
+      $('#gsheet-link-status').textContent = st.loading
+        ? t('gsheet_loading')
+        : st.loadedAt
+          ? t('gsheet_loaded_at', { time: new Date(st.loadedAt).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' }) })
+          : (available ? t('gsheet_showing_saved') : t('gsheet_login_to_reload'));
+      const reload = $('#gsheet-reload');
+      reload.disabled = st.loading;
+      reload.classList.toggle('opacity-50', st.loading);
+      $('#gsheet-repick').classList.toggle('hidden', !available);
+    }
+  }
+  const info = $('#template-gsheet-info');
+  if (info) {
+    info.classList.toggle('hidden', !src);
+    info.textContent = src ? t('gsheet_info', { name: src.name || t('gsheet_untitled') }) : '';
+  }
 }
 
 // =============================================================================
@@ -2222,8 +2445,12 @@ function initSpreadsheetMerge() {
   });
   $('#template-paste-apply')?.addEventListener('click', () => {
     const text = $('#template-paste-text').value;
-    state.templateSheets = null;
-    if (applyImportedTable({ name: '', ...parseDelimitedTable(text) }, 0)) {
+    const table = { name: '', ...parseDelimitedTable(text) };
+    if (table.records.length > 0) {
+      state.templateSheets = null;
+      setTemplateSource(null);
+    }
+    if (applyImportedTable(table, 0)) {
       $('#template-paste-area').classList.add('hidden');
       $('#template-paste-text').value = '';
     }
@@ -2233,8 +2460,27 @@ function initSpreadsheetMerge() {
   $('#template-sheet-select')?.addEventListener('change', (e) => {
     const i = parseInt(e.target.value, 10);
     const sheet = state.templateSheets?.[i];
-    if (sheet) applyImportedTable(sheet, i);
+    if (sheet && applyImportedTable(sheet, i) && state.templateSource) {
+      setTemplateSource({ ...state.templateSource, sheetId: sheet.sheetId ?? null, sheetName: sheet.name });
+    }
   });
+
+  // Googleスプレッドシート(ログイン中だけ)
+  for (const id of ['#template-panel-gsheet', '#template-gsheet-btn', '#gsheet-repick']) {
+    $(id)?.addEventListener('click', () => handleGsheetPick());
+  }
+  $('#gsheet-reload')?.addEventListener('click', () => {
+    if (!isSheetsAvailable()) {
+      showAccountDialog(t('gsheet_login_to_reload'));
+      return;
+    }
+    reloadGsheet({ interactive: true });
+  });
+  $('#gsheet-unlink')?.addEventListener('click', () => {
+    setTemplateSource(null);
+    setStatus(t('status_gsheet_unlinked'));
+  });
+  onTokenChange(() => updateGsheetUI());
 
   // プレビューする行
   $('#merge-row-prev')?.addEventListener('click', () => setMergePreviewRow(state.mergePreview.row - 1, true));
@@ -2284,6 +2530,7 @@ function showTemplateDataDialog() {
   $('#template-fields-list').textContent = state.templateFields.join(', ');
   updateTemplateDataTable();
   updateImportInfo();
+  preloadPicker();
   $('#template-data-dialog').classList.remove('hidden');
 }
 
@@ -5785,6 +6032,9 @@ function handleSave() {
     if (state.templateData.length > 0) {
       designData.templateData = state.templateData;
     }
+    // 連携した Googleスプレッドシート(次に開いたとき、同じシートから読み直す)
+    const mergeSource = currentMergeSourceForSave();
+    if (mergeSource) designData.mergeSource = mergeSource;
 
     // Include multi-label config if enabled
     if (state.multiLabel.enabled) {
@@ -5905,6 +6155,8 @@ function handleExport() {
   if (state.templateData.length > 0) {
     exportData.templateData = state.templateData;
   }
+  const exportSource = currentMergeSourceForSave();
+  if (exportSource) exportData.mergeSource = exportSource;
 
   // Include multi-label config if enabled
   if (state.multiLabel.enabled) {
@@ -6076,6 +6328,7 @@ function handleImportFile(file) {
         state.templateSheets = null;
         state.mergePreview = { enabled: false, row: 0 };
       }
+      restoreTemplateSource(data.mergeSource);
 
       // Clear selection and update renderer
       state.selectedIds = [];
@@ -6215,6 +6468,7 @@ function handleLoad(name, sampleDesign = null) {
   state.templateColumns = columnsOfRecords(state.templateData);
   state.templateSheets = null;
   state.mergePreview = { enabled: false, row: 0 };
+  restoreTemplateSource(design.mergeSource);
 
   // 印刷時の回転を復元(無ければ機体の既定に従う)
   state.printRotation = normalizeDesignRotation(design.printRotation);

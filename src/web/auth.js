@@ -2,7 +2,8 @@
  * Googleログイン(Google Identity Services のトークンモデル)
  *
  * - サーバーは置かず、ブラウザだけで完結させる
- * - スコープは drive.appdata だけ
+ * - スコープはふだん drive.appdata だけ。Googleスプレッドシートから差し込むときだけ
+ *   drive.file(アプリで開いたファイルだけ)を追加で求める(段階的な認可)
  * - アクセストークンは約1時間で切れる(リフレッシュトークンは無い)
  *   → ボタン操作のついでに requestAccessToken({prompt: ''}) で無言の取り直しを試す
  *   → だめなら「再接続」ボタンを出す(sync.js / account-ui.js)
@@ -26,6 +27,7 @@ let tokenClient = null;
 let accessToken = null;
 let expiresAt = 0;
 let inflight = null;
+let grantedScopes = new Set();
 const listeners = new Set();
 
 function emit() {
@@ -88,7 +90,7 @@ function ensureClient() {
  *   prompt: '' なら無言での取り直し、'select_account' ならアカウントを選ばせる
  * @returns {Promise<string>}
  */
-export function requestToken({ prompt = '', hint = '', timeoutMs = 0 } = {}) {
+export function requestToken({ prompt = '', hint = '', timeoutMs = 0, scope = '' } = {}) {
   if (inflight) return inflight;
   let client;
   try {
@@ -109,6 +111,8 @@ export function requestToken({ prompt = '', hint = '', timeoutMs = 0 } = {}) {
         return;
       }
       accessToken = resp.access_token;
+      // include_granted_scopes で、前に許可したスコープも同じトークンに入る
+      grantedScopes = new Set(String(resp.scope || CONFIG.driveScope).split(/\s+/).filter(Boolean));
       expiresAt = Date.now() + (Number(resp.expires_in) || 3600) * 1000;
       emit();
       done(resolve, accessToken);
@@ -122,6 +126,10 @@ export function requestToken({ prompt = '', hint = '', timeoutMs = 0 } = {}) {
     }
     const params = { prompt };
     if (hint) params.hint = hint; // login_hint
+    if (scope) {
+      params.scope = scope;
+      params.include_granted_scopes = true;
+    }
     try {
       client.requestAccessToken(params);
     } catch (e) {
@@ -129,6 +137,11 @@ export function requestToken({ prompt = '', hint = '', timeoutMs = 0 } = {}) {
     }
   });
   return inflight;
+}
+
+/** 今のトークンにそのスコープが入っているか */
+export function hasScope(scope) {
+  return hasValidToken() && grantedScopes.has(scope);
 }
 
 export function hasValidToken() {
@@ -159,6 +172,7 @@ export function revokeToken() {
   const t = accessToken;
   accessToken = null;
   expiresAt = 0;
+  grantedScopes = new Set();
   emit();
   if (t && gis()?.revoke) {
     try { gis().revoke(t, () => {}); } catch { /* ignore */ }

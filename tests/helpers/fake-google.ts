@@ -29,9 +29,33 @@ export const TEST_USER: FakeUser = {
   displayName: 'はおりん',
 };
 
+export interface FakeSheet {
+  sheetId: number;
+  title: string;
+  hidden?: boolean;
+  values: string[][];
+}
+
+export interface FakeSpreadsheet {
+  id: string;
+  title: string;
+  sheets: FakeSheet[];
+}
+
+export const DRIVE_FILE_SCOPE = 'https://www.googleapis.com/auth/drive.file';
+
 export class FakeDrive {
   files = new Map<string, FakeFile>();
   validTokens = new Set<string>();
+  /** トークンごとのスコープ */
+  tokenScopes = new Map<string, Set<string>>();
+  /** 利用者が許可したスコープ(include_granted_scopes で次のトークンにも入る) */
+  grantedScopes = new Set<string>(['https://www.googleapis.com/auth/drive.appdata']);
+  /** Googleスプレッドシート(Sheets API の偽物) */
+  spreadsheets = new Map<string, FakeSpreadsheet>();
+  /** drive.file: Picker で選ばれた(=アプリが読める)ファイル */
+  pickedFiles = new Set<string>();
+  sheetsRequests: string[] = [];
   tokenSeq = 0;
   fileSeq = 0;
   requests: string[] = [];
@@ -41,10 +65,52 @@ export class FakeDrive {
     this.user = user;
   }
 
-  issueToken() {
+  issueToken(scope = '') {
+    if (scope) for (const sc of scope.split(/\s+/)) if (sc) this.grantedScopes.add(sc);
     const t = `tok-${++this.tokenSeq}`;
     this.validTokens.add(t);
-    return t;
+    this.tokenScopes.set(t, new Set(this.grantedScopes));
+    return { token: t, scope: [...this.grantedScopes].join(' ') };
+  }
+
+  putSpreadsheet(sp: FakeSpreadsheet) {
+    this.spreadsheets.set(sp.id, sp);
+  }
+
+  /** Sheets API の偽物 */
+  async handleSheets(rawRoute: Route) {
+    const cors = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': '*', 'Access-Control-Allow-Methods': '*' };
+    const req = rawRoute.request();
+    if (req.method() === 'OPTIONS') return rawRoute.fulfill({ status: 204, body: '', headers: cors });
+    const json = (status: number, body: any) =>
+      rawRoute.fulfill({ status, contentType: 'application/json', body: JSON.stringify(body), headers: cors });
+    const url = new URL(req.url());
+    this.sheetsRequests.push(`${req.method()} ${decodeURIComponent(url.pathname)}${url.search ? decodeURIComponent(url.search) : ''}`);
+    const token = (req.headers()['authorization'] || '').replace(/^Bearer\s+/, '');
+    if (!this.validTokens.has(token)) return json(401, { error: { code: 401, message: 'Invalid Credentials' } });
+    if (!this.tokenScopes.get(token)?.has(DRIVE_FILE_SCOPE)) return json(403, { error: { code: 403, message: 'Request had insufficient authentication scopes.' } });
+    const m = /^\/v4\/spreadsheets\/([^/:]+)(\/values:batchGet)?$/.exec(url.pathname);
+    if (!m) return json(400, { error: { message: `unhandled ${url.pathname}` } });
+    const id = decodeURIComponent(m[1]);
+    const sp = this.spreadsheets.get(id);
+    // drive.file では、選ばれていないファイルは見えない
+    if (!sp || !this.pickedFiles.has(id)) return json(404, { error: { code: 404, message: 'Requested entity was not found.' } });
+    if (!m[2]) {
+      return json(200, {
+        properties: { title: sp.title },
+        sheets: sp.sheets.map((sh, index) => ({ properties: { sheetId: sh.sheetId, title: sh.title, index, hidden: !!sh.hidden, sheetType: 'GRID' } })),
+      });
+    }
+    const ranges = url.searchParams.getAll('ranges');
+    const valueRanges = ranges.map((r) => {
+      const title = /^'(.*)'$/.exec(r)?.[1]?.replace(/''/g, "'") ?? r;
+      const sh = sp.sheets.find(x => x.title === title);
+      return { range: r, majorDimension: 'ROWS', ...(sh && sh.values.length ? { values: sh.values } : {}) };
+    });
+    if (valueRanges.some((v, i) => !sp.sheets.find(x => `'${x.title.replace(/'/g, "''")}'` === ranges[i]))) {
+      return json(400, { error: { code: 400, message: 'Unable to parse range' } });
+    }
+    return json(200, { spreadsheetId: id, valueRanges });
   }
 
   /** サーバー側でトークンを全部失効させる(期限切れの再現) */
@@ -154,13 +220,51 @@ function parseMultipart(contentType: string, body: string) {
  * window.__fakeGis.denySilent = true にすると、prompt: '' の取り直しが失敗する(ポップアップがブロックされた状態)
  */
 export async function installFakeGoogle(page: Page, drive: FakeDrive, opts: { clientId?: string } = {}) {
-  await page.exposeFunction('__fakeIssueToken', () => drive.issueToken());
+  await page.exposeFunction('__fakeIssueToken', (scope: string) => drive.issueToken(scope));
+  await page.exposeFunction('__fakePick', (id: string) => { drive.pickedFiles.add(id); });
   await page.addInitScript((clientId) => {
     const w = window as any;
     w.__PHOMYMO_CONFIG__ = { googleClientId: clientId, syncDebounceMs: 200 };
-    const gis = { requests: [] as any[], settled: 0, denySilent: false, revoked: [] as string[] };
+    const gis = { requests: [] as any[], settled: 0, denySilent: false, denyScope: false, revoked: [] as string[] };
     w.__fakeGis = gis;
+    // Google Picker の偽物: __fakePicker.next に選ぶファイル(null なら取り消し)
+    const fakePicker: any = { next: null, shown: [] as any[] };
+    w.__fakePicker = fakePicker;
+    class DocsView { opts: any = {}; constructor(public viewId: string) {} setIncludeFolders() { return this; } setSelectFolderEnabled() { return this; } setMode() { return this; } }
+    class PickerBuilder {
+      cfg: any = { views: [] };
+      addView(v: any) { this.cfg.views.push(v.viewId); return this; }
+      setOAuthToken(tk: string) { this.cfg.token = tk; return this; }
+      setDeveloperKey(k: string) { this.cfg.key = k; return this; }
+      setAppId(a: string) { this.cfg.appId = a; return this; }
+      setLocale(l: string) { this.cfg.locale = l; return this; }
+      setTitle(tt: string) { this.cfg.title = tt; return this; }
+      setCallback(cb: Function) { this.cfg.cb = cb; return this; }
+      build() {
+        const cfg = this.cfg;
+        return {
+          setVisible() {
+            fakePicker.shown.push({ views: cfg.views, token: cfg.token, appId: cfg.appId, locale: cfg.locale, title: cfg.title });
+            const doc = fakePicker.next;
+            setTimeout(async () => {
+              if (!doc) { cfg.cb({ action: 'cancel' }); return; }
+              await w.__fakePick(doc.id);
+              cfg.cb({ action: 'picked', docs: [{ id: doc.id, name: doc.name, url: `https://docs.google.com/spreadsheets/d/${doc.id}/edit` }] });
+            }, 10);
+          },
+        };
+      }
+    }
+    const picker = {
+      DocsView, PickerBuilder,
+      ViewId: { SPREADSHEETS: 'spreadsheets' },
+      DocsViewMode: { LIST: 'list' },
+      Action: { PICKED: 'picked', CANCEL: 'cancel' },
+      Response: { ACTION: 'action', DOCUMENTS: 'docs' },
+      Document: { ID: 'id', NAME: 'name', URL: 'url' },
+    };
     w.google = {
+      picker,
       accounts: {
         oauth2: {
           initTokenClient(cfg: any) {
@@ -175,9 +279,16 @@ export async function installFakeGoogle(page: Page, drive: FakeDrive, opts: { cl
                     client.error_callback?.({ type: 'popup_failed_to_open', message: 'Failed to open popup window' });
                     return;
                   }
-                  const token = await w.__fakeIssueToken();
+                  if (params.scope && gis.denyScope) {
+                    // 同意画面で追加のスコープを外された
+                    const issued = await w.__fakeIssueToken('');
+                    gis.settled++;
+                    client.callback({ access_token: issued.token, expires_in: 3599, scope: issued.scope, token_type: 'Bearer' });
+                    return;
+                  }
+                  const issued = await w.__fakeIssueToken(params.scope || cfg.scope);
                   gis.settled++;
-                  client.callback({ access_token: token, expires_in: 3599, scope: cfg.scope, token_type: 'Bearer' });
+                  client.callback({ access_token: issued.token, expires_in: 3599, scope: issued.scope, token_type: 'Bearer' });
                 }, 10);
               },
             };
@@ -192,6 +303,7 @@ export async function installFakeGoogle(page: Page, drive: FakeDrive, opts: { cl
     };
   }, opts.clientId ?? 'test-client-id.apps.googleusercontent.com');
   await page.route('https://www.googleapis.com/**', (route) => drive.handle(route));
+  await page.route('https://sheets.googleapis.com/**', (route) => drive.handleSheets(route));
 }
 
 /** アカウントのダイアログからログインする */

@@ -7,8 +7,9 @@
 | スコープ | 区分 | 審査 |
 |---|---|---|
 | `https://www.googleapis.com/auth/drive.appdata` | 非機密(non-sensitive) | 機密/制限付きスコープの審査(動画・セキュリティ評価)は**不要** |
+| `https://www.googleapis.com/auth/drive.file` | 非機密(non-sensitive・推奨) | **不要**。「Googleスプレッドシートから」差し込むときだけ追加で求める(`sheetsScope`、くわしくは `docs/google-sheets-merge.md`) |
 
-本アプリが求めるのはこの1つだけ(`src/web/config.js` の `driveScope`)。`openid` / `email` / `profile` は使っていない(表示名とメールは Drive API の `about` から取る)。
+ログインのときに求めるのは drive.appdata だけ(`src/web/config.js` の `driveScope`)。`openid` / `email` / `profile` は使っていない(表示名とメールは Drive API の `about` から取る)。
 
 非機密スコープだけなら「本番環境」に切り替えるだけで誰でもログインできる。ただし**アプリ名やロゴを同意画面に出す場合は「ブランドの確認(Verify Branding)」が必要**。確認に通るまでは、アプリ名の代わりにドメインが出たり「未確認のアプリ」と出たりする。
 
@@ -36,7 +37,7 @@
 | 承認済みドメイン | `poko.be` |
 | デベロッパーの連絡先メール | 自分のアドレス |
 | 対象 | 外部 → 公開ステータス「本番環境」 |
-| データアクセス(スコープ) | `.../auth/drive.appdata` のみ |
+| データアクセス(スコープ) | `.../auth/drive.appdata` と `.../auth/drive.file`(どちらも非機密) |
 
 OAuth クライアント(ウェブアプリケーション)の「承認済みの JavaScript 生成元」に `https://phomymo.poko.be` を足す。
 
