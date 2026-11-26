@@ -10,7 +10,6 @@ import { USBTransport } from './usb.js?v=101';
 import { normalizeMirror, defaultOrientFor, DEFAULT_MIRROR } from './mirror.js';
 import { print, printDensityTest, isDSeriesPrinter, isP12Printer, isA30Printer, isTapePrinter, isPM241Printer, isTSPLPrinter, isRotatedPrinter, getPrinterWidthBytes, getPrinterDpi, getPrinterAlignment, getPrinterDescription, isDeviceRecognized, getMatchedPattern, loadPrinterDefinitions, getAllPrinterDefinitions, getPrinterDefinition, getCustomPrinterDefinitions, saveCustomPrinterDefinition, deleteCustomPrinterDefinition, isBuiltinPrinter, resetBuiltinPrinter, getAvailableProtocols, getAvailableLabelPresets, getDetectedDefinition } from './printer.js?v=130';
 import { densityTestLevels, buildDensityTestElements, DEFAULT_DENSITY_TEST_RANGE } from './density-test.js?v=1';
-import { initPrintOffsetUI } from './print-offset.js';
 import {
   createTextElement,
   createImageElement,
@@ -72,6 +71,7 @@ import { renderDesignList } from './design-gallery.js';
 import { listSamples, buildSampleDesign, SAMPLES, sampleName } from './samples.js';
 import { initTextStylePanel, updateTextStylePanel, mobileTextStyleHtml, wireMobileTextStyle } from './text-style-panel.js';
 import { isVertical } from './text-layout.js';
+import { initPrintOffsetUI } from './print-offset.js';
 import {
   extractFields,
   hasTemplateFields,
