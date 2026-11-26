@@ -22,10 +22,10 @@
 2. 「認証情報」→「認証情報を作成」→「API キー」
    - アプリケーションの制限: **ウェブサイト**、`https://phomymo.poko.be/*`(プレビューを使うなら `https://*-phomymo.ayapanda.workers.dev/*` も)
    - API の制限: **Google Picker API** だけ
-   - できたキーを `src/web/config.js` の `googleApiKey` に入れる(公開してよい値)
+   - できたキーを `src/web/config.js` の `googleApiKey` に入れる(公開してよい値。2026-11-26 に設定済み)
 3. 「OAuth 同意画面」→「データアクセス」→「スコープを追加」で `.../auth/drive.file` を足す
 
-`googleApiKey` が空でも Picker は開こうとするが、Google はキーを付けるよう求めているので、キーを入れるまでは動かないことがある。
+`googleApiKey` が空でも Picker は開こうとするが、Google はキーを付けるよう求めている。
 
 ## 保存する値(design.mergeSource)
 

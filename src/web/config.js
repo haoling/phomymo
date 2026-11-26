@@ -16,8 +16,7 @@ export const CONFIG = Object.freeze({
   // drive.file は「利用者が Google Picker で選んだファイルだけ」に届く非センシティブなスコープ
   sheetsScope: 'https://www.googleapis.com/auth/drive.file',
   // Google Picker 用のブラウザ API キー(公開してよい値。HTTP リファラーと Picker API に制限して発行する)
-  // 仮決め: 空。空でも Picker は開くが、Google はキーを付けるよう求めている(docs/google-sheets-merge.md)
-  googleApiKey: '',
+  googleApiKey: 'AIzaSyAv0x2g7tHQ10qZjRITlBXLJWjoNMJ6HtE',
   // Picker の appId = Google Cloud のプロジェクト番号(クライアントIDの先頭の数字)
   googleAppId: '47606521143',
   // Google Picker を読み込むスクリプト(gapi)
