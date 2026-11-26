@@ -8,8 +8,8 @@
 const overrides = (typeof globalThis !== 'undefined' && globalThis.__PHOMYMO_CONFIG__) || {};
 
 export const CONFIG = Object.freeze({
-  // 仮決め: クライアントIDは未発行。発行したらここに入れる
-  googleClientId: '',
+  // Google Cloud で発行したクライアントID(公開してよい値。シークレットは使わない)
+  googleClientId: '47606521143-icbdpla7k3rtn26gcair90ec2rj9i3ub.apps.googleusercontent.com',
   // Drive のアプリ専用領域だけを使う(推奨・非センシティブなスコープ)
   driveScope: 'https://www.googleapis.com/auth/drive.appdata',
   // Google Identity Services のスクリプト

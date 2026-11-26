@@ -50,6 +50,11 @@ test.describe('ゲストモード', () => {
   });
 
   test('保存ボタンを押すと「ログインすると保存できます」の案内が出る', async ({ page }) => {
+    // クライアントIDが未設定の場合を確かめる
+    await page.addInitScript(() => { (window as any).__PHOMYMO_CONFIG__ = { googleClientId: '' }; });
+    await page.reload({ waitUntil: 'networkidle' });
+    await waitForAppReady(page);
+    await dismissInfoDialog(page);
     await page.click('#save-btn');
     await expect(page.locator('#account-dialog')).toBeVisible();
     await expect(page.locator('#account-reason')).toHaveText('ログインすると保存できます。');
