@@ -4,6 +4,7 @@
  */
 
 import { HANDLES } from './constants.js';
+import { getImageBaseSize } from './elements.js?v=104';
 
 // Use constants for handle configuration
 const HANDLE_SIZE = HANDLES.SIZE;
@@ -295,10 +296,12 @@ export function calculateResize(element, handleType, dx, dy, preserveAspect = fa
   newHeight = Math.max(newHeight, 10);
 
   // Apply aspect ratio constraint
-  // For images, use natural dimensions; otherwise use current dimensions
-  const aspect = (element.naturalWidth && element.naturalHeight)
-    ? element.naturalWidth / element.naturalHeight
-    : width / height;
+  // For images, use natural dimensions after crop (切り抜き後の縦横比); otherwise use current dimensions
+  let aspect = width / height;
+  if (element.type === 'image' && element.naturalWidth && element.naturalHeight) {
+    const base = getImageBaseSize(element);
+    aspect = base.width / base.height;
+  }
   if (preserveAspect) {
     const isCorner = handleType === HandleType.NW || handleType === HandleType.NE ||
                      handleType === HandleType.SE || handleType === HandleType.SW;

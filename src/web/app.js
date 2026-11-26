@@ -50,7 +50,7 @@ import {
   drawGroupHandles,
   calculateGroupResize,
   calculateGroupRotation,
-} from './handles.js?v=100';
+} from './handles.js?v=101';
 import {
   saveDesign,
   loadDesign,

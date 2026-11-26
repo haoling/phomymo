@@ -103,6 +103,33 @@ test.describe('画像のトリミング・反転(#26)', () => {
     expect(r.src).toEqual({ sx: 100, sy: 100, sw: 200, sh: 100 });
   });
 
+  test('切り抜いた画像は、縦横比を保ったリサイズで切り抜き後の縦横比を使う', async ({ page }) => {
+    const r = await page.evaluate(async () => {
+      const h = await import('/handles.js');
+      // 200×100 の画像の左半分(100×100、正方形)を切り抜き、100×100 で置いた状態
+      const el = {
+        type: 'image', x: 0, y: 0, width: 100, height: 100, rotation: 0,
+        naturalWidth: 200, naturalHeight: 100, crop: { x: 0, y: 0, w: 0.5, h: 1 },
+      };
+      const plain = { ...el, crop: null, width: 200, height: 100 };
+      return {
+        corner: h.calculateResize(el, h.HandleType.SE, 50, 10, true),
+        side: h.calculateResize(el, h.HandleType.E, 40, 0, true),
+        vertical: h.calculateResize(el, h.HandleType.S, 0, 20, true),
+        // 切り抜いていない画像は、これまでどおり元画像の縦横比(2:1)
+        uncropped: h.calculateResize(plain, h.HandleType.SE, 100, 0, true),
+      };
+    });
+    expect(r.corner.width).toBeCloseTo(150);
+    expect(r.corner.height).toBeCloseTo(150);
+    expect(r.side.width).toBeCloseTo(140);
+    expect(r.side.height).toBeCloseTo(140);
+    expect(r.vertical.width).toBeCloseTo(120);
+    expect(r.vertical.height).toBeCloseTo(120);
+    expect(r.uncropped.width).toBeCloseTo(300);
+    expect(r.uncropped.height).toBeCloseTo(150);
+  });
+
   test('左右反転・上下反転のボタンで、プレビューが裏返る', async ({ page }) => {
     await addTwoToneImage(page);
     const before = await countColors(page);
