@@ -248,6 +248,13 @@ export const MESSAGES = {
   auto_detect: { ja: "自動判別", en: "Auto-detect" },
   override_if_auto_detect_doesn_t: { ja: "自動判別がうまくいかないときに指定します", en: "Override if auto-detect doesn't work" },
   manage_printers: { ja: "プリンターを管理", en: "Manage Printers" },
+  // 印刷の横位置の補正(プリンターごと)
+  print_offset: { ja: "横位置の補正", en: "Horizontal position" },
+  print_offset_named: { ja: "横位置の補正(「{name}」)", en: "Horizontal position (\"{name}\")" },
+  print_offset_help: { ja: "印刷が左右にずれるときに直します。＋で右へ、−で左へずらします(0.5mm 刻み)。", en: "Fixes prints that come out shifted sideways. + moves right, − moves left (0.5mm steps)." },
+  print_offset_disconnected: { ja: "プリンターに接続すると、プリンターごとに決められます", en: "Connect a printer to set this for it" },
+  print_offset_left: { ja: "左へ", en: "Left" },
+  print_offset_right: { ja: "右へ", en: "Right" },
   print_density_darkness: { ja: "印刷の濃さ", en: "Print Density (Darkness)" },
   light: { ja: "薄い", en: "Light" },
   dark: { ja: "濃い", en: "Dark" },

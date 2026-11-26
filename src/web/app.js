@@ -10,6 +10,7 @@ import { USBTransport } from './usb.js?v=101';
 import { normalizeMirror, defaultOrientFor, DEFAULT_MIRROR } from './mirror.js';
 import { print, printDensityTest, isDSeriesPrinter, isP12Printer, isA30Printer, isTapePrinter, isPM241Printer, isTSPLPrinter, isRotatedPrinter, getPrinterWidthBytes, getPrinterDpi, getPrinterAlignment, getPrinterDescription, isDeviceRecognized, getMatchedPattern, loadPrinterDefinitions, getAllPrinterDefinitions, getPrinterDefinition, getCustomPrinterDefinitions, saveCustomPrinterDefinition, deleteCustomPrinterDefinition, isBuiltinPrinter, resetBuiltinPrinter, getAvailableProtocols, getAvailableLabelPresets, getDetectedDefinition } from './printer.js?v=130';
 import { densityTestLevels, buildDensityTestElements, DEFAULT_DENSITY_TEST_RANGE } from './density-test.js?v=1';
+import { initPrintOffsetUI } from './print-offset.js';
 import {
   createTextElement,
   createImageElement,
@@ -8032,6 +8033,11 @@ function init() {
   // Counter settings (#31)
   initCounterSettings();
   initSpreadsheetMerge();
+
+  // 印刷の横位置の補正(プリンターごと)
+  initPrintOffsetUI({
+    getDeviceName: () => (state.transport?.isConnected?.() ? (state.transport.getDeviceName?.() || '') : ''),
+  });
 
   // Load printer definitions (built-in + custom) then populate dropdown
   loadPrinterDefinitions().then(() => {
