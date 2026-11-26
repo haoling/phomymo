@@ -63,6 +63,10 @@ test('アプリ内の GitHub リンクはこのフォークを指す', async ({ 
 test('寄付ボタンは元作者への寄付だと分かる', async ({ page }) => {
   await page.goto('/');
   await waitForAppReady(page);
+  // Chromium 以外で出る警告ダイアログ(app.js が作る)にもあるので、ソースも確かめる
+  const src = fs.readFileSync(path.join(__dirname, '..', 'src', 'web', 'app.js'), 'utf8');
+  const tags = src.match(/<a href="https:\/\/donate\.stripe\.com[^>]*>/g) || [];
+  for (const tag of tags) expect(tag).toContain('original Phomymo');
   const links = page.locator('a[href*="donate.stripe.com"]');
   const n = await links.count();
   expect(n).toBeGreaterThan(0);
