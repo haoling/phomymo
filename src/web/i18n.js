@@ -9,7 +9,11 @@
  *   設定がなければブラウザの言語が日本語なら日本語、ほかは英語
  */
 import * as kv from './kv.js';
-import { MESSAGES } from './i18n-messages.js';
+import { MESSAGES as BASE_MESSAGES } from './i18n-messages.js';
+import { AI_BINARIZE_MESSAGES } from './i18n-messages-ai.js';
+
+// 機能ごとに分けたファイルの文言もまとめて引けるようにする
+const MESSAGES = { ...BASE_MESSAGES, ...AI_BINARIZE_MESSAGES };
 
 export const LANGS = ['ja', 'en'];
 const KV_KEY = 'ui_lang';

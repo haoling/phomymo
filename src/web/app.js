@@ -38,6 +38,7 @@ import {
   removeElementsInHigherZones,
   normalizeCrop,
   getImageBaseSize,
+  getImageSourceRect,
 } from './elements.js?v=104';
 import {
   HandleType,
@@ -63,6 +64,7 @@ import { initAssetsPanel, ASSET_DEFAULTS } from './assets-panel.js';
 import { createFrameElement, frameGeometryForLabel, FRAME_STYLES, frameStyleName } from './frames.js';
 import { t, onLangChange } from './i18n.js';
 import { openCropDialog } from './image-crop.js';
+import { openAiBinarizeDialog } from './ai-binarize-dialog.js';
 import { renderDesignList } from './design-gallery.js';
 import { listSamples, buildSampleDesign, SAMPLES, sampleName } from './samples.js';
 import { initTextStylePanel, updateTextStylePanel, mobileTextStyleHtml, wireMobileTextStyle } from './text-style-panel.js';
@@ -5151,6 +5153,64 @@ async function openImageCrop(id) {
   if (result) applyImageCrop(id, result.crop);
 }
 
+/**
+ * トリミングしている画像は、切り抜いた範囲だけの画像(data URL)にする。
+ * 反転は表示のときにかかるので、ここでは反転前の画像のまま切り抜く
+ */
+async function cropImageDataUrl(element) {
+  const crop = normalizeCrop(element.crop);
+  if (!crop) return element.imageData;
+  const img = await new Promise((resolve, reject) => {
+    const im = new Image();
+    im.onload = () => resolve(im);
+    im.onerror = () => reject(new Error('image load failed'));
+    im.src = element.imageData;
+  });
+  const { sx, sy, sw, sh } = getImageSourceRect(element, img.naturalWidth, img.naturalHeight);
+  const c = document.createElement('canvas');
+  c.width = Math.max(1, Math.round(sw));
+  c.height = Math.max(1, Math.round(sh));
+  c.getContext('2d').drawImage(img, sx, sy, sw, sh, 0, 0, c.width, c.height);
+  return c.toDataURL('image/png');
+}
+
+/**
+ * 「AIで白黒に」の画面を開き、決定したら画像を差し替える。
+ * トリミングしている画像は、切り抜いた範囲だけを加工し、その範囲を新しい画像にする
+ * (トリミングは解除される。外側はもう無いので、あとから範囲を広げることはできない)。
+ * 拡大率が変わらないよう、naturalWidth/Height は加工前の見かけの大きさにそろえる。
+ * 線の加工は白黒にしてあるので、ディザは「なし(しきい値)」にする
+ */
+async function openAiBinarize(id) {
+  const element = state.elements.find(e => e.id === id);
+  if (!element || element.type !== 'image' || !element.imageData) return;
+  const cropped = !!normalizeCrop(element.crop);
+  let source;
+  try {
+    source = await cropImageDataUrl(element);
+  } catch {
+    setStatus(t('aibw_err_image'));
+    return;
+  }
+  const result = await openAiBinarizeDialog({ imageData: source, cropped });
+  if (!result) return;
+  const current = state.elements.find(e => e.id === id);
+  if (!current || current.imageData !== element.imageData) return;
+  const base = getImageBaseSize(current);
+  saveHistory();
+  const changes = {
+    imageData: result.imageData,
+    crop: null,
+    naturalWidth: base.width,
+    naturalHeight: base.height,
+  };
+  if (result.lineMode) changes.dither = 'none';
+  modifyElement(id, changes);
+  updatePropertiesPanel();
+  refreshMobilePropsIfOpen();
+  setStatus(t('status_aibw_applied'));
+}
+
 /** #24 字間・曲線文字のパネルに渡すもの */
 const textStyleCtx = {
   getSelected: () => getSelected(),
@@ -7181,6 +7241,7 @@ function populateMobileProps() {
           <button type="button" id="mobile-prop-flipY" class="img-tool-btn" style="padding:10px 4px;font-size:13px" aria-pressed="${!!selected.flipY}">${t('flip_vertically')}</button>
         </div>
         ${hasCrop ? `<button type="button" id="mobile-prop-crop-clear" class="text-sm text-blue-600 mt-2">${t('remove_crop')}</button>` : ''}
+        <button type="button" id="mobile-prop-ai-bw" class="img-tool-btn" style="width:100%;margin-top:6px;padding:10px 4px;font-size:13px">${t('aibw_button')}</button>
       </div>
       <div class="prop-group">
         <div class="prop-label">${t('scale')}: ${currentScale}%</div>
@@ -7510,6 +7571,7 @@ function wireUpMobilePropHandlers(element) {
   // Image properties - use live update for sliders
   // #26 トリミング・反転
   $('#mobile-prop-crop')?.addEventListener('click', () => openImageCrop(element.id));
+  $('#mobile-prop-ai-bw')?.addEventListener('click', () => openAiBinarize(element.id));
   $('#mobile-prop-crop-clear')?.addEventListener('click', () => applyImageCrop(element.id, null));
   $('#mobile-prop-flipX')?.addEventListener('click', () => toggleImageFlip(element.id, 'flipX'));
   $('#mobile-prop-flipY')?.addEventListener('click', () => toggleImageFlip(element.id, 'flipY'));
@@ -8562,6 +8624,10 @@ function init() {
   $('#prop-image-crop').addEventListener('click', () => {
     const element = getSelected();
     if (element && element.type === 'image') openImageCrop(element.id);
+  });
+  $('#prop-image-ai-bw')?.addEventListener('click', () => {
+    const element = getSelected();
+    if (element && element.type === 'image') openAiBinarize(element.id);
   });
   $('#prop-image-crop-clear').addEventListener('click', () => {
     const element = getSelected();
