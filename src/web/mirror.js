@@ -9,19 +9,20 @@
  * - orient: 写しの向き
  *     'mirror'    … 鏡像(折り線で鏡に映した形。文字は裏返しになる)
  *     'upright'   … 反転しない(位置だけ反対側。折って裏から見ると読める向き)
- *     'rotate180' … 180°回して置く(上下に折ったものを横に返して見るとき読める向き)
+ *     'rotate180' … 180°回して置く(位置は折り線の反対側だけ。左右の位置はそのまま)
+ *     'point'     … 点対称(用紙の中心を基準に、位置も向きも180°回す)
  */
 
 /** 折り線の向きの選択肢(先頭が既定) */
 export const MIRROR_AXES = ['x', 'y'];
 /** 写しの向きの選択肢 */
-export const MIRROR_ORIENTS = ['mirror', 'upright', 'rotate180'];
+export const MIRROR_ORIENTS = ['mirror', 'upright', 'rotate180', 'point'];
 
 /**
  * 折る向きごとの、写しの向きの既定(はおりんの指定)
- * 左右に折る → 反転しない / 上下に折る → 180°回転(どちらも折って裏から見ると読める向き)
+ * 左右に折る → 反転しない / 上下に折る → 点対称(どちらも折って裏から見ると読める向き)
  */
-export const DEFAULT_ORIENT_BY_AXIS = Object.freeze({ x: 'upright', y: 'rotate180' });
+export const DEFAULT_ORIENT_BY_AXIS = Object.freeze({ x: 'upright', y: 'point' });
 
 /** ミラー配置をオンにしたときの既定値(ここを変えれば既定が変わる) */
 export const DEFAULT_MIRROR = Object.freeze({ axis: 'x', orient: DEFAULT_ORIENT_BY_AXIS.x });
@@ -57,6 +58,13 @@ export function mirrorCopyOf(element, labelWidth, labelHeight) {
   const rotation = element.rotation || 0;
   const copy = { ...element, _mirrorCopy: true };
   delete copy.mirror;
+  if (m.orient === 'point') {
+    // 点対称: 用紙の中心を基準に、位置も向きも180°回す(折る向きによらない)
+    copy.x = labelWidth - element.x - element.width;
+    copy.y = labelHeight - element.y - element.height;
+    copy.rotation = normalizeDeg(rotation + 180);
+    return copy;
+  }
   if (m.axis === 'x') {
     copy.x = labelWidth - element.x - element.width;
   } else {

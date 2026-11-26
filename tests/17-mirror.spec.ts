@@ -82,6 +82,7 @@ test.describe('ミラー配置(位置と向きの計算)', () => {
         y180: m.mirrorCopyOf({ ...el, mirror: { axis: 'y', orient: 'rotate180' } }, 200, 100),
         ym: m.mirrorCopyOf({ ...el, mirror: { axis: 'y', orient: 'mirror' } }, 200, 100),
         def: m.mirrorCopyOf({ ...el, mirror: { axis: 'y' } }, 200, 100),
+        px: m.mirrorCopyOf({ ...el, mirror: { axis: 'x', orient: 'point' } }, 200, 100),
         broken: m.normalizeMirror({ axis: 'z', orient: 'zz' }),
         list: m.withMirrorCopies([{ ...el, mirror: { axis: 'x' } }, { ...el, id: 'b' }], 200, 100).map(e => e.id),
         same: (() => { const a = [el]; return m.withMirrorCopies(a, 200, 100) === a; })(),
@@ -94,7 +95,9 @@ test.describe('ミラー配置(位置と向きの計算)', () => {
     expect(r.xu._mirrorScale).toBeUndefined();
     expect(r.y180).toMatchObject({ x: 10, y: 40, rotation: 150 });
     expect(r.ym).toMatchObject({ y: 40, _mirrorScale: [1, -1] });
-    expect(r.def).toMatchObject({ y: 40, rotation: 150 });
+    // 上下に折るときの既定は点対称: 位置も向きも用紙の中心で180°
+    expect(r.def).toMatchObject({ x: 160, y: 40, rotation: 210 });
+    expect(r.px).toMatchObject({ x: 160, y: 40, rotation: 210 });
     expect(r.def._mirrorScale).toBeUndefined();
     expect(r.broken).toEqual({ axis: 'x', orient: 'upright' });
     expect(r.list).toEqual(['a', 'a', 'b']);
@@ -130,7 +133,7 @@ test.describe('ミラー配置(画面)', () => {
     await dismissInfoDialog(page);
   });
 
-  test('左右に折る: 既定は反転しない(上下は180°回転)。鏡像にすると右側に鏡像が出て、元を動かすと写しも追従し、元に戻せる', async ({ page }) => {
+  test('左右に折る: 既定は反転しない(上下は点対称)。鏡像にすると右側に鏡像が出て、元を動かすと写しも追従し、元に戻せる', async ({ page }) => {
     await addTwoToneImageOnLeft(page);
     let m = await measure(page);
     expect(m.right.black).toBe(0);
@@ -142,7 +145,13 @@ test.describe('ミラー配置(画面)', () => {
     // 既定の向き: 左右に折る→反転しない、上下に折る→180°回転
     await expect(page.locator('#prop-mirror-orient')).toHaveValue('upright');
     await page.locator('#prop-mirror-axis').selectOption('y');
-    await expect(page.locator('#prop-mirror-orient')).toHaveValue('rotate180');
+    await expect(page.locator('#prop-mirror-orient')).toHaveValue('point');
+    // 点対称: 左上の画像の写しは右下に、180°回って(右端が黒)出る
+    {
+      const p = await measure(page);
+      expect(p.right.black).toBeGreaterThan(p.left.black * 0.8);
+      expect(p.right.blackX).toBeGreaterThan(p.right.blueX);
+    }
     await page.locator('#prop-mirror-axis').selectOption('x');
     await expect(page.locator('#prop-mirror-orient')).toHaveValue('upright');
     await page.locator('#prop-mirror-orient').selectOption('mirror');

@@ -7435,6 +7435,7 @@ function populateMobileProps() {
               <option value="mirror">${t('mirror_orient_mirror')}</option>
               <option value="upright">${t('mirror_orient_upright')}</option>
               <option value="rotate180">${t('mirror_orient_rotate180')}</option>
+              <option value="point">${t('mirror_orient_point')}</option>
             </select>
           </div>
         </div>
