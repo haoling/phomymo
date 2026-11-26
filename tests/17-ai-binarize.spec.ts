@@ -5,7 +5,7 @@ import os from 'os';
 import { waitForAppReady, dismissInfoDialog } from './helpers/app';
 
 // AI による画像の白黒化。
-// 本物の ONNX Runtime とモデルは大きく、外部(jsDelivr / Hugging Face)から読むので、
+// 本物の ONNX Runtime(jsDelivr)とモデルは大きいので、
 // テストでは偽のランタイム(下の FAKE_ORT)に差し替えて、画面と前後の処理を確かめる。
 //   - 背景を消す: 偽モデルは「真ん中の円だけ 1、ほかは 0」のマスクを返す
 //   - 線画: 偽モデルは入力の明るさの平均をそのまま返す
@@ -46,9 +46,9 @@ async function installFakes(page: Page) {
     modelRequests.push('removeBg');
     return route.fulfill({ body: 'fake', contentType: 'application/octet-stream' });
   });
-  await page.route('https://huggingface.co/**', route => {
+  await page.route('**/models/informative-drawings-lineart.onnx', route => {
     modelRequests.push('lineArt');
-    return route.fulfill({ body: 'fake', contentType: 'application/octet-stream', headers: { 'access-control-allow-origin': '*' } });
+    return route.fulfill({ body: 'fake', contentType: 'application/octet-stream' });
   });
   return modelRequests;
 }
@@ -190,7 +190,7 @@ test.describe('AIで白黒に', () => {
     await expect(page.locator('#prop-image-dither')).toHaveValue('none');
   });
 
-  test('線画(AI)は Hugging Face からモデルを読み、「先に背景を消す」も使える', async ({ page }) => {
+  test('線画(AI)は同梱のモデルを読み、「先に背景を消す」も使える', async ({ page }) => {
     const modelRequests = await installFakes(page);
     await addImage(page, 'split');
     await page.click('#prop-image-ai-bw');

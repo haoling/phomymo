@@ -34,11 +34,11 @@
 | モデル | 置き場所 | 大きさ | ライセンス | 使い道 |
 |---|---|---|---|---|
 | U²-Net small(u2netp) | `src/web/models/u2netp.onnx`(同梱) | 4.6MB | Apache-2.0(Xuebin Qin ほか) | 背景を消す |
-| Informative Drawings(line art) | 同梱しない。初回に `https://huggingface.co/rocca/informative-drawings-line-art-onnx` から読む | 17.2MB | MIT(Caroline Chan) | 線画にする |
+| Informative Drawings(line art) | `src/web/models/informative-drawings-lineart.onnx`(同梱。元は https://huggingface.co/rocca/informative-drawings-line-art-onnx の model.onnx) | 17.2MB | MIT(Caroline Chan) | 線画にする |
 
 - u2netp は rembg のリリース(https://github.com/danielgatis/rembg/releases/tag/v0.0.0)の ONNX を手を加えずに置いている
 - 実行は ONNX Runtime Web(MIT、jsDelivr から読み込み)。どちらも使うときに初めて読み込み、Cache Storage に保存する
-- line art は Cloudflare の1ファイル 25MiB の上限には収まるが、リポジトリを重くしないため同梱しなかった(読み込み先は `src/web/ai-binarize.js` の `AI_CONFIG` で変えられる)
+- 最初は line art を Hugging Face から読んでいたが、ブラウザから読めない(Failed to fetch)ことがあったので同梱にした。Cloudflare の1ファイル 25MiB の上限には収まる(読み込み先は `src/web/ai-binarize.js` の `AI_CONFIG` で変えられる)
 
 ## 検討したが入れなかったもの
 

@@ -22,12 +22,12 @@ export const AI_CONFIG = {
   models: {
     // U²-Net small(Apache-2.0)。このサイトに同梱(src/web/models/)
     removeBg: { url: 'models/u2netp.onnx', bytes: 4574861 },
-    // Informative Drawings の line art(MIT)。同じサイトに置いたものを先に読み、
-    // 無ければ(または読めなければ)Hugging Face から読む
+    // Informative Drawings の line art(MIT)。これも同梱。
+    // fallbackUrls に読み込み先を足すと、同梱のものが読めないときに順に試す
     lineArt: {
       url: 'models/informative-drawings-lineart.onnx',
-      fallbackUrls: ['https://huggingface.co/rocca/informative-drawings-line-art-onnx/resolve/main/model.onnx'],
-      bytes: 17200000,
+      fallbackUrls: [],
+      bytes: 17193338,
     },
   },
   cacheName: 'phomymo-ai-models-v1',

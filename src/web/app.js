@@ -65,6 +65,8 @@ import { createFrameElement, frameGeometryForLabel, FRAME_STYLES, frameStyleName
 import { t, onLangChange } from './i18n.js';
 import { openCropDialog } from './image-crop.js';
 import { openAiBinarizeDialog } from './ai-binarize-dialog.js';
+import { renderDesignList } from './design-gallery.js';
+import { listSamples, buildSampleDesign, SAMPLES, sampleName } from './samples.js';
 import { initTextStylePanel, updateTextStylePanel, mobileTextStyleHtml, wireMobileTextStyle } from './text-style-panel.js';
 import { isVertical } from './text-layout.js';
 import {
@@ -78,7 +80,15 @@ import {
   evaluateExpressions,
   hasCounter,
   previewCounter,
-} from './templates.js?v=102';
+} from './templates.js?v=103';
+import {
+  readSpreadsheetFile,
+  parseDelimitedTable,
+  parseRowRange,
+  formatRowRange,
+  findMissingFields,
+  SPREADSHEET_ACCEPT,
+} from './spreadsheet.js';
 import {
   injectJapaneseFontStylesheet,
   addJapaneseFontsToSelect,
@@ -198,6 +208,11 @@ const state = {
   templateData: [],       // Array of data records for batch printing
   selectedRecords: [],    // Indices of selected records for printing
   currentPreviewIndex: 0, // Current label index in full preview
+  // 表からの差し込み: 読み込んだ表の列・シート、キャンバスでプレビューする行
+  templateColumns: [],    // Column names of the imported table (in order)
+  templateSheets: null,   // [{ name, headers, records, truncated }] of the last .xlsx (in memory only)
+  templateSheetIndex: 0,
+  mergePreview: { enabled: false, row: 0 },
   // Inline text editing state
   editingTextId: null,    // ID of text element being inline-edited
   // Undo/Redo history
@@ -302,6 +317,7 @@ function refreshLanguageTexts() {
 
   updateMobileLabelName();
   updateTemplateIndicator();
+  updateImportInfo();
   updateCounterUI();
   updatePrintSize();
   updateElementsList();
@@ -1336,9 +1352,16 @@ function zoomToFitIfNeeded() {
  */
 function render() {
   // In print preview mode, evaluate expressions so users see actual values
-  const elementsToRender = state.ditherPreview
-    ? evaluateExpressions(state.elements, { counterIndex: counterIndexForLabel(0) })
-    : state.elements;
+  let elementsToRender = state.elements;
+  const mergeRecord = mergePreviewRecord();
+  if (mergeRecord) {
+    // 表の行を差し込んで表示(行を選んでプレビュー)
+    elementsToRender = evaluateExpressions(substituteFields(state.elements, mergeRecord), {
+      counterIndex: counterIndexForLabel(batchPositionOf(state.mergePreview.row)),
+    });
+  } else if (state.ditherPreview) {
+    elementsToRender = evaluateExpressions(state.elements, { counterIndex: counterIndexForLabel(0) });
+  }
   state.renderer.renderAll(elementsToRender, state.selectedIds, state.alignmentGuides);
 }
 
@@ -1358,10 +1381,7 @@ function counterIndexForLabel(position) {
 
 /** バッチ印刷で、そのレコードが何枚目に印刷されるか(0 始まり) */
 function batchPositionOf(recordIndex) {
-  const indices = state.selectedRecords.length > 0
-    ? state.selectedRecords
-    : state.templateData.map((_, i) => i);
-  const pos = indices.indexOf(recordIndex);
+  const pos = state.selectedRecords.indexOf(recordIndex);
   return pos >= 0 ? pos : recordIndex;
 }
 
@@ -1468,7 +1488,6 @@ function updateTemplateIndicator() {
   const toolbarBtn = $('#template-toolbar-btn');
   const toolbarDivider = $('#template-toolbar-divider');
   const toolbarLabel = $('#template-toolbar-label');
-  const templatePanel = $('#template-panel');
 
   const hasFields = state.templateFields.length > 0;
 
@@ -1480,28 +1499,45 @@ function updateTemplateIndicator() {
       `<span class="px-2 py-1 bg-purple-100 text-purple-700 rounded-full font-medium">{{${escapeHtml(f)}}}</span>`
     ).join('');
 
-    // Show toolbar button
-    toolbarBtn.classList.remove('hidden');
-    toolbarDivider.classList.remove('hidden');
-
-    // Update toolbar label with record count
-    if (state.templateData.length > 0) {
-      toolbarLabel.textContent = t('template_with_count', { n: state.templateData.length });
-    } else {
-      toolbarLabel.textContent = t('template');
-    }
   } else {
     fieldTags.innerHTML = `<span class="text-purple-400 italic">${t('none')}</span>`;
+  }
+  $('#template-fields-hint')?.classList.toggle('hidden', hasFields);
 
-    // Hide toolbar button and template panel
-    toolbarBtn.classList.add('hidden');
-    toolbarDivider.classList.add('hidden');
-    templatePanel.classList.add('hidden');
+  // ツールバーのボタンは常に出す(先に表を読み込んでから {{列名}} を足せるように)
+  toolbarBtn.classList.remove('hidden');
+  toolbarDivider.classList.remove('hidden');
+  toolbarLabel.textContent = state.templateData.length > 0
+    ? t('template_with_count', { n: state.templateData.length })
+    : t('template');
+
+  // 表の列(押すと {{列名}} を入れる)
+  const columnsSection = $('#template-columns-section');
+  const columnChips = $('#template-column-chips');
+  if (columnsSection && columnChips) {
+    columnsSection.classList.toggle('hidden', state.templateColumns.length === 0);
+    const used = state.templateFields.map(f => f.trim().toLowerCase());
+    columnChips.innerHTML = state.templateColumns.map(c => {
+      const isUsed = used.includes(c.trim().toLowerCase());
+      return `<button class="merge-column-chip px-2 py-1 rounded-full font-medium border ${isUsed
+        ? 'bg-purple-100 text-purple-700 border-purple-200'
+        : 'bg-white text-purple-700 border-purple-300 hover:bg-purple-100'}" data-column="${escapeHtml(c)}">${escapeHtml(c)}</button>`;
+    }).join('');
   }
 
   // Update data count
   dataCount.textContent = state.templateData.length;
-  printCount.textContent = state.templateData.length;
+  const selectedCount = state.selectedRecords.length;
+  const allSelected = selectedCount === state.templateData.length;
+  printCount.textContent = selectedCount;
+  const printLabel = $('#template-print-label');
+  if (printLabel) printLabel.textContent = t(allSelected ? 'print_all' : 'print_selected_rows');
+  const dialogPrintLabel = $('#template-print-btn-label');
+  if (dialogPrintLabel) {
+    dialogPrintLabel.textContent = allSelected
+      ? t('print_all_2')
+      : `${t('print_selected_rows_2')} (${selectedCount})`;
+  }
 
   // Update mobile template UI
   const mobileStatus = $('#mobile-template-status');
@@ -1526,10 +1562,11 @@ function updateTemplateIndicator() {
     }
   }
   if (mobileDataCount) mobileDataCount.textContent = state.templateData.length;
-  if (mobilePrintCount) mobilePrintCount.textContent = state.templateData.length;
+  if (mobilePrintCount) mobilePrintCount.textContent = state.selectedRecords.length;
 
   // Update field dropdowns for insert field buttons
   updateFieldDropdowns();
+  updateMergeControls();
 }
 
 /**
@@ -1559,8 +1596,14 @@ function updateFieldDropdowns() {
     const fieldList = $(`#field-list-${type}`);
     if (!fieldList) continue;
 
-    if (state.templateFields.length > 0) {
-      fieldList.innerHTML = state.templateFields.map(f =>
+    // デザインの項目 + 読み込んだ表の列(まだ使っていないもの)
+    const lowerFields = state.templateFields.map(f => f.toLowerCase());
+    const choices = [
+      ...state.templateFields,
+      ...state.templateColumns.filter(c => !lowerFields.includes(c.toLowerCase())),
+    ];
+    if (choices.length > 0) {
+      fieldList.innerHTML = choices.map(f =>
         `<button class="field-option w-full text-left px-3 py-1.5 text-sm hover:bg-purple-50 text-gray-700" data-field="${escapeHtml(f)}" data-type="${type}">{{${escapeHtml(f)}}}</button>`
       ).join('');
     } else {
@@ -1666,6 +1709,10 @@ function addTemplateRecord(record = null) {
 function updateTemplateRecord(index, field, value) {
   if (index >= 0 && index < state.templateData.length) {
     state.templateData[index][field] = value;
+    if (state.mergePreview.enabled && state.mergePreview.row === index) {
+      render();
+      updateMergeControls();
+    }
   }
 }
 
@@ -1679,6 +1726,7 @@ function deleteTemplateRecord(index) {
     state.selectedRecords = state.selectedRecords
       .filter(i => i !== index)
       .map(i => i > index ? i - 1 : i);
+    clampMergePreviewRow();
     updateTemplateDataTable();
   }
 }
@@ -1689,6 +1737,9 @@ function deleteTemplateRecord(index) {
 function clearTemplateData() {
   state.templateData = [];
   state.selectedRecords = [];
+  state.templateColumns = [];
+  state.templateSheets = null;
+  clampMergePreviewRow();
   updateTemplateDataTable();
 }
 
@@ -1743,6 +1794,17 @@ function updateTemplateDataTable() {
   emptyState.classList.add('hidden');
   tableHeader.classList.remove('hidden');
 
+  // デザインの項目を先に、ほかの表の列はあとに(薄く)出す
+  const lowerFields = state.templateFields.map(f => f.toLowerCase());
+  const extraColumns = state.templateColumns.filter(c => !lowerFields.includes(c.toLowerCase()));
+  const columns = [...state.templateFields, ...extraColumns];
+  const cellValue = (record, f) => {
+    if (Object.prototype.hasOwnProperty.call(record, f)) return record[f];
+    const key = Object.keys(record).find(k => k.trim().toLowerCase() === f.trim().toLowerCase());
+    return key !== undefined ? record[key] : '';
+  };
+  const previewRow = state.mergePreview.enabled ? state.mergePreview.row : -1;
+
   // Build header
   tableHeader.innerHTML = `
     <th class="px-2 py-1 text-left text-xs font-medium text-gray-500 w-8">
@@ -1750,24 +1812,27 @@ function updateTemplateDataTable() {
         ${state.selectedRecords.length === state.templateData.length ? 'checked' : ''}>
     </th>
     <th class="px-2 py-1 text-left text-xs font-medium text-gray-500 w-8">#</th>
-    ${state.templateFields.map(f => `
-      <th class="px-2 py-1 text-left text-xs font-medium text-gray-500">${escapeHtml(f)}</th>
+    ${columns.map(f => `
+      <th class="px-2 py-1 text-left text-xs font-medium ${extraColumns.includes(f) ? 'text-gray-400' : 'text-gray-500'}">${escapeHtml(f)}</th>
     `).join('')}
     <th class="px-2 py-1 text-right text-xs font-medium text-gray-500 w-16">${t('actions')}</th>
   `;
 
   // Build rows
   tableBody.innerHTML = state.templateData.map((record, idx) => `
-    <tr class="border-t border-gray-100 hover:bg-gray-50" data-index="${idx}">
+    <tr class="border-t border-gray-100 hover:bg-gray-50 ${idx === previewRow ? 'bg-purple-50' : ''}" data-index="${idx}">
       <td class="px-2 py-1">
         <input type="checkbox" class="template-row-select rounded"
           data-index="${idx}" ${state.selectedRecords.includes(idx) ? 'checked' : ''}>
       </td>
-      <td class="px-2 py-1 text-xs text-gray-400">${idx + 1}</td>
-      ${state.templateFields.map(f => `
+      <td class="px-2 py-1 text-xs">
+        <button class="template-preview-row px-1 rounded ${idx === previewRow ? 'bg-purple-600 text-white' : 'text-gray-400 hover:bg-purple-100 hover:text-purple-700'}"
+          data-index="${idx}" title="${escapeHtml(t('merge_preview_this_row'))}">${idx + 1}</button>
+      </td>
+      ${columns.map(f => `
         <td class="px-2 py-1">
-          <input type="text" class="template-field-input w-full text-base border-0 bg-transparent p-0 focus:ring-1 focus:ring-blue-500 rounded"
-            data-index="${idx}" data-field="${escapeHtml(f)}" value="${escapeHtml(record[f] || '')}">
+          <input type="text" class="template-field-input w-full text-base border-0 bg-transparent p-0 focus:ring-1 focus:ring-blue-500 rounded ${extraColumns.includes(f) ? 'text-gray-400' : ''}"
+            data-index="${idx}" data-field="${escapeHtml(f)}" value="${escapeHtml(cellValue(record, f) || '')}">
         </td>
       `).join('')}
       <td class="px-2 py-1 text-right">
@@ -1819,6 +1884,13 @@ function bindTemplateTableEvents() {
     });
   });
 
+  // Row number: show the row on the canvas
+  $$('.template-preview-row').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      setMergePreviewRow(parseInt(e.currentTarget.dataset.index, 10), true);
+    });
+  });
+
   // Delete buttons
   $$('.template-delete-row').forEach(btn => {
     btn.addEventListener('click', (e) => {
@@ -1828,64 +1900,312 @@ function bindTemplateTableEvents() {
 }
 
 /**
- * Handle CSV file import with validation
- * @param {File} file - CSV file to import
+ * Import a table file (CSV / TSV / Excel .xlsx)
+ * @param {File} file
  */
-function handleCSVFileImport(file) {
-  // Validate file at function boundary
-  const validation = validateCSVFile(file);
-  if (!validation.valid) {
-    setStatus(validation.error);
-    return;
+async function handleCSVFileImport(file) {
+  try {
+    const { sheets } = await readSpreadsheetFile(file);
+    if (sheets.length > 1) {
+      state.templateSheets = sheets;
+      // 差し込み項目と合う列がいちばん多いシートを選ぶ
+      let best = 0, bestScore = -1;
+      sheets.forEach((sh, i) => {
+        const score = sh.records.length > 0
+          ? state.templateFields.length - findMissingFields(state.templateFields, sh.headers).length
+          : -1;
+        if (score > bestScore) { best = i; bestScore = score; }
+      });
+      applyImportedTable(sheets[best], best);
+    } else {
+      state.templateSheets = null;
+      applyImportedTable(sheets[0], 0);
+    }
+  } catch (e) {
+    const key = e?.code ? `err_table_${e.code}` : null;
+    if (e?.code === 'too_large') setStatus(t('val_file_too_large', e.params));
+    else if (e?.code === 'no_file') setStatus(t('val_no_file'));
+    else if (key && t(key) !== key) setStatus(t(key));
+    else {
+      logError(e, 'handleCSVFileImport');
+      setStatus(t('status_csv_read_failed'));
+    }
+    showToast($('#status-message')?.textContent || t('status_csv_read_failed'), 'error');
   }
-
-  const reader = new FileReader();
-  reader.onload = (evt) => {
-    importCSVData(evt.target.result);
-  };
-  reader.onerror = () => {
-    setStatus(t('status_csv_read_failed'));
-  };
-  reader.readAsText(file);
 }
 
 /**
- * Import CSV data
+ * Import CSV/TSV text (also used by paste)
  */
-function importCSVData(csvString) {
-  const result = parseCSV(csvString);
+function importCSVData(csvString, sheetName = '') {
+  state.templateSheets = null;
+  applyImportedTable({ name: sheetName, ...parseDelimitedTable(csvString) }, 0);
+}
 
-  if (result.errors.length > 0) {
-    console.warn('CSV parse warnings:', result.errors);
+/**
+ * Replace the template data with an imported table
+ * 表の列はすべて残す(あとから {{列名}} を足しても差し込める)
+ * @param {{name: string, headers: string[], records: Object[], truncated: boolean}} table
+ */
+function applyImportedTable(table, sheetIndex = 0) {
+  if (!table || table.records.length === 0) {
+    setStatus(t('status_csv_no_data'));
+    return false;
+  }
+  state.templateSheetIndex = sheetIndex;
+  state.templateColumns = [...table.headers];
+  state.templateData = table.records.map(r => ({ ...r }));
+  state.selectedRecords = state.templateData.map((_, i) => i);
+  state.mergePreview.row = 0;
+  updateTemplateDataTable();
+  updateImportInfo();
+  render();
+  const msg = table.truncated
+    ? t('status_table_truncated', { n: table.records.length })
+    : (state.templateSheets
+      ? t('status_sheet_imported', { sheet: table.name, n: table.records.length })
+      : t('status_imported_records', { n: table.records.length }));
+  setStatus(msg);
+  if (table.truncated) showToast(msg, 'warning');
+  return true;
+}
+
+/** 読み込んだ表の情報(シート・列・見つからない項目)を出す */
+function updateImportInfo() {
+  const info = $('#template-import-info');
+  if (!info) return;
+  const hasTable = state.templateColumns.length > 0 && state.templateData.length > 0;
+  info.classList.toggle('hidden', !hasTable);
+  if (!hasTable) return;
+
+  const sheetRow = $('#template-sheet-row');
+  const sheetSelect = $('#template-sheet-select');
+  if (state.templateSheets && state.templateSheets.length > 1) {
+    sheetRow.classList.remove('hidden');
+    sheetSelect.innerHTML = state.templateSheets.map((sh, i) =>
+      `<option value="${i}">${escapeHtml(sh.name)} (${sh.records.length})</option>`
+    ).join('');
+    sheetSelect.value = String(state.templateSheetIndex);
+  } else {
+    sheetRow.classList.add('hidden');
   }
 
-  if (result.records.length === 0) {
-    setStatus(t('status_csv_no_data'));
+  $('#template-columns-list').textContent = state.templateColumns.join(', ');
+  const missing = findMissingFields(state.templateFields, state.templateColumns);
+  const missingEl = $('#template-missing-fields');
+  missingEl.classList.toggle('hidden', missing.length === 0);
+  missingEl.textContent = missing.length
+    ? t('merge_missing_fields', { fields: missing.map(f => `{{${f}}}`).join(' ') })
+    : '';
+}
+
+// =============================================================================
+// SPREADSHEET MERGE - 行を選んでプレビュー・行の範囲を指定して印刷
+// =============================================================================
+
+/** キャンバスに差し込んで表示する行(表示しないときは null) */
+function mergePreviewRecord() {
+  if (!state.mergePreview.enabled) return null;
+  return state.templateData[state.mergePreview.row] || null;
+}
+
+function clampMergePreviewRow() {
+  const max = state.templateData.length - 1;
+  state.mergePreview.row = Math.max(0, Math.min(max, state.mergePreview.row));
+  if (max < 0) state.mergePreview.enabled = false;
+}
+
+/**
+ * Choose the row shown on the canvas
+ * @param {number} index - 0 始まり
+ * @param {boolean} [enable] - true ならキャンバスへの差し込み表示を ON にする
+ */
+function setMergePreviewRow(index, enable = false) {
+  if (!state.templateData.length) return;
+  const n = state.templateData.length;
+  state.mergePreview.row = ((index % n) + n) % n;
+  if (enable) state.mergePreview.enabled = true;
+  render();
+  updateMergeControls();
+  if (!$('#template-data-dialog').classList.contains('hidden')) updateTemplateDataTable();
+}
+
+/** 印刷する行を選び直す(範囲の欄・チェックボックス・枚数をそろえる) */
+function setRecordSelection(indices) {
+  state.selectedRecords = [...new Set(indices)]
+    .filter(i => i >= 0 && i < state.templateData.length)
+    .sort((a, b) => a - b);
+  if (!$('#template-data-dialog').classList.contains('hidden')) updateTemplateDataTable();
+  else updateTemplateIndicator();
+  if (state.mergePreview.enabled) render(); // 連番の位置が変わる
+}
+
+/** 範囲の欄に入力された文字で、印刷する行を選ぶ */
+function applyRangeInput(inputEl, statusEl) {
+  const { indices, error } = parseRowRange(inputEl.value, state.templateData.length);
+  if (error) {
+    statusEl.textContent = t('merge_range_invalid', { part: error });
+    statusEl.classList.add('text-red-600');
     return;
   }
+  statusEl.classList.remove('text-red-600');
+  setRecordSelection(indices);
+}
 
-  // Map CSV columns to template fields
-  const mappedRecords = result.records.map(csvRecord => {
-    const record = createEmptyRecord(state.templateFields);
-    for (const field of state.templateFields) {
-      // Try exact match first, then case-insensitive
-      if (csvRecord.hasOwnProperty(field)) {
-        record[field] = csvRecord[field];
-      } else {
-        const lowerField = field.toLowerCase();
-        const matchingKey = Object.keys(csvRecord).find(k => k.toLowerCase() === lowerField);
-        if (matchingKey) {
-          record[field] = csvRecord[matchingKey];
-        }
-      }
+/** テンプレートパネルとデータ画面の「プレビューする行」「印刷する行」を最新にする */
+function updateMergeControls() {
+  const total = state.templateData.length;
+  const controls = $('#merge-controls');
+  if (controls) controls.classList.toggle('hidden', total === 0);
+  clampMergePreviewRow();
+
+  const rowInput = $('#merge-row-input');
+  if (rowInput) {
+    rowInput.max = String(Math.max(1, total));
+    if (document.activeElement !== rowInput) rowInput.value = String(state.mergePreview.row + 1);
+  }
+  const totalEl = $('#merge-row-total');
+  if (totalEl) totalEl.textContent = `/ ${total}`;
+  const toggle = $('#merge-preview-toggle');
+  if (toggle) toggle.checked = state.mergePreview.enabled;
+
+  const summary = $('#merge-row-summary');
+  if (summary) {
+    const record = state.templateData[state.mergePreview.row];
+    const fields = state.templateFields.length ? state.templateFields : state.templateColumns;
+    summary.textContent = record
+      ? fields.slice(0, 3).map(f => {
+        const key = Object.keys(record).find(k => k.trim().toLowerCase() === f.trim().toLowerCase());
+        return key !== undefined ? record[key] : '';
+      }).filter(v => v !== '').join(' / ')
+      : t('merge_no_data');
+  }
+
+  const rangeText = formatRowRange(state.selectedRecords, total);
+  const status = t('merge_range_selected', { n: state.selectedRecords.length, total });
+  for (const [inputId, statusId] of [['#merge-range-input', '#merge-range-status'], ['#template-range-input', '#template-range-status']]) {
+    const input = $(inputId);
+    const statusEl = $(statusId);
+    if (input && document.activeElement !== input) input.value = total ? rangeText : '';
+    if (statusEl && !(document.activeElement === input && statusEl.classList.contains('text-red-600'))) {
+      statusEl.classList.remove('text-red-600');
+      statusEl.textContent = total ? status : '';
     }
-    return record;
+  }
+}
+
+/**
+ * Put {{column}} into the design: into the selected text/barcode/QR, or as a new text
+ */
+function insertColumnIntoDesign(column) {
+  const placeholder = `{{${column}}}`;
+  const el = getSelected();
+  const key = el?.type === 'text' ? 'text'
+    : el?.type === 'barcode' ? 'barcodeData'
+      : el?.type === 'qr' ? 'qrData' : null;
+  saveHistory();
+  if (el && key) {
+    const current = el[key] || '';
+    const sep = current && !/\s$/.test(current) ? ' ' : '';
+    modifyElement(el.id, { [key]: current + sep + placeholder });
+  } else {
+    const dims = state.renderer.getSingleLabelDimensions();
+    const element = createTextElement(placeholder, {
+      x: dims.width / 2 - 75,
+      y: dims.height / 2 - 20,
+      width: 150,
+      height: 40,
+      zone: state.activeZone,
+    });
+    state.elements.push(element);
+    autoCloneIfEnabled();
+    detectTemplateFields();
+    selectElement(element.id);
+  }
+  // 表を読み込んでいれば、すぐ差し込んだ結果が見えるようにする
+  if (state.templateData.length > 0 && !state.mergePreview.enabled) {
+    state.mergePreview.enabled = true;
+    render();
+    updateMergeControls();
+  }
+  setStatus(t('status_column_inserted', { field: column }));
+}
+
+function initSpreadsheetMerge() {
+  const fileInput = $('#template-csv-input');
+  if (fileInput) fileInput.accept = SPREADSHEET_ACCEPT;
+
+  $('#template-panel-import')?.addEventListener('click', () => $('#template-csv-input').click());
+  $('#template-column-chips')?.addEventListener('click', (e) => {
+    const chip = e.target.closest('.merge-column-chip');
+    if (chip) insertColumnIntoDesign(chip.dataset.column);
   });
 
-  state.templateData = mappedRecords;
-  state.selectedRecords = mappedRecords.map((_, i) => i);
-  updateTemplateDataTable();
-  setStatus(t('status_imported_records', { n: mappedRecords.length }));
+  // 貼り付け(Google スプレッドシート / Excel のセルをコピー)
+  $('#template-paste-btn')?.addEventListener('click', () => {
+    const area = $('#template-paste-area');
+    area.classList.toggle('hidden');
+    if (!area.classList.contains('hidden')) $('#template-paste-text').focus();
+  });
+  $('#template-paste-cancel')?.addEventListener('click', () => {
+    $('#template-paste-area').classList.add('hidden');
+    $('#template-paste-text').value = '';
+  });
+  $('#template-paste-apply')?.addEventListener('click', () => {
+    const text = $('#template-paste-text').value;
+    state.templateSheets = null;
+    if (applyImportedTable({ name: '', ...parseDelimitedTable(text) }, 0)) {
+      $('#template-paste-area').classList.add('hidden');
+      $('#template-paste-text').value = '';
+    }
+  });
+
+  // シートを選び直す
+  $('#template-sheet-select')?.addEventListener('change', (e) => {
+    const i = parseInt(e.target.value, 10);
+    const sheet = state.templateSheets?.[i];
+    if (sheet) applyImportedTable(sheet, i);
+  });
+
+  // プレビューする行
+  $('#merge-row-prev')?.addEventListener('click', () => setMergePreviewRow(state.mergePreview.row - 1, true));
+  $('#merge-row-next')?.addEventListener('click', () => setMergePreviewRow(state.mergePreview.row + 1, true));
+  $('#merge-row-input')?.addEventListener('change', (e) => {
+    const n = parseInt(e.target.value, 10);
+    if (Number.isFinite(n)) setMergePreviewRow(Math.max(1, Math.min(state.templateData.length, n)) - 1, true);
+    else updateMergeControls();
+  });
+  $('#merge-preview-toggle')?.addEventListener('change', (e) => {
+    state.mergePreview.enabled = e.target.checked && state.templateData.length > 0;
+    render();
+    updateMergeControls();
+    if (!$('#template-data-dialog').classList.contains('hidden')) updateTemplateDataTable();
+  });
+
+  // 印刷する行(範囲)
+  for (const [inputId, statusId] of [['#merge-range-input', '#merge-range-status'], ['#template-range-input', '#template-range-status']]) {
+    const input = $(inputId);
+    if (!input) continue;
+    input.addEventListener('change', () => applyRangeInput(input, $(statusId)));
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        applyRangeInput(input, $(statusId));
+        input.blur();
+      }
+    });
+    input.addEventListener('blur', () => updateMergeControls());
+  }
+  $('#template-range-all')?.addEventListener('click', () => selectAllRecords());
+}
+
+/** 保存されていたデータから列の名前を取り出す(出てきた順) */
+function columnsOfRecords(records) {
+  const cols = [];
+  for (const r of records || []) {
+    for (const k of Object.keys(r || {})) if (!cols.includes(k)) cols.push(k);
+  }
+  return cols;
 }
 
 /**
@@ -1894,6 +2214,7 @@ function importCSVData(csvString) {
 function showTemplateDataDialog() {
   $('#template-fields-list').textContent = state.templateFields.join(', ');
   updateTemplateDataTable();
+  updateImportInfo();
   $('#template-data-dialog').classList.remove('hidden');
 }
 
@@ -2046,9 +2367,8 @@ function navigatePreview(direction) {
  * Print batch of labels
  */
 async function handleBatchPrint() {
-  const recordsToPrint = state.selectedRecords.length > 0
-    ? state.selectedRecords
-    : state.templateData.map((_, i) => i);
+  // 選んだ行(範囲)だけを印刷する。1行も選ばれていなければ印刷しない
+  const recordsToPrint = [...state.selectedRecords];
 
   if (recordsToPrint.length === 0) {
     showToast(t('toast_no_records_selected'), 'warning');
@@ -5213,8 +5533,9 @@ async function handlePrint() {
     btn.textContent = t('printing');
 
     // Substitute template fields if template data is loaded
+    // (キャンバスで行をプレビュー中なら、その行を印刷する)
     const elements = state.templateData.length > 0
-      ? substituteFields(state.elements, state.templateData[0])
+      ? substituteFields(state.elements, mergePreviewRecord() || state.templateData[0])
       : state.elements;
 
     // Render to raster (use raw format for rotated printers like D-series and P12)
@@ -5399,73 +5720,52 @@ function showLoadDialog() {
   const designs = isGuest() ? [] : listDesigns();
   const listEl = $('#design-list');
 
+  let headerHtml = '';
   if (isGuest()) {
-    // ゲストモード(3.4): 保存したデザインは無い。ファイルからの読み込みは使える
-    listEl.innerHTML = `
+    // ゲストモード(3.4): 保存したデザインは無い。ファイルからの読み込みとサンプルは使える
+    headerHtml = `
       <div id="load-guest-notice" class="text-sm text-gray-500 text-center py-6 px-2">
         <p class="mb-3">${t('load_guest_notice_html')}</p>
         <button id="load-guest-login" class="px-3 py-1.5 bg-gray-900 text-white rounded-lg text-sm">${t('about_signing_in')}</button>
       </div>`;
-    $('#load-guest-login').addEventListener('click', () => {
-      hideLoadDialog();
-      showAccountDialog(t('account_reason_load'));
-    });
   } else if (designs.length === 0) {
-    listEl.innerHTML = `<div class="text-sm text-gray-400 text-center py-8">${t('no_saved_designs')}</div>`;
-  } else {
-    listEl.innerHTML = designs.map(d => {
-      // Build info badges
-      const badges = [];
-      if (d.hasImages) {
-        badges.push('<span class="px-1.5 py-0.5 text-xs bg-blue-100 text-blue-700 rounded">🖼️</span>');
-      }
-      if (d.isTemplate) {
-        badges.push(`<span class="px-1.5 py-0.5 text-xs bg-purple-100 text-purple-700 rounded">${t('template')}</span>`);
-      }
-      if (d.templateDataCount > 0) {
-        badges.push(`<span class="px-1.5 py-0.5 text-xs bg-green-100 text-green-700 rounded">${t('n_records', { n: d.templateDataCount })}</span>`);
-      }
-      if (d.isMultiLabel) {
-        badges.push(`<span class="px-1.5 py-0.5 text-xs bg-orange-100 text-orange-700 rounded">${t('n_up', { n: d.multiLabel.labelsAcross })}</span>`);
-      }
-      if (d.dirty) {
-        badges.push(`<span class="px-1.5 py-0.5 text-xs bg-amber-100 text-amber-700 rounded" title="${t('not_synced_title')}">${t('not_synced')}</span>`);
-      }
-
-      const badgeHtml = badges.length > 0 ? `<div class="flex gap-1 mt-1">${badges.join('')}</div>` : '';
-
-      return `
-        <div class="design-item flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg cursor-pointer border border-gray-100 mb-2" data-name="${d.name}">
-          <div class="flex-1">
-            <div class="font-medium text-sm text-gray-900">${d.name}</div>
-            <div class="text-xs text-gray-400">${d.labelSize.width}x${d.labelSize.height}mm · ${t('n_elements', { n: d.elementCount })}</div>
-            ${badgeHtml}
-          </div>
-          <button class="delete-design text-red-500 hover:text-red-700 text-xs px-2 py-1 ml-2" data-name="${d.name}">${t('delete')}</button>
-        </div>
-      `;
-    }).join('');
-
-    // Bind click handlers
-    listEl.querySelectorAll('.design-item').forEach(item => {
-      item.addEventListener('click', (e) => {
-        if (e.target.classList.contains('delete-design')) {
-          e.stopPropagation();
-          const name = e.target.dataset.name;
-          if (confirm(t('confirm_delete_design', { name }))) {
-            deleteDesign(name);
-            showLoadDialog(); // Refresh list
-            setStatus(t('status_design_deleted', { name }));
-          }
-          return;
-        }
-        handleLoad(item.dataset.name);
-      });
-    });
+    headerHtml = `<div class="text-sm text-gray-400 text-center py-8">${t('no_saved_designs')}</div>`;
   }
+
+  // グリッド(サムネイル)/リスト表示とサンプルは design-gallery.js / samples.js
+  renderDesignList(listEl, designs, {
+    headerHtml,
+    onHeaderRendered: (root) => {
+      root.querySelector('#load-guest-login')?.addEventListener('click', () => {
+        hideLoadDialog();
+        showAccountDialog(t('account_reason_load'));
+      });
+    },
+    getDesign: loadDesign,
+    onOpen: (name) => handleLoad(name),
+    onDelete: (name) => {
+      if (confirm(t('confirm_delete_design', { name }))) {
+        deleteDesign(name);
+        showLoadDialog(); // Refresh list
+        setStatus(t('status_design_deleted', { name }));
+      }
+    },
+    samples: listSamples(),
+    getSample: (id) => buildSampleDesign(id),
+    onOpenSample: (id) => handleOpenSample(id),
+    onViewChange: setLoadDialogWidth,
+  });
 
   $('#load-dialog').classList.remove('hidden');
   $('#load-dialog').hidden = false;
+}
+
+/** グリッド表示のときはダイアログを広げる */
+function setLoadDialogWidth(view) {
+  const panel = $('#load-dialog-panel');
+  if (!panel) return;
+  panel.classList.toggle('w-96', view !== 'grid');
+  panel.classList.toggle('load-dialog-wide', view === 'grid');
 }
 
 /**
@@ -5664,6 +5964,9 @@ function handleImportFile(file) {
       if (data.templateData && Array.isArray(data.templateData)) {
         state.templateData = data.templateData;
         state.selectedRecords = data.templateData.map((_, i) => i); // Select all by default
+        state.templateColumns = columnsOfRecords(state.templateData);
+        state.templateSheets = null;
+        state.mergePreview = { enabled: false, row: 0 };
       }
 
       // Clear selection and update renderer
@@ -5776,8 +6079,19 @@ function getElementLabel(el) {
 /**
  * Load a design
  */
-function handleLoad(name) {
-  const design = loadDesign(name);
+/**
+ * サンプルを開く。保存はしないので「名前のないデザイン」として読み込む
+ */
+async function handleOpenSample(sampleId) {
+  const sample = SAMPLES.find(x => x.id === sampleId);
+  const design = await buildSampleDesign(sampleId);
+  if (!sample || !design) return;
+  handleLoad(null, design);
+  setStatus(t('status_sample_opened', { name: sampleName(sample) }));
+}
+
+function handleLoad(name, sampleDesign = null) {
+  const design = sampleDesign || loadDesign(name);
   if (!design) {
     setStatus(t('status_design_not_found'));
     return;
@@ -5790,6 +6104,9 @@ function handleLoad(name) {
   // Restore template data if present
   state.templateData = design.templateData || [];
   state.selectedRecords = state.templateData.map((_, i) => i); // Select all by default
+  state.templateColumns = columnsOfRecords(state.templateData);
+  state.templateSheets = null;
+  state.mergePreview = { enabled: false, row: 0 };
 
   // 連番の状態を復元
   state.counter = {
@@ -7657,6 +7974,7 @@ function init() {
 
   // Counter settings (#31)
   initCounterSettings();
+  initSpreadsheetMerge();
 
   // Load printer definitions (built-in + custom) then populate dropdown
   loadPrinterDefinitions().then(() => {

@@ -72,6 +72,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Roboto:wght@400;500;700&family=Open+Sans:wght@400;600;700&family=Lato:wght@400;700&family=Montserrat:wght@400;500;600;700&family=Oswald:wght@400;500;600&family=Playfair+Display:wght@400;500;600;700&family=Merriweather:wght@400;700&family=Roboto+Mono:wght@400;500;700&family=Source+Code+Pro:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
+    /* デザインを開く: グリッド表示のときの幅(design-gallery.js) */
+    .load-dialog-wide { width: 46rem; max-width: 95vw; }
     /* Hide body until styles are ready to prevent FOUC */
     body { opacity: 0; font-family: 'Inter', system-ui, sans-serif; }
     body.ready { opacity: 1; transition: opacity 0.1s ease-in; }
@@ -718,12 +720,12 @@
         </div>
       </div>
 
-      <div class="toolbar-divider hidden" id="template-toolbar-divider"></div>
+      <div class="toolbar-divider" id="template-toolbar-divider"></div>
 
-      <!-- Template Manage Data (shows when template fields detected) -->
-      <button id="template-toolbar-btn" class="hidden toolbar-btn bg-purple-50 text-purple-700 hover:bg-purple-100 border-purple-200" title="差し込みデータの管理" data-i18n-title="manage_template_data">
+      <!-- Template / mail merge (always shown: 表を先に読み込んでから {{列名}} を足せる) -->
+      <button id="template-toolbar-btn" class="toolbar-btn bg-purple-50 text-purple-700 hover:bg-purple-100 border-purple-200" title="差し込みデータの管理" data-i18n-title="manage_template_data">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z"/></svg>
-        <span id="template-toolbar-label" class="hidden sm:inline" data-i18n="manage_data">データを管理</span>
+        <span id="template-toolbar-label" class="hidden sm:inline" data-i18n="template">差し込み印刷</span>
       </button>
     </div>
   </div>
@@ -826,6 +828,14 @@
           <div id="template-field-tags" class="flex flex-wrap gap-1.5 text-xs">
             <span class="text-purple-400 italic" data-i18n="none">なし</span>
           </div>
+          <p id="template-fields-hint" class="text-xs text-purple-500 mt-2" data-i18n="merge_fields_hint">文字に {{列名}} と書くと、表の値を差し込めます。</p>
+        </div>
+
+        <!-- Columns of the imported table: click to insert {{列名}} -->
+        <div id="template-columns-section" class="mb-4 hidden">
+          <div class="text-xs font-semibold text-purple-700 uppercase tracking-wide mb-1" data-i18n="merge_table_columns">表の列</div>
+          <p class="text-xs text-purple-500 mb-2" data-i18n="merge_columns_hint">押すと {{列名}} をデザインに入れます(選んでいる文字・バーコード・QRがあればその中に)</p>
+          <div id="template-column-chips" class="flex flex-wrap gap-1.5 text-xs"></div>
         </div>
 
         <!-- Data Section -->
@@ -834,9 +844,36 @@
             <span class="text-xs font-semibold text-purple-700 uppercase tracking-wide" data-i18n="data_records">データ件数</span>
             <span id="template-data-count" class="text-xs text-purple-600">0</span>
           </div>
+          <button id="template-panel-import" class="w-full mb-2 px-3 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-sm font-medium" data-i18n="import_spreadsheet">
+            表を読み込む (CSV・Excel)
+          </button>
           <button id="template-manage-data" class="w-full px-3 py-2 bg-white hover:bg-purple-100 text-purple-700 border border-purple-200 rounded-lg text-sm font-medium" data-i18n="manage_data">
             データを管理
           </button>
+        </div>
+
+        <!-- Spreadsheet merge: row preview + print range -->
+        <div id="merge-controls" class="mb-4 hidden">
+          <div class="text-xs font-semibold text-purple-700 uppercase tracking-wide mb-2" data-i18n="merge_preview_row">プレビューする行</div>
+          <div class="flex items-center gap-1 mb-2">
+            <button id="merge-row-prev" class="p-1 rounded hover:bg-purple-100 text-purple-700" title="前の行" data-i18n-title="merge_prev_row">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+            </button>
+            <input type="number" id="merge-row-input" min="1" value="1" class="w-16 px-1.5 py-1 text-sm border border-purple-200 rounded text-center focus:outline-none focus:ring-1 focus:ring-purple-400">
+            <span id="merge-row-total" class="text-xs text-purple-600">/ 0</span>
+            <button id="merge-row-next" class="p-1 rounded hover:bg-purple-100 text-purple-700" title="次の行" data-i18n-title="merge_next_row">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+            </button>
+          </div>
+          <label class="flex items-center gap-2 text-xs text-purple-900 mb-1 cursor-pointer">
+            <input type="checkbox" id="merge-preview-toggle" class="rounded">
+            <span data-i18n="merge_show_on_canvas">キャンバスに差し込んで表示</span>
+          </label>
+          <div id="merge-row-summary" class="text-xs text-gray-500 truncate"></div>
+
+          <div class="text-xs font-semibold text-purple-700 uppercase tracking-wide mt-4 mb-1" data-i18n="merge_print_rows">印刷する行</div>
+          <input type="text" id="merge-range-input" class="w-full px-2 py-1 text-sm border border-purple-200 rounded focus:outline-none focus:ring-1 focus:ring-purple-400" placeholder="例: 1-10, 15" data-i18n-placeholder="merge_range_placeholder">
+          <div id="merge-range-status" class="text-xs text-purple-600 mt-1"></div>
         </div>
       </div>
 
@@ -848,7 +885,7 @@
         </button>
         <button id="template-quick-print" class="w-full px-3 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-sm font-medium flex items-center justify-center gap-2">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
-          <span data-i18n="print_all">すべて印刷 (</span><span id="template-print-count">0</span>)
+          <span id="template-print-label">すべて印刷 (</span><span id="template-print-count">0</span>)
         </button>
       </div>
     </aside>
@@ -1444,7 +1481,7 @@
 
   <!-- Load Dialog -->
   <div id="load-dialog" class="hidden fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-50">
-    <div class="bg-white rounded-xl p-6 w-96 shadow-xl max-h-[80vh] flex flex-col">
+    <div id="load-dialog-panel" class="bg-white rounded-xl p-6 w-96 shadow-xl max-h-[80vh] flex flex-col">
       <h3 class="text-lg font-semibold text-gray-900 mb-4" data-i18n="load_design">デザインを開く</h3>
       <div id="design-list" class="flex-1 overflow-y-auto mb-4 min-h-[100px]">
         <div class="text-sm text-gray-400 text-center py-8" data-i18n="no_saved_designs">保存したデザインはありません</div>
@@ -1889,9 +1926,13 @@
       <div class="p-4 border-b border-gray-200 flex items-center gap-3">
         <button id="template-import-csv" class="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-medium flex items-center gap-1.5">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
-          <span data-i18n="import_csv">CSVを読み込む</span>
+          <span data-i18n="import_spreadsheet">表を読み込む (CSV・Excel)</span>
         </button>
-        <input type="file" id="template-csv-input" class="hidden" accept=".csv,text/csv">
+        <input type="file" id="template-csv-input" class="hidden" accept=".csv,.tsv,.txt,.xlsx,text/csv,text/tab-separated-values,text/plain,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
+        <button id="template-paste-btn" class="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-medium flex items-center gap-1.5">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+          <span data-i18n="paste_table">貼り付け</span>
+        </button>
         <button id="template-add-row" class="px-3 py-1.5 bg-purple-100 hover:bg-purple-200 text-purple-700 rounded-lg text-sm font-medium flex items-center gap-1.5">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
           <span data-i18n="add_row">行を追加</span>
@@ -1901,6 +1942,34 @@
         </button>
         <div class="flex-1"></div>
         <span id="template-record-count" class="text-sm text-gray-500">0 件</span>
+      </div>
+
+      <!-- Paste from Google Sheets / Excel -->
+      <div id="template-paste-area" class="hidden p-4 border-b border-gray-200 bg-gray-50">
+        <p class="text-xs text-gray-600 mb-2" data-i18n="paste_table_hint">Googleスプレッドシートや Excel で、見出しの行も含めてセルを選んでコピーし、ここに貼り付けてください。</p>
+        <textarea id="template-paste-text" rows="5" class="w-full font-mono text-xs border border-gray-300 rounded p-2 focus:outline-none focus:ring-1 focus:ring-purple-400"></textarea>
+        <div class="flex justify-end gap-2 mt-2">
+          <button id="template-paste-cancel" class="px-3 py-1.5 text-gray-600 hover:bg-gray-200 rounded-lg text-sm" data-i18n="cancel">キャンセル</button>
+          <button id="template-paste-apply" class="px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-sm font-medium" data-i18n="paste_table_apply">読み込む</button>
+        </div>
+      </div>
+
+      <!-- Imported table info: sheet, columns, missing fields -->
+      <div id="template-import-info" class="hidden px-4 py-2 border-b border-gray-200 bg-purple-50 text-xs text-gray-700 flex flex-wrap items-center gap-x-4 gap-y-1">
+        <label id="template-sheet-row" class="hidden flex items-center gap-1">
+          <span data-i18n="sheet_label">シート:</span>
+          <select id="template-sheet-select" class="border border-gray-300 rounded px-1 py-0.5 text-xs bg-white"></select>
+        </label>
+        <span><span data-i18n="table_columns">表の列:</span> <span id="template-columns-list" class="font-medium"></span></span>
+        <span id="template-missing-fields" class="hidden text-amber-700"></span>
+      </div>
+
+      <!-- Print range -->
+      <div class="px-4 py-2 border-b border-gray-200 flex flex-wrap items-center gap-2 text-sm">
+        <label for="template-range-input" class="text-gray-700" data-i18n="merge_print_rows">印刷する行</label>
+        <input type="text" id="template-range-input" class="w-48 px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-purple-400" placeholder="例: 1-10, 15" data-i18n-placeholder="merge_range_placeholder">
+        <button id="template-range-all" class="px-2 py-1 text-xs text-purple-700 hover:bg-purple-50 rounded" data-i18n="merge_select_all_rows">すべての行</button>
+        <span id="template-range-status" class="text-xs text-gray-500"></span>
       </div>
 
       <div class="flex-1 overflow-auto p-4">
@@ -1924,7 +1993,7 @@
         </button>
         <button id="template-print-btn" class="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium flex items-center gap-2">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
-          <span data-i18n="print_all_2">すべて印刷</span>
+          <span id="template-print-btn-label">すべて印刷</span>
         </button>
       </div>
     </div>
@@ -2472,7 +2541,7 @@
     pdfjsModule.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.379/pdf.worker.min.mjs';
     window.pdfjsLib = pdfjsModule;
   </script>
-  <script type="module" src="app.js?v=161"></script>
+  <script type="module" src="app.js?v=162"></script>
   <script>
     // Show body once styles are ready
     requestAnimationFrame(() => {
