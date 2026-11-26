@@ -1131,73 +1131,38 @@ async function printTSPL(transport, data, widthBytes, heightLines, labelWidthMm,
 }
 
 /**
- * Print a density test pattern - 8 strips at different density levels
- * This helps verify that the density setting is working correctly
+ * 濃さのテスト印刷: 濃さを変えながら、同じ見本を1段階につき1枚ずつ印刷する
+ *
+ * ふだんの印刷と同じ print() を通すので、機種ごとの濃さの指定方法(M110/M120 の ESC N 04 など)や
+ * ラベルの送り(すき間検出)がそのまま使われる。以前は機種を問わず汎用の ESC/POS 命令で
+ * 黒い帯を8回送っていたため、M110/M120 では濃さが変わらず、帯1本ごとにラベルが1枚送られていた。
  *
  * @param {Object} transport - BLE or USB transport instance
- * @param {boolean} isBLE - Whether using BLE transport
- * @param {Function} onProgress - Progress callback
+ * @param {Object} options
+ * @param {number[]} options.levels - 印刷する濃さ(薄い順)
+ * @param {(density: number) => Promise<{data, widthBytes, heightLines}>|{data, widthBytes, heightLines}} options.buildRaster - 見本の印刷データを作る
+ * @param {Function} [options.onLabel] - 1枚印刷し始めるたびに (index, density) で呼ぶ
+ * @param {Function} [options.onProgress] - 全体の進み具合(0〜100)
+ * その他の options(isBLE, deviceName, printerModel, feed, continuous)は print() にそのまま渡す
  */
-export async function printDensityTest(transport, isBLE = true, onProgress = null) {
-  console.log('Printing density test pattern (using ESC 7 heat command)...');
+export async function printDensityTest(transport, options = {}) {
+  const { levels = [], buildRaster, onLabel = null, onProgress = null, ...printOptions } = options;
+  if (typeof buildRaster !== 'function') throw new Error('printDensityTest: buildRaster is required');
 
-  // Create a test pattern: 8 strips, each 30 pixels tall, 320 pixels wide
-  const stripHeight = 30;
-  const stripWidth = 320;  // 40mm * 8 dots/mm
-  const widthBytes = stripWidth / 8;  // 40 bytes per row
-  const gap = 8;  // Gap between strips
-
-  for (let density = 1; density <= 8; density++) {
-    if (onProgress) {
-      onProgress(Math.round((density - 1) / 8 * 100));
-    }
-
-    const heatTime = densityToHeatTime(density);
-    console.log(`Printing strip at density ${density} (heat time: ${heatTime})...`);
-
-    // Create strip data - solid black rectangle
-    const stripData = new Uint8Array(widthBytes * stripHeight);
-    stripData.fill(0xFF);  // All black
-
-    // Init
-    await transport.send(CMD.INIT);
-    await transport.delay(50);
-
-    // Try ESC 7 heat settings (maxDots=7, heatTime=variable, heatInterval=2)
-    await transport.send(CMD.HEAT_SETTINGS(7, heatTime, 2));
-    await transport.delay(30);
-
-    // Also try standard density command in case it works
-    await transport.send(CMD.DENSITY(density));
-    await transport.delay(30);
-
-    // Raster header
-    await transport.send(CMD.RASTER_HEADER(widthBytes, stripHeight));
-
-    // Send strip data
-    const chunkSize = isBLE ? 128 : 512;
-    for (let i = 0; i < stripData.length; i += chunkSize) {
-      const chunk = stripData.slice(i, Math.min(i + chunkSize, stripData.length));
-      await transport.send(chunk);
-      await transport.delay(isBLE ? 20 : 10);
-    }
-
-    // Small feed between strips (except after last)
-    if (density < 8) {
-      await transport.delay(200);
-      await transport.send(CMD.FEED(gap));
-      await transport.delay(300);
-    }
+  for (let i = 0; i < levels.length; i++) {
+    const density = levels[i];
+    if (onLabel) onLabel(i, density);
+    const rasterData = await buildRaster(density);
+    await print(transport, rasterData, {
+      ...printOptions,
+      density,
+      onProgress: (p) => {
+        if (onProgress) onProgress(Math.round(((i + p / 100) / levels.length) * 100));
+      },
+    });
+    // 次のラベルとの間を少しあける(ふだんの複数枚印刷と同じ)
+    if (i < levels.length - 1) await transport.delay(500);
   }
 
-  // Final feed
-  await transport.delay(300);
-  await transport.send(CMD.FEED(48));
-  await transport.delay(500);
-
-  if (onProgress) {
-    onProgress(100);
-  }
-
-  console.log('Density test complete! You should see 8 strips from light (1) to dark (8).');
+  if (onProgress) onProgress(100);
 }
