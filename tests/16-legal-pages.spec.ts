@@ -59,3 +59,15 @@ test('アプリ内の GitHub リンクはこのフォークを指す', async ({ 
   expect(hrefs.length).toBeGreaterThan(0);
   for (const h of hrefs) expect(h).toMatch(/^https:\/\/github\.com\/haoling\/phomymo(\/|$)/);
 });
+
+test('寄付ボタンは元作者への寄付だと分かる', async ({ page }) => {
+  await page.goto('/');
+  await waitForAppReady(page);
+  const links = page.locator('a[href*="donate.stripe.com"]');
+  const n = await links.count();
+  expect(n).toBeGreaterThan(0);
+  for (let i = 0; i < n; i++) {
+    await expect(links.nth(i)).toHaveAttribute('title', /original Phomymo/);
+    await expect(links.nth(i)).toContainText('original author');
+  }
+});
