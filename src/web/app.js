@@ -6115,8 +6115,8 @@ function checkCompatibility() {
               <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
             </div>
             <div>
-              <h3 class="text-lg font-bold">${t('compat_title')}</h3>
-              <p class="text-amber-100 text-xs">${t('compat_subtitle')}</p>
+              <h3 class="text-lg font-bold" data-i18n="compat_title">${t('compat_title')}</h3>
+              <p class="text-amber-100 text-xs" data-i18n="compat_subtitle">${t('compat_subtitle')}</p>
             </div>
           </div>
         </div>
@@ -6140,18 +6140,18 @@ function checkCompatibility() {
                 <div class="w-6 h-6 bg-green-500 rounded flex items-center justify-center">
                   <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                 </div>
-                <h4 class="font-semibold text-gray-900 text-sm">${t('compat_design_labels')}</h4>
+                <h4 class="font-semibold text-gray-900 text-sm" data-i18n="compat_design_labels">${t('compat_design_labels')}</h4>
               </div>
-              <p class="text-xs text-gray-600">${t('compat_design_labels_desc')}</p>
+              <p class="text-xs text-gray-600" data-i18n="compat_design_labels_desc">${t('compat_design_labels_desc')}</p>
             </div>
             <div class="bg-green-50 rounded-lg p-3 border border-green-100">
               <div class="flex items-center gap-2 mb-1">
                 <div class="w-6 h-6 bg-green-500 rounded flex items-center justify-center">
                   <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                 </div>
-                <h4 class="font-semibold text-gray-900 text-sm">${t('compat_save_export')}</h4>
+                <h4 class="font-semibold text-gray-900 text-sm" data-i18n="compat_save_export">${t('compat_save_export')}</h4>
               </div>
-              <p class="text-xs text-gray-600">${t('compat_save_export_desc')}</p>
+              <p class="text-xs text-gray-600" data-i18n="compat_save_export_desc">${t('compat_save_export_desc')}</p>
             </div>
           </div>
 
@@ -6163,12 +6163,12 @@ function checkCompatibility() {
 
           <!-- Supported Printers (compact) -->
           <div class="bg-gray-50 rounded-lg p-3 border border-gray-200">
-            <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">${t('supported_printers')}</p>
+            <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1" data-i18n="supported_printers">${t('supported_printers')}</p>
             <p class="text-xs text-gray-700">P12, A30, M02-M260, M04S, T02, D30-D110, Q30/Q30S, PM-241</p>
           </div>
 
           <!-- Action Button -->
-          <button id="dismiss-warning-btn" class="w-full px-6 py-2.5 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors font-medium">
+          <button id="dismiss-warning-btn" class="w-full px-6 py-2.5 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors font-medium" data-i18n="compat_continue">
             ${t('compat_continue')}
           </button>
         </div>
@@ -6176,15 +6176,15 @@ function checkCompatibility() {
         <!-- Footer -->
         <div class="bg-gray-50 px-5 py-3 border-t border-gray-100 flex items-center justify-between">
           <div class="flex items-center gap-3">
-            <p class="text-xs text-gray-400">${t('not_affiliated_with_phomemo')}</p>
-            <a href="https://donate.stripe.com/7sY7sMese0182tXgn8eAg00" target="_blank" rel="noopener" class="inline-flex items-center gap-1 px-2 py-1 text-pink-600 text-xs hover:text-pink-700 transition-colors">
+            <p class="text-xs text-gray-400" data-i18n="not_affiliated_with_phomemo">${t('not_affiliated_with_phomemo')}</p>
+            <a href="https://donate.stripe.com/7sY7sMese0182tXgn8eAg00" target="_blank" rel="noopener" data-donate-original data-i18n-title="support_original_author_tooltip" title="${t('support_original_author_tooltip')}" class="inline-flex items-center gap-1 px-2 py-1 text-pink-600 text-xs hover:text-pink-700 transition-colors">
               <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
-              ${t('donate')}
+              <span data-i18n="support_original_author">${t('support_original_author')}</span>
             </a>
           </div>
           <a href="https://affordablemagic.net" target="_blank" rel="noopener" class="inline-flex items-center gap-2 px-3 py-1.5 bg-white border border-gray-200 rounded-lg hover:border-gray-300 hover:shadow-sm transition-all">
             <img src="https://affordablemagic.net/affordablemagic-400w.png" alt="Affordable Magic" class="h-4">
-            <span class="text-xs font-medium text-gray-700">${t('an_affordable_magic_product')}</span>
+            <span class="text-xs font-medium text-gray-700" data-i18n="original_by_affordable_magic">${t('original_by_affordable_magic')}</span>
           </a>
         </div>
       </div>
