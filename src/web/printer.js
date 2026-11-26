@@ -457,6 +457,14 @@ function isM110Printer(deviceName, modelOverride = 'auto') {
   return _resolveConfig(deviceName, modelOverride).protocol === 'm110';
 }
 
+/**
+ * 印刷の前に BLE 接続をつなぎ直したほうがよい機種か。
+ * M110/M120 系は、ペアリングしていない接続を約 28.8 秒で切るため。
+ */
+export function needsFreshLink(deviceName, modelOverride = 'auto') {
+  return isM110Printer(deviceName, modelOverride);
+}
+
 function isM04Printer(deviceName, modelOverride = 'auto') {
   return _resolveConfig(deviceName, modelOverride).protocol === 'm04';
 }

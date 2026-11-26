@@ -5,10 +5,10 @@
  */
 
 import { CanvasRenderer } from './canvas.js?v=119';
-import { BLETransport } from './ble.js?v=103';
+import { BLETransport } from './ble.js?v=104';
 import { USBTransport } from './usb.js?v=101';
 import { normalizeMirror, defaultOrientFor, DEFAULT_MIRROR } from './mirror.js';
-import { print, printDensityTest, isDSeriesPrinter, isP12Printer, isA30Printer, isTapePrinter, isPM241Printer, isTSPLPrinter, isRotatedPrinter, getPrinterWidthBytes, getPrinterDpi, getPrinterAlignment, getPrinterDescription, isDeviceRecognized, getMatchedPattern, loadPrinterDefinitions, getAllPrinterDefinitions, getPrinterDefinition, getCustomPrinterDefinitions, saveCustomPrinterDefinition, deleteCustomPrinterDefinition, isBuiltinPrinter, resetBuiltinPrinter, getAvailableProtocols, getAvailableLabelPresets, getDetectedDefinition } from './printer.js?v=129';
+import { print, printDensityTest, isDSeriesPrinter, isP12Printer, isA30Printer, isTapePrinter, isPM241Printer, isTSPLPrinter, isRotatedPrinter, getPrinterWidthBytes, getPrinterDpi, getPrinterAlignment, getPrinterDescription, isDeviceRecognized, getMatchedPattern, loadPrinterDefinitions, getAllPrinterDefinitions, getPrinterDefinition, getCustomPrinterDefinitions, saveCustomPrinterDefinition, deleteCustomPrinterDefinition, isBuiltinPrinter, resetBuiltinPrinter, getAvailableProtocols, getAvailableLabelPresets, getDetectedDefinition, needsFreshLink } from './printer.js?v=130';
 import {
   createTextElement,
   createImageElement,
@@ -115,7 +115,7 @@ import {
   D_SERIES_ROUND_LABELS,
   TAPE_LABEL_SIZES,
   PM241_LABEL_SIZES,
-} from './constants.js?v=106';
+} from './constants.js?v=107';
 import {
   bindCheckbox,
   bindToggleButton,
@@ -5611,18 +5611,31 @@ async function handlePrint() {
         rasterData = await buildRaster(copy - 1);
       }
 
-      await print(state.transport, rasterData, {
-        isBLE: state.connectionType === 'ble',
-        deviceName,
-        printerModel,
-        density,
-        feed,
-        continuous: !!(state.labelSize?.continuous),
-        onProgress: (progress) => {
-          btn.textContent = t('printing_progress', { progress });
-          setStatus(t('status_printing_copy_progress', { copy: copyText, progress }));
-        },
-      });
+      const isBLE = state.connectionType === 'ble';
+      const sendJob = async () => {
+        // M110/M120 は接続から約 28.8 秒で切られるので、古い接続ならつなぎ直してから送る
+        if (isBLE && state.transport.ensureFreshLink && needsFreshLink(deviceName, printerModel)) {
+          if (await state.transport.ensureFreshLink()) setStatus(t('status_reconnected_before_print'));
+        }
+        await print(state.transport, rasterData, {
+          isBLE,
+          deviceName,
+          printerModel,
+          density,
+          feed,
+          continuous: !!(state.labelSize?.continuous),
+          onProgress: (progress) => {
+            btn.textContent = t('printing_progress', { progress });
+            setStatus(t('status_printing_copy_progress', { copy: copyText, progress }));
+          },
+        });
+      };
+      // 状態の問い合わせが印刷データに混ざらないよう、送信は1件ずつ
+      if (state.transport.exclusive) {
+        await state.transport.exclusive(sendJob);
+      } else {
+        await sendJob();
+      }
       printedCopies++;
 
       // Small delay between copies

@@ -460,6 +460,7 @@ export const MESSAGES = {
   connection_failed: { ja: "接続できませんでした", en: "Connection failed" },
   status_connected_select_model: { ja: "接続しました: {device} - プリンター機種を選んでください", en: "Connected: {device} - Please select printer model" },
   status_printing_copy: { ja: "印刷中{copy}...", en: "Printing{copy}..." },
+  status_reconnected_before_print: { ja: "プリンターにつなぎ直しました。印刷します...", en: "Reconnected to the printer. Printing..." },
   status_printing_copy_progress: { ja: "印刷中{copy}... {progress}%", en: "Printing{copy}... {progress}%" },
   status_printed_copies: { ja: "{n} 部印刷しました!", en: "Printed {n} copies!" },
   status_print_complete: { ja: "印刷が終わりました!", en: "Print complete!" },

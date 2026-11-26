@@ -5,6 +5,8 @@ import { Page } from '@playwright/test';
  * あわせて Canvas の fillText を記録し、印刷用に描画された文字列を確認できるようにする。
  *
  * - window.__fakePrinter.bytesWritten: プリンタに送られたバイト数
+ * - window.__fakePrinter.log: 書き込みごとの記録(16 バイト以下はバイト列そのもの、それより長いものは長さだけ)
+ * - window.__fakePrinter.connects: GATT 接続の回数
  * - window.__drawnTexts: fillText で描かれた文字列(順番どおり)
  * - window.__drawnFonts: そのときの ctx.font
  */
@@ -20,7 +22,11 @@ export async function installFakePrinter(page: Page, deviceName = 'M110') {
       return (origFillText as any).call(this, text, ...rest);
     };
 
-    const state = { bytesWritten: 0, writes: 0 };
+    const state = { bytesWritten: 0, writes: 0, connects: 0, log: [] as (number[] | { len: number })[] };
+    const record = (buf: ArrayBuffer | ArrayBufferView) => {
+      const u8 = buf instanceof ArrayBuffer ? new Uint8Array(buf) : new Uint8Array((buf as any).buffer, (buf as any).byteOffset, (buf as any).byteLength);
+      state.log.push(u8.length <= 16 ? Array.from(u8) : { len: u8.length });
+    };
     w.__fakePrinter = state;
 
     const writeChar = {
@@ -28,10 +34,12 @@ export async function installFakePrinter(page: Page, deviceName = 'M110') {
       async writeValueWithoutResponse(buf: ArrayBuffer | ArrayBufferView) {
         state.bytesWritten += (buf as any).byteLength;
         state.writes++;
+        record(buf);
       },
       async writeValue(buf: ArrayBuffer | ArrayBufferView) {
         state.bytesWritten += (buf as any).byteLength;
         state.writes++;
+        record(buf);
       },
     };
     const service = {
@@ -47,8 +55,12 @@ export async function installFakePrinter(page: Page, deviceName = 'M110') {
       id: 'fake-device',
       gatt: {
         connected: false,
-        async connect() { device.gatt.connected = true; return { getPrimaryService: async () => service }; },
-        disconnect() { device.gatt.connected = false; },
+        async connect() { device.gatt.connected = true; state.connects++; return { getPrimaryService: async () => service }; },
+        disconnect() {
+          device.gatt.connected = false;
+          // 本物と同じく、切断の知らせは少し遅れて届く
+          setTimeout(() => (listeners['gattserverdisconnected'] || []).forEach((fn) => fn()), 0);
+        },
       },
       addEventListener(type: string, fn: Function) { (listeners[type] ||= []).push(fn); },
       removeEventListener() {},

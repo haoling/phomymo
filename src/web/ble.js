@@ -38,6 +38,8 @@ export class BLETransport {
     this.onDisconnect = null;
     this.onPrinterInfo = null; // Callback for printer info updates
     this._useWriteWithResponse = false; // Some devices need writeValue instead of writeValueWithoutResponse
+    this._connectedAt = 0; // GATT 接続が成立した時刻(ms)。ensureFreshLink で使う
+    this._lock = Promise.resolve(); // exclusive() の順番待ち
     this.printerInfo = {
       battery: null,
       paper: null,
@@ -322,6 +324,7 @@ export class BLETransport {
     }
 
     this.connected = true;
+    this._connectedAt = Date.now();
     console.log('Connected to', this.device.name);
   }
 
@@ -350,6 +353,41 @@ export class BLETransport {
     this.writeChar = null;
     this.notifyChar = null;
     this._notificationHandler = null;
+  }
+
+  /**
+   * 書き込みを順番に行う。プリンタへのデータは区切りの無いバイト列なので、
+   * 印刷中に状態問い合わせ(1F 11 xx)が割り込むとラスタの途中に混ざり、
+   * 以降の行がずれる。印刷と問い合わせはこれを通して1つずつ流す。
+   * @param {Function} fn - async 関数
+   */
+  exclusive(fn) {
+    const run = this._lock.then(() => fn());
+    // 失敗しても次の待ち手を止めない
+    this._lock = run.catch(() => {});
+    return run;
+  }
+
+  /**
+   * つないでから時間が経っていたら、つなぎ直す(M110/M120 の約 28.8 秒切断の対策)
+   * @param {number} maxAgeMs - これより古い接続をつなぎ直す。0 以下なら何もしない
+   * @returns {Promise<boolean>} つなぎ直したら true
+   */
+  async ensureFreshLink(maxAgeMs = BLE.FRESH_LINK_MAX_AGE_MS) {
+    if (!maxAgeMs || maxAgeMs <= 0 || !this.device) return false;
+    if (this.isConnected() && Date.now() - this._connectedAt < maxAgeMs) return false;
+
+    console.log(`Link is older than ${maxAgeMs}ms (or dropped); reconnecting before print...`);
+    if (this.device.gatt?.connected) {
+      try { this.device.gatt.disconnect(); } catch (e) { /* 切れていてもよい */ }
+      await this.delay(BLE.RECONNECT_SETTLE_MS);
+    }
+    await this.retryWithBackoff(
+      () => this.connectGATT(),
+      BLE.MAX_RETRIES,
+      BLE.INITIAL_RETRY_DELAY_MS
+    );
+    return true;
   }
 
   /**
@@ -660,16 +698,20 @@ export class BLETransport {
 
     console.log('Querying all printer info...');
 
-    // Query each type with a small delay between
-    const queries = ['battery', 'paper', 'firmware', 'serial'];
-    for (const q of queries) {
-      try {
-        await this.query(q);
-        await this.delay(100);
-      } catch (e) {
-        console.warn(`Query ${q} failed:`, e.message);
+    // 印刷のデータに混ざらないよう、印刷と同じ順番待ちに入れる
+    return this.exclusive(async () => {
+      // Query each type with a small delay between
+      const queries = ['battery', 'paper', 'firmware', 'serial'];
+      for (const q of queries) {
+        if (!this.isConnected()) break;
+        try {
+          await this.query(q);
+          await this.delay(100);
+        } catch (e) {
+          console.warn(`Query ${q} failed:`, e.message);
+        }
       }
-    }
+    });
   }
 
   /**
