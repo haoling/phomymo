@@ -1996,8 +1996,9 @@ export class CanvasRenderer {
   /**
    * Render elements to a temporary canvas and return pixel data
    * Shared helper for getRasterData and getRasterDataRaw
+   * @param {number} printRotation - 印刷時に時計回りに回す角度(0/90/180/270)
    */
-  _renderToPixels(elements) {
+  _renderToPixels(elements, printRotation = 0) {
     const width = this.labelWidth;
     const height = this.labelHeight;
     const tempCanvas = document.createElement('canvas');
@@ -2045,6 +2046,26 @@ export class CanvasRenderer {
     // Restore context if we applied circular clipping
     if (this.isRound) {
       tempCtx.restore();
+    }
+
+    // 印刷時の回転(用紙の向きがデザインと違うとき)
+    const rotation = ((Number(printRotation) || 0) % 360 + 360) % 360;
+    if (rotation === 90 || rotation === 180 || rotation === 270) {
+      const swap = rotation !== 180;
+      const rw = swap ? height : width;
+      const rh = swap ? width : height;
+      const rotCanvas = document.createElement('canvas');
+      rotCanvas.width = rw;
+      rotCanvas.height = rh;
+      const rotCtx = rotCanvas.getContext('2d');
+      rotCtx.fillStyle = 'white';
+      rotCtx.fillRect(0, 0, rw, rh);
+      rotCtx.imageSmoothingEnabled = false;
+      rotCtx.translate(rw / 2, rh / 2);
+      rotCtx.rotate((rotation * Math.PI) / 180);
+      rotCtx.drawImage(tempCanvas, -width / 2, -height / 2);
+      const rotData = rotCtx.getImageData(0, 0, rw, rh);
+      return { pixels: rotData.data, width: rw, height: rh };
     }
 
     // Get image data
@@ -2425,9 +2446,10 @@ export class CanvasRenderer {
    * @param {number} printerDpi - Printer DPI (203 for most, 300 for M02 Pro)
    * @param {string} ditherMode - Dither mode: 'auto', 'none', 'threshold', 'floyd-steinberg', 'atkinson', 'ordered'
    * @param {'left' | 'center' | 'right'} alignment - How to align label within printer width (default: 'center')
+   * @param {number} printRotation - 印刷時に時計回りに回す角度(0/90/180/270)
    */
-  getRasterData(elements, printerWidthBytes = DEFAULT_PRINTER_WIDTH_BYTES, printerDpi = 203, ditherMode = 'auto', alignment = 'center') {
-    let { pixels, width, height } = this._renderToPixels(elements);
+  getRasterData(elements, printerWidthBytes = DEFAULT_PRINTER_WIDTH_BYTES, printerDpi = 203, ditherMode = 'auto', alignment = 'center', printRotation = 0) {
+    let { pixels, width, height } = this._renderToPixels(elements, printRotation);
 
     // Scale up for higher DPI printers (e.g., M02 Pro at 300 DPI)
     if (printerDpi > 203) {
@@ -2489,9 +2511,10 @@ export class CanvasRenderer {
    * print failures. Use dithered grays instead of solid black for large fills.
    * @param {Array} elements - Elements to render
    * @param {string} ditherMode - Dither mode: 'auto', 'none', 'threshold', 'floyd-steinberg', 'atkinson', 'ordered'
+   * @param {number} printRotation - 印刷時に時計回りに回す角度(0/90/180/270)
    */
-  getRasterDataRaw(elements, ditherMode = 'auto') {
-    const { pixels, width, height } = this._renderToPixels(elements);
+  getRasterDataRaw(elements, ditherMode = 'auto', printRotation = 0) {
+    const { pixels, width, height } = this._renderToPixels(elements, printRotation);
     const widthBytes = Math.ceil(width / 8);
     const data = this._pixelsToRaster(pixels, width, height, widthBytes, false, ditherMode);
 

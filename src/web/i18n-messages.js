@@ -757,4 +757,17 @@ export const MESSAGES = {
   gallery_samples: { ja: "サンプル({n})", en: "Samples ({n})" },
   gallery_samples_hint: { ja: "押すと、サンプルをもとに新しいデザインを作れます(元のサンプルは変わりません)", en: "Click one to start a new design from it (the sample itself stays unchanged)" },
   status_sample_opened: { ja: "サンプル「{name}」を開きました。保存すると自分のデザインになります", en: "Opened sample \"{name}\". Save it to keep it as your own design" },
+  // 印刷時の回転
+  print_rotation: { ja: "印刷の向き", en: "Print orientation" },
+  print_rotation_help: { ja: "デザインと用紙の縦横が違うときに、回して印刷します。例: 30×40mm で作ったデザインを 40×30mm の用紙に印刷するときは「右に90°」か「左に90°」を選びます。", en: "Rotates the design when printing, for paper whose width and height are swapped. e.g. to print a 30×40mm design on 40×30mm paper, choose 90° clockwise or counter-clockwise." },
+  print_rotation_design: { ja: "このデザイン", en: "This design" },
+  print_rotation_follow_device: { ja: "プリンターの既定に従う", en: "Use the printer's default" },
+  print_rotation_device: { ja: "このプリンターの既定", en: "This printer's default" },
+  print_rotation_device_named: { ja: "「{name}」の既定", en: "Default for \"{name}\"" },
+  print_rotation_device_disconnected: { ja: "プリンターに接続すると、プリンターごとの既定を決められます", en: "Connect a printer to set its default" },
+  print_rotation_result: { ja: "印刷される向き: {width}×{height}mm({rotation}°)", en: "Prints as {width}×{height}mm ({rotation}°)" },
+  rotation_0: { ja: "回さない(0°)", en: "No rotation (0°)" },
+  rotation_90: { ja: "右に90°回す", en: "Rotate 90° clockwise" },
+  rotation_180: { ja: "180°回す(上下逆さま)", en: "Rotate 180° (upside down)" },
+  rotation_270: { ja: "左に90°回す(270°)", en: "Rotate 90° counter-clockwise (270°)" },
 };
