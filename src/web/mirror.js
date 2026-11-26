@@ -14,11 +14,11 @@
 
 /** 折り線の向きの選択肢(先頭が既定) */
 export const MIRROR_AXES = ['x', 'y'];
-/** 写しの向きの選択肢(先頭が既定) */
+/** 写しの向きの選択肢 */
 export const MIRROR_ORIENTS = ['mirror', 'upright', 'rotate180'];
 
 /** ミラー配置をオンにしたときの既定値(仮決め。ここを変えれば既定が変わる) */
-export const DEFAULT_MIRROR = Object.freeze({ axis: 'x', orient: 'mirror' });
+export const DEFAULT_MIRROR = Object.freeze({ axis: 'x', orient: 'rotate180' });
 
 /**
  * 要素の mirror を正しい形にそろえる。ミラー配置しないなら null

@@ -80,7 +80,8 @@ test.describe('ミラー配置(位置と向きの計算)', () => {
         xm: m.mirrorCopyOf({ ...el, mirror: { axis: 'x', orient: 'mirror' } }, 200, 100),
         xu: m.mirrorCopyOf({ ...el, mirror: { axis: 'x', orient: 'upright' } }, 200, 100),
         y180: m.mirrorCopyOf({ ...el, mirror: { axis: 'y', orient: 'rotate180' } }, 200, 100),
-        ym: m.mirrorCopyOf({ ...el, mirror: { axis: 'y' } }, 200, 100),
+        ym: m.mirrorCopyOf({ ...el, mirror: { axis: 'y', orient: 'mirror' } }, 200, 100),
+        def: m.mirrorCopyOf({ ...el, mirror: { axis: 'y' } }, 200, 100),
         broken: m.normalizeMirror({ axis: 'z', orient: 'zz' }),
         list: m.withMirrorCopies([{ ...el, mirror: { axis: 'x' } }, { ...el, id: 'b' }], 200, 100).map(e => e.id),
         same: (() => { const a = [el]; return m.withMirrorCopies(a, 200, 100) === a; })(),
@@ -93,7 +94,9 @@ test.describe('ミラー配置(位置と向きの計算)', () => {
     expect(r.xu._mirrorScale).toBeUndefined();
     expect(r.y180).toMatchObject({ x: 10, y: 40, rotation: 150 });
     expect(r.ym).toMatchObject({ y: 40, _mirrorScale: [1, -1] });
-    expect(r.broken).toEqual({ axis: 'x', orient: 'mirror' });
+    expect(r.def).toMatchObject({ y: 40, rotation: 150 });
+    expect(r.def._mirrorScale).toBeUndefined();
+    expect(r.broken).toEqual({ axis: 'x', orient: 'rotate180' });
     expect(r.list).toEqual(['a', 'a', 'b']);
     expect(r.same).toBe(true);
   });
@@ -127,7 +130,7 @@ test.describe('ミラー配置(画面)', () => {
     await dismissInfoDialog(page);
   });
 
-  test('左右に折る: 右側に鏡像が出て、元を動かすと写しも追従し、元に戻せる', async ({ page }) => {
+  test('左右に折る: 既定は180°回転。鏡像にすると右側に鏡像が出て、元を動かすと写しも追従し、元に戻せる', async ({ page }) => {
     await addTwoToneImageOnLeft(page);
     let m = await measure(page);
     expect(m.right.black).toBe(0);
@@ -136,6 +139,9 @@ test.describe('ミラー配置(画面)', () => {
     await page.locator('#prop-mirror-axis').selectOption('x');
     await expect(page.locator('#status-message')).toContainText('ミラー配置をオンにしました');
     await expect(page.locator('#prop-mirror-orient')).toBeEnabled();
+    // 既定の向きは180°回転
+    await expect(page.locator('#prop-mirror-orient')).toHaveValue('rotate180');
+    await page.locator('#prop-mirror-orient').selectOption('mirror');
     m = await measure(page);
     expect(m.right.black).toBeGreaterThan(m.left.black * 0.8);
     // 元は左が黒・右が青。鏡像では外側(右端)が黒になる
@@ -147,17 +153,18 @@ test.describe('ミラー配置(画面)', () => {
     m = await measure(page);
     expect(m.right.blackX).toBeLessThan(m.right.blueX);
 
+    // 元に戻す(向きの切り替えは1手で戻る)
+    await page.evaluate(() => (document.activeElement as HTMLElement)?.blur());
+    await page.keyboard.press('Control+z');
+    await expect(page.locator('#prop-mirror-orient')).toHaveValue('mirror');
+    m = await measure(page);
+    expect(m.right.blackX).toBeGreaterThan(m.right.blueX);
+
     // 元の要素を動かすと、写しは反対向きに動く
     const before = m.right.blackX;
     await setNumber(page, '#prop-x', 20);
     m = await measure(page);
     expect(m.right.blackX).toBeLessThan(before);
-
-    // 元に戻す(ミラー配置の切り替えも1手で戻る)
-    await page.evaluate(() => (document.activeElement as HTMLElement)?.blur());
-    await page.keyboard.press('Control+z');
-    await page.keyboard.press('Control+z');
-    await expect(page.locator('#prop-mirror-orient')).toHaveValue('mirror');
 
     // オフにすると写しが消える
     await page.locator('#prop-mirror-axis').selectOption('');
