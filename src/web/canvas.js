@@ -9,6 +9,7 @@ import { drawFrame } from './frames.js';
 import { getImageSourceRect, normalizeCrop } from './elements.js';
 import { drawLine, measureLine, drawArcText, letterSpacingPx, normalizeArc, isVertical, verticalOptions, layoutVertical, drawVerticalText, verticalBlockWidth } from './text-layout.js';
 import { t } from './i18n.js';
+import { withMirrorCopies, foldAxesOf } from './mirror.js';
 
 // Pixels per mm (203 DPI ≈ 8 px/mm)
 const PX_PER_MM = 8;
@@ -198,6 +199,7 @@ export class CanvasRenderer {
       crop: e.crop, flipX: e.flipX, flipY: e.flipY,
       letterSpacing: e.letterSpacing, arc: e.arc,
       writingMode: e.writingMode, tcy: e.tcy, latinMode: e.latinMode,
+      mirror: e.mirror,
     }))) + `_${ditherMode}_${this.labelWidth}_${this.labelHeight}`;
 
     // Check cache
@@ -609,7 +611,7 @@ export class CanvasRenderer {
     // Text, barcodes, and QR codes render normally (crisp black)
     if (this.multiLabel.enabled) {
       // Multi-label mode: render elements with zone offsets
-      for (const element of elements) {
+      for (const element of this._withMirrors(elements)) {
         const zone = this.multiLabel.zones[element.zone ?? 0];
         if (zone) {
           // Create offset element for rendering
@@ -623,10 +625,13 @@ export class CanvasRenderer {
       }
     } else {
       // Single label mode
-      for (const element of elements) {
+      for (const element of this._withMirrors(elements)) {
         this.renderElement(element);
       }
     }
+
+    // ミラー配置の折り線(画面だけ。印刷はされない)
+    this.drawFoldLines(foldAxesOf(elements));
 
     // Draw alignment guides (after elements, before handles)
     this.drawAlignmentGuides(alignmentGuides);
@@ -736,6 +741,45 @@ export class CanvasRenderer {
   }
 
   /**
+   * ミラー配置の要素を、写しも含めた描く用の並びにする(多面ラベルなら1面の大きさで折り返す)
+   */
+  _withMirrors(elements) {
+    const { width, height } = this.getSingleLabelDimensions();
+    return withMirrorCopies(elements, width, height);
+  }
+
+  /**
+   * ミラー配置の折り線(ラベルの中心線)を点線で描く。ctx はラベル原点・zoom 済みであること
+   * @param {Array<'x'|'y'>} axes
+   */
+  drawFoldLines(axes) {
+    if (!axes || axes.length === 0) return;
+    const ctx = this.ctx;
+    const zones = this.multiLabel.enabled
+      ? this.multiLabel.zones
+      : [{ x: 0, y: 0, width: this.labelWidth, height: this.labelHeight }];
+    ctx.save();
+    ctx.strokeStyle = 'rgba(14, 165, 233, 0.8)';
+    ctx.lineWidth = 1 / this.zoom;
+    ctx.setLineDash([6 / this.zoom, 4 / this.zoom]);
+    for (const zone of zones) {
+      ctx.beginPath();
+      if (axes.includes('x')) {
+        const fx = zone.x + zone.width / 2;
+        ctx.moveTo(fx, zone.y);
+        ctx.lineTo(fx, zone.y + zone.height);
+      }
+      if (axes.includes('y')) {
+        const fy = zone.y + zone.height / 2;
+        ctx.moveTo(zone.x, fy);
+        ctx.lineTo(zone.x + zone.width, fy);
+      }
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  /**
    * Draw alignment guides
    * @param {Array} guides - Array of { type: 'h'|'v', pos: number }
    */
@@ -786,7 +830,7 @@ export class CanvasRenderer {
 
     // Render elements (with zone offsets if multi-label mode)
     if (this.multiLabel.enabled) {
-      for (const element of elements) {
+      for (const element of this._withMirrors(elements)) {
         const zone = this.multiLabel.zones[element.zone ?? 0];
         if (zone) {
           const offsetElement = {
@@ -798,7 +842,7 @@ export class CanvasRenderer {
         }
       }
     } else {
-      for (const element of elements) {
+      for (const element of this._withMirrors(elements)) {
         this.renderElement(element);
       }
     }
@@ -877,6 +921,11 @@ export class CanvasRenderer {
     const cx = x + width / 2;
     const cy = y + height / 2;
     this.ctx.translate(cx, cy);
+
+    // ミラー配置の写し(鏡像)は、中心で裏返してから回す(mirror.js)
+    if (element._mirrorScale) {
+      this.ctx.scale(element._mirrorScale[0], element._mirrorScale[1]);
+    }
 
     // Apply rotation
     if (rotation) {
@@ -1975,7 +2024,7 @@ export class CanvasRenderer {
     const originalCtx = this.ctx;
     this.ctx = tempCtx;
     if (this.multiLabel.enabled) {
-      for (const element of elements) {
+      for (const element of this._withMirrors(elements)) {
         const zone = this.multiLabel.zones[element.zone ?? 0];
         if (zone) {
           const offsetElement = {
@@ -1987,7 +2036,7 @@ export class CanvasRenderer {
         }
       }
     } else {
-      for (const element of elements) {
+      for (const element of this._withMirrors(elements)) {
         this.renderElement(element);
       }
     }

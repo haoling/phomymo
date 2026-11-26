@@ -908,6 +908,22 @@
               </div>
             </div>
           </div>
+          <!-- ミラー配置(2つ折りシール用。mirror.js) -->
+          <div id="prop-mirror-row">
+            <label class="text-[10px] text-gray-400 uppercase tracking-wide" data-i18n="mirror_layout" title="用紙の中心で折ったときに重なる位置へ、同じ要素の写しを置きます(シールを2つ折りにして使うとき用)" data-i18n-title="mirror_layout_help">ミラー配置</label>
+            <div class="grid grid-cols-2 gap-1.5">
+              <select id="prop-mirror-axis" class="w-full px-1 py-1 text-xs border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-blue-400">
+                <option value="" data-i18n="mirror_none">しない</option>
+                <option value="x" data-i18n="mirror_axis_x">左右に折る</option>
+                <option value="y" data-i18n="mirror_axis_y">上下に折る</option>
+              </select>
+              <select id="prop-mirror-orient" class="w-full px-1 py-1 text-xs border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-blue-400" title="写しの向き" data-i18n-title="mirror_orient">
+                <option value="mirror" data-i18n="mirror_orient_mirror">鏡像</option>
+                <option value="upright" data-i18n="mirror_orient_upright">反転しない</option>
+                <option value="rotate180" data-i18n="mirror_orient_rotate180">180°回転</option>
+              </select>
+            </div>
+          </div>
         </div>
 
         <hr class="my-3 border-gray-200">

@@ -7,6 +7,7 @@
 import { CanvasRenderer } from './canvas.js?v=119';
 import { BLETransport } from './ble.js?v=103';
 import { USBTransport } from './usb.js?v=101';
+import { normalizeMirror, DEFAULT_MIRROR } from './mirror.js';
 import { print, printDensityTest, isDSeriesPrinter, isP12Printer, isA30Printer, isTapePrinter, isPM241Printer, isTSPLPrinter, isRotatedPrinter, getPrinterWidthBytes, getPrinterDpi, getPrinterAlignment, getPrinterDescription, isDeviceRecognized, getMatchedPattern, loadPrinterDefinitions, getAllPrinterDefinitions, getPrinterDefinition, getCustomPrinterDefinitions, saveCustomPrinterDefinition, deleteCustomPrinterDefinition, isBuiltinPrinter, resetBuiltinPrinter, getAvailableProtocols, getAvailableLabelPresets, getDetectedDefinition } from './printer.js?v=129';
 import {
   createTextElement,
@@ -2518,6 +2519,7 @@ function updatePropertiesPanel() {
   $('#prop-width').value = Math.round(element.width);
   $('#prop-height').value = Math.round(element.height);
   $('#prop-rotation').value = Math.round(element.rotation || 0);
+  syncMirrorControls($('#prop-mirror-axis'), $('#prop-mirror-orient'), element);
 
   // Update layer number (1-indexed for display, position in array determines z-order)
   const layerIndex = state.elements.findIndex(el => el.id === element.id);
@@ -4782,6 +4784,33 @@ function addShapeElement(shapeType = 'rectangle') {
 // #26 画像のトリミング・反転
 // ---------------------------------------------------------------------------
 
+/**
+ * ミラー配置を変える(mirror.js)。axis が空ならオフ。orient を省けば今の向き(なければ既定)
+ */
+function setElementMirror(id, axis, orient) {
+  const element = state.elements.find(e => e.id === id);
+  if (!element) return;
+  const current = normalizeMirror(element.mirror);
+  const next = axis
+    ? normalizeMirror({ axis, orient: orient || current?.orient || DEFAULT_MIRROR.orient })
+    : null;
+  if (JSON.stringify(current) === JSON.stringify(next)) return;
+  saveHistory();
+  modifyElement(id, { mirror: next });
+  refreshMobilePropsIfOpen();
+  if (!current !== !next) setStatus(t(next ? 'status_mirror_on' : 'status_mirror_off'));
+}
+
+/** ミラー配置の選択欄を要素の値にそろえる */
+function syncMirrorControls(axisSelect, orientSelect, element) {
+  if (!axisSelect || !orientSelect) return;
+  const m = normalizeMirror(element.mirror);
+  axisSelect.value = m ? m.axis : '';
+  orientSelect.value = m ? m.orient : DEFAULT_MIRROR.orient;
+  orientSelect.disabled = !m;
+  orientSelect.classList.toggle('opacity-50', !m);
+}
+
 /** 選んでいる画像を反転する(key は 'flipX' か 'flipY') */
 function toggleImageFlip(id, key) {
   const element = state.elements.find(e => e.id === id);
@@ -6931,6 +6960,24 @@ function populateMobileProps() {
           </div>
           <div class="flex-1"></div>
         </div>
+        <div class="prop-row">
+          <div class="flex-1">
+            <label class="text-xs text-gray-500">${t('mirror_layout')}</label>
+            <select id="mobile-prop-mirror-axis" class="prop-input">
+              <option value="">${t('mirror_none')}</option>
+              <option value="x">${t('mirror_axis_x')}</option>
+              <option value="y">${t('mirror_axis_y')}</option>
+            </select>
+          </div>
+          <div class="flex-1">
+            <label class="text-xs text-gray-500">${t('mirror_orient')}</label>
+            <select id="mobile-prop-mirror-orient" class="prop-input">
+              <option value="mirror">${t('mirror_orient_mirror')}</option>
+              <option value="upright">${t('mirror_orient_upright')}</option>
+              <option value="rotate180">${t('mirror_orient_rotate180')}</option>
+            </select>
+          </div>
+        </div>
       </div>
     </div>
   `;
@@ -6976,6 +7023,14 @@ function wireUpMobilePropHandlers(element) {
   $('#mobile-prop-width')?.addEventListener('change', (e) => updateProp('width', parseFloat(e.target.value)));
   $('#mobile-prop-height')?.addEventListener('change', (e) => updateProp('height', parseFloat(e.target.value)));
   $('#mobile-prop-rotation')?.addEventListener('change', (e) => updateProp('rotation', parseFloat(e.target.value)));
+
+  // ミラー配置
+  syncMirrorControls($('#mobile-prop-mirror-axis'), $('#mobile-prop-mirror-orient'), element);
+  $('#mobile-prop-mirror-axis')?.addEventListener('change', (e) => setElementMirror(element.id, e.target.value));
+  $('#mobile-prop-mirror-orient')?.addEventListener('change', (e) => {
+    const m = normalizeMirror(element.mirror);
+    if (m) setElementMirror(element.id, m.axis, e.target.value);
+  });
 
   // Text properties - use live update for typing, save history on blur
   const textInput = $('#mobile-prop-text');
@@ -8117,6 +8172,17 @@ function init() {
   }, createBindingContext(state, getSelected, modifyElement), {
     minWidth: ELEMENT.MIN_WIDTH,
     minHeight: ELEMENT.MIN_HEIGHT,
+  });
+
+  // ミラー配置(2つ折りシール用)
+  $('#prop-mirror-axis')?.addEventListener('change', (e) => {
+    const id = state.selectedIds[0];
+    if (id) setElementMirror(id, e.target.value);
+  });
+  $('#prop-mirror-orient')?.addEventListener('change', (e) => {
+    const element = getSelected();
+    const m = element && normalizeMirror(element.mirror);
+    if (m) setElementMirror(element.id, m.axis, e.target.value);
   });
 
   // Properties panel - text
