@@ -1484,7 +1484,6 @@ function updateTemplateIndicator() {
   const toolbarBtn = $('#template-toolbar-btn');
   const toolbarDivider = $('#template-toolbar-divider');
   const toolbarLabel = $('#template-toolbar-label');
-  const templatePanel = $('#template-panel');
 
   const hasFields = state.templateFields.length > 0;
 
@@ -1496,23 +1495,30 @@ function updateTemplateIndicator() {
       `<span class="px-2 py-1 bg-purple-100 text-purple-700 rounded-full font-medium">{{${escapeHtml(f)}}}</span>`
     ).join('');
 
-    // Show toolbar button
-    toolbarBtn.classList.remove('hidden');
-    toolbarDivider.classList.remove('hidden');
-
-    // Update toolbar label with record count
-    if (state.templateData.length > 0) {
-      toolbarLabel.textContent = t('template_with_count', { n: state.templateData.length });
-    } else {
-      toolbarLabel.textContent = t('template');
-    }
   } else {
     fieldTags.innerHTML = `<span class="text-purple-400 italic">${t('none')}</span>`;
+  }
+  $('#template-fields-hint')?.classList.toggle('hidden', hasFields);
 
-    // Hide toolbar button and template panel
-    toolbarBtn.classList.add('hidden');
-    toolbarDivider.classList.add('hidden');
-    templatePanel.classList.add('hidden');
+  // ツールバーのボタンは常に出す(先に表を読み込んでから {{列名}} を足せるように)
+  toolbarBtn.classList.remove('hidden');
+  toolbarDivider.classList.remove('hidden');
+  toolbarLabel.textContent = state.templateData.length > 0
+    ? t('template_with_count', { n: state.templateData.length })
+    : t('template');
+
+  // 表の列(押すと {{列名}} を入れる)
+  const columnsSection = $('#template-columns-section');
+  const columnChips = $('#template-column-chips');
+  if (columnsSection && columnChips) {
+    columnsSection.classList.toggle('hidden', state.templateColumns.length === 0);
+    const used = state.templateFields.map(f => f.trim().toLowerCase());
+    columnChips.innerHTML = state.templateColumns.map(c => {
+      const isUsed = used.includes(c.trim().toLowerCase());
+      return `<button class="merge-column-chip px-2 py-1 rounded-full font-medium border ${isUsed
+        ? 'bg-purple-100 text-purple-700 border-purple-200'
+        : 'bg-white text-purple-700 border-purple-300 hover:bg-purple-100'}" data-column="${escapeHtml(c)}">${escapeHtml(c)}</button>`;
+    }).join('');
   }
 
   // Update data count
@@ -2084,9 +2090,52 @@ function updateMergeControls() {
   }
 }
 
+/**
+ * Put {{column}} into the design: into the selected text/barcode/QR, or as a new text
+ */
+function insertColumnIntoDesign(column) {
+  const placeholder = `{{${column}}}`;
+  const el = getSelected();
+  const key = el?.type === 'text' ? 'text'
+    : el?.type === 'barcode' ? 'barcodeData'
+      : el?.type === 'qr' ? 'qrData' : null;
+  saveHistory();
+  if (el && key) {
+    const current = el[key] || '';
+    const sep = current && !/\s$/.test(current) ? ' ' : '';
+    modifyElement(el.id, { [key]: current + sep + placeholder });
+  } else {
+    const dims = state.renderer.getSingleLabelDimensions();
+    const element = createTextElement(placeholder, {
+      x: dims.width / 2 - 75,
+      y: dims.height / 2 - 20,
+      width: 150,
+      height: 40,
+      zone: state.activeZone,
+    });
+    state.elements.push(element);
+    autoCloneIfEnabled();
+    detectTemplateFields();
+    selectElement(element.id);
+  }
+  // 表を読み込んでいれば、すぐ差し込んだ結果が見えるようにする
+  if (state.templateData.length > 0 && !state.mergePreview.enabled) {
+    state.mergePreview.enabled = true;
+    render();
+    updateMergeControls();
+  }
+  setStatus(t('status_column_inserted', { field: column }));
+}
+
 function initSpreadsheetMerge() {
   const fileInput = $('#template-csv-input');
   if (fileInput) fileInput.accept = SPREADSHEET_ACCEPT;
+
+  $('#template-panel-import')?.addEventListener('click', () => $('#template-csv-input').click());
+  $('#template-column-chips')?.addEventListener('click', (e) => {
+    const chip = e.target.closest('.merge-column-chip');
+    if (chip) insertColumnIntoDesign(chip.dataset.column);
+  });
 
   // 貼り付け(Google スプレッドシート / Excel のセルをコピー)
   $('#template-paste-btn')?.addEventListener('click', () => {

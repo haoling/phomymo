@@ -718,12 +718,12 @@
         </div>
       </div>
 
-      <div class="toolbar-divider hidden" id="template-toolbar-divider"></div>
+      <div class="toolbar-divider" id="template-toolbar-divider"></div>
 
-      <!-- Template Manage Data (shows when template fields detected) -->
-      <button id="template-toolbar-btn" class="hidden toolbar-btn bg-purple-50 text-purple-700 hover:bg-purple-100 border-purple-200" title="差し込みデータの管理" data-i18n-title="manage_template_data">
+      <!-- Template / mail merge (always shown: 表を先に読み込んでから {{列名}} を足せる) -->
+      <button id="template-toolbar-btn" class="toolbar-btn bg-purple-50 text-purple-700 hover:bg-purple-100 border-purple-200" title="差し込みデータの管理" data-i18n-title="manage_template_data">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z"/></svg>
-        <span id="template-toolbar-label" class="hidden sm:inline" data-i18n="manage_data">データを管理</span>
+        <span id="template-toolbar-label" class="hidden sm:inline" data-i18n="template">差し込み印刷</span>
       </button>
     </div>
   </div>
@@ -826,6 +826,14 @@
           <div id="template-field-tags" class="flex flex-wrap gap-1.5 text-xs">
             <span class="text-purple-400 italic" data-i18n="none">なし</span>
           </div>
+          <p id="template-fields-hint" class="text-xs text-purple-500 mt-2" data-i18n="merge_fields_hint">文字に {{列名}} と書くと、表の値を差し込めます。</p>
+        </div>
+
+        <!-- Columns of the imported table: click to insert {{列名}} -->
+        <div id="template-columns-section" class="mb-4 hidden">
+          <div class="text-xs font-semibold text-purple-700 uppercase tracking-wide mb-1" data-i18n="merge_table_columns">表の列</div>
+          <p class="text-xs text-purple-500 mb-2" data-i18n="merge_columns_hint">押すと {{列名}} をデザインに入れます(選んでいる文字・バーコード・QRがあればその中に)</p>
+          <div id="template-column-chips" class="flex flex-wrap gap-1.5 text-xs"></div>
         </div>
 
         <!-- Data Section -->
@@ -834,6 +842,9 @@
             <span class="text-xs font-semibold text-purple-700 uppercase tracking-wide" data-i18n="data_records">データ件数</span>
             <span id="template-data-count" class="text-xs text-purple-600">0</span>
           </div>
+          <button id="template-panel-import" class="w-full mb-2 px-3 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-sm font-medium" data-i18n="import_spreadsheet">
+            表を読み込む (CSV・Excel)
+          </button>
           <button id="template-manage-data" class="w-full px-3 py-2 bg-white hover:bg-purple-100 text-purple-700 border border-purple-200 rounded-lg text-sm font-medium" data-i18n="manage_data">
             データを管理
           </button>
@@ -2527,7 +2538,7 @@
     pdfjsModule.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.379/pdf.worker.min.mjs';
     window.pdfjsLib = pdfjsModule;
   </script>
-  <script type="module" src="app.js?v=160"></script>
+  <script type="module" src="app.js?v=161"></script>
   <script>
     // Show body once styles are ready
     requestAnimationFrame(() => {

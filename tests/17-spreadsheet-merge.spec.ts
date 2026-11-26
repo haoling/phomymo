@@ -136,6 +136,32 @@ test.describe('表からの差し込み(画面)', () => {
     await expect(page.locator('#template-missing-fields')).toContainText('{{名前}}');
   });
 
+  test('項目を書く前でも表を読み込めて、列を押すと {{列名}} が入る', async ({ page }) => {
+    // 差し込み項目がなくても、ツールバーに入口がある
+    await expect(page.locator('#template-toolbar-btn')).toBeVisible();
+    await page.click('#template-toolbar-btn');
+    await expect(page.locator('#template-panel')).not.toHaveClass(/\bhidden\b/);
+    await expect(page.locator('#template-fields-hint')).not.toHaveClass(/\bhidden\b/);
+
+    await page.locator('#template-csv-input').setInputFiles(path.join(FIXTURES, 'merge-sample.xlsx'));
+    await expect(page.locator('.merge-column-chip')).toHaveCount(5);
+    await expect(page.locator('#template-toolbar-label')).toHaveText('差し込み印刷 (4)');
+
+    // 何も選んでいなければ、新しい文字として入る
+    await resetDrawnTexts(page);
+    await page.locator('.merge-column-chip[data-column="名前"]').click();
+    await expect(page.locator('#prop-text-content')).toHaveValue('{{名前}}');
+    await expect(page.locator('#merge-preview-toggle')).toBeChecked();
+    await expect(page.locator('#status-message')).toHaveText('{{名前}} を入れました');
+    expect((await getDrawnTexts(page)).join(' ')).toContain('りんご');
+
+    // 文字を選んでいれば、その後ろに足す
+    await page.locator('.merge-column-chip[data-column="価格"]').click();
+    await expect(page.locator('#prop-text-content')).toHaveValue('{{名前}} {{価格}}');
+    await expect(page.locator('#template-field-count')).toHaveText('2');
+    await expect(page.locator('#template-fields-hint')).toHaveClass(/\bhidden\b/);
+  });
+
   test('Shift_JIS の CSV も読める(Excel の「CSV」保存)', async ({ page }) => {
     await addText(page, '{{名前}}');
     await openDataDialog(page);
