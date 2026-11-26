@@ -30,7 +30,7 @@
 
     <h2>Google ログインについて</h2>
     <p>ログインせずに使う「ゲストモード」では、デザインはそのタブの中にだけあります。Google でログインすると、デザインを保存し、ほかの端末と同期できます。</p>
-    <p>このとき本アプリが求める権限は <code>drive.appdata</code> だけです。デザインは、あなたの Google ドライブの中の<strong>本アプリ専用の隠しフォルダ</strong>に保存されます。ドライブにあるほかのファイルを見たり変えたりすることはできません。運営者のサーバーにあなたのデータが送られることもありません。くわしくは<a href="privacy.html">プライバシーポリシー</a>をご覧ください。</p>
+    <p>ログインのときに本アプリが求める権限は <code>drive.appdata</code> だけです。デザインは、あなたの Google ドライブの中の<strong>本アプリ専用の隠しフォルダ</strong>に保存されます。ドライブにあるほかのファイルを見たり変えたりすることはできません。「Googleスプレッドシートから」差し込むときだけ、追加で <code>drive.file</code> を求めます。この権限で読めるのは、あなたが選んだスプレッドシートだけです。運営者のサーバーにあなたのデータが送られることもありません。くわしくは<a href="privacy.html">プライバシーポリシー</a>をご覧ください。</p>
 
     <h2>運営者</h2>
     <p>個人(GitHub: <a href="https://github.com/haoling">haoling</a>)が運営しています。ソースコード: <a href="https://github.com/haoling/phomymo">github.com/haoling/phomymo</a></p>
@@ -51,7 +51,7 @@
 
     <h2>About Google sign-in</h2>
     <p>In guest mode (without signing in), your designs exist only in that browser tab. If you sign in with Google, you can save your designs and sync them across devices.</p>
-    <p>The only permission the App requests is <code>drive.appdata</code>. Your designs are stored in <strong>the App's own hidden folder</strong> in your Google Drive. The App cannot see or change any of your other Drive files, and your data is never sent to any server run by the Operator. See the <a href="privacy.html#en">Privacy Policy</a> for details.</p>
+    <p>When you sign in, the App requests only <code>drive.appdata</code>. Your designs are stored in <strong>the App's own hidden folder</strong> in your Google Drive. The App cannot see or change any of your other Drive files. Only when you merge "From Google Sheets", the App additionally requests <code>drive.file</code>, which lets it read only the spreadsheets you choose. Your data is never sent to any server run by the Operator. See the <a href="privacy.html#en">Privacy Policy</a> for details.</p>
 
     <h2>Operator</h2>
     <p>Run by an individual (GitHub: <a href="https://github.com/haoling">haoling</a>). Source code: <a href="https://github.com/haoling/phomymo">github.com/haoling/phomymo</a></p>

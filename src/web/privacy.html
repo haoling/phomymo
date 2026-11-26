@@ -29,16 +29,18 @@
     <table>
       <tr><th>スコープ</th><th>できること</th></tr>
       <tr><td><code>https://www.googleapis.com/auth/drive.appdata</code></td><td>Google ドライブの中の、本アプリ専用の隠しフォルダ(appDataFolder)にあるファイルの作成・読み取り・更新・削除。ドライブにあるあなたのほかのファイルは、見ることも変えることもできません。</td></tr>
+      <tr><td><code>https://www.googleapis.com/auth/drive.file</code></td><td>「Googleスプレッドシートから」差し込むときだけ、追加で求めます。あなたが Google のファイル選択画面(Google Picker)で選んだスプレッドシートだけを読み取れます。選んでいないファイルは見ることも変えることもできず、本アプリがスプレッドシートを書き換えることもありません。</td></tr>
     </table>
     <p>この権限で、本アプリは次の情報を扱います。</p>
     <ul>
       <li><strong>あなたが作ったデザイン</strong>(ラベルの内容、名前、更新日時)。端末間で同期するために、上記の専用フォルダに JSON ファイルとして保存します。</li>
       <li><strong>Google アカウントの表示名・メールアドレス・内部ID(permissionId)</strong>。ログイン中のアカウントを画面に表示する、次回のログインでアカウントを選びやすくする、アカウントごとに端末内のキャッシュを分ける、のために使います。Google ドライブ API から取得します。</li>
       <li><strong>アクセストークン</strong>。ブラウザのメモリにだけ置き、保存しません(約1時間で失効します)。</li>
+      <li><strong>あなたが選んだスプレッドシートの名前・シート名・セルの値</strong>(<code>drive.file</code> を許可した場合)。ラベルに差し込んで印刷するために Google Sheets API から読み取ります。どのスプレッドシートと連携したか(ID・名前・シート名)と読み込んだ値は、デザインの一部として上記の専用フォルダとブラウザに保存されます。</li>
     </ul>
 
     <h2>2. 情報の使い道</h2>
-    <p>上記の情報は、デザインの保存・読み込み・端末間の同期と、ログイン状態の表示のためだけに使います。広告、プロファイリング、販売、AI・機械学習モデルの学習には使いません。</p>
+    <p>上記の情報は、デザインの保存・読み込み・端末間の同期、選んだスプレッドシートの値をラベルに差し込むこと、ログイン状態の表示のためだけに使います。広告、プロファイリング、販売、AI・機械学習モデルの学習には使いません。</p>
 
     <h2>3. 情報の保存場所</h2>
     <ul>
@@ -57,7 +59,7 @@
     <p>本アプリを表示・動作させるために、ブラウザが次のサービスと通信します。これらのサービスには、通常のウェブアクセスと同じく IP アドレスやブラウザの種類などが送られ、各社のポリシーで扱われます。</p>
     <ul>
       <li>Cloudflare(本アプリのホスティング、および一部ライブラリの配信 cdnjs)</li>
-      <li>Google(ログインのための Google Identity Services、Google ドライブ API、Google Fonts)</li>
+      <li>Google(ログインのための Google Identity Services、Google ドライブ API、Google Sheets API、Google Picker、Google Fonts)</li>
       <li>jsDelivr、Tailwind CSS の CDN(ライブラリの配信)</li>
     </ul>
     <p>「AIで白黒に」で画像を加工するときは、画像をあなたの端末の中だけで処理します。画像がこれらのサービスや運営者に送られることはありません。</p>
@@ -107,16 +109,18 @@
     <table>
       <tr><th>Scope</th><th>What it allows</th></tr>
       <tr><td><code>https://www.googleapis.com/auth/drive.appdata</code></td><td>Create, read, update and delete files in the App's own hidden folder in your Google Drive (appDataFolder). The App cannot see or change any of your other Drive files.</td></tr>
+      <tr><td><code>https://www.googleapis.com/auth/drive.file</code></td><td>Requested additionally, only when you use "From Google Sheets" for mail merge. The App can read only the spreadsheets you choose in Google's file picker (Google Picker). It cannot see or change any file you did not choose, and it never edits your spreadsheets.</td></tr>
     </table>
     <p>With this permission, the App handles:</p>
     <ul>
       <li><strong>Designs you create</strong> (label content, name, last-modified time), saved as JSON files in the hidden folder above so they sync across your devices.</li>
       <li><strong>Your Google Account display name, email address and internal ID (permissionId)</strong>, obtained from the Google Drive API, to show which account is signed in, to pre-select your account next time, and to keep each account's local cache separate.</li>
       <li><strong>An access token</strong>, kept only in browser memory and never stored (it expires after about one hour).</li>
+      <li><strong>The name, sheet names and cell values of spreadsheets you choose</strong> (if you allow <code>drive.file</code>), read with the Google Sheets API to merge them into labels for printing. Which spreadsheet is linked (its ID, name and sheet name) and the values read are saved as part of the design, in the hidden folder above and in your browser.</li>
     </ul>
 
     <h2>2. How the information is used</h2>
-    <p>This information is used only to save, load and sync your designs and to show your sign-in status. It is not used for advertising, profiling, sale, or training AI/machine-learning models.</p>
+    <p>This information is used only to save, load and sync your designs, to merge values from the spreadsheets you choose into labels, and to show your sign-in status. It is not used for advertising, profiling, sale, or training AI/machine-learning models.</p>
 
     <h2>3. Where the information is stored</h2>
     <ul>
@@ -135,7 +139,7 @@
     <p>To load and run the App, your browser connects to the following services. As with any web request, they receive your IP address, browser type and similar information, which they handle under their own policies.</p>
     <ul>
       <li>Cloudflare (hosting the App, and serving some libraries via cdnjs)</li>
-      <li>Google (Google Identity Services for sign-in, Google Drive API, Google Fonts)</li>
+      <li>Google (Google Identity Services for sign-in, Google Drive API, Google Sheets API, Google Picker, Google Fonts)</li>
       <li>jsDelivr and the Tailwind CSS CDN (serving libraries)</li>
     </ul>
     <p>When you edit an image with "AI B&amp;W", the image is processed only on your device. It is never sent to these services or to the operator.</p>
