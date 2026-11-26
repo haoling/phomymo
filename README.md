@@ -141,3 +141,7 @@ If Phomymo is useful to you, consider [making a donation](https://donate.stripe.
 ## License
 
 MIT License - see LICENSE file for details.
+
+This repository is a fork of [transcriptionstream/phomymo](https://github.com/transcriptionstream/phomymo) by Affordable Magic, with modifications by haoling. It is an unofficial app and is not affiliated with Phomemo or any other printer manufacturer.
+
+Privacy Policy: `src/web/privacy.html` / Terms of Service: `src/web/terms.html`
