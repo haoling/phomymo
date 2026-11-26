@@ -73,6 +73,7 @@ import { renderDesignList } from './design-gallery.js';
 import { listSamples, buildSampleDesign, SAMPLES, sampleName } from './samples.js';
 import { initTextStylePanel, updateTextStylePanel, mobileTextStyleHtml, wireMobileTextStyle } from './text-style-panel.js';
 import { isVertical } from './text-layout.js';
+import { initPrintOffsetUI } from './print-offset.js';
 import {
   extractFields,
   hasTemplateFields,
@@ -8111,6 +8112,11 @@ function init() {
   // Counter settings (#31)
   initCounterSettings();
   initSpreadsheetMerge();
+
+  // 印刷の横位置の補正(プリンターごと)
+  initPrintOffsetUI({
+    getDeviceName: () => (state.transport?.isConnected?.() ? (state.transport.getDeviceName?.() || '') : ''),
+  });
 
   // Load printer definitions (built-in + custom) then populate dropdown
   loadPrinterDefinitions().then(() => {

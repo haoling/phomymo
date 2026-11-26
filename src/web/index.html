@@ -1603,6 +1603,19 @@
           </div>
         </div>
 
+        <!-- 横位置の補正(プリンターごと) -->
+        <div id="print-offset-settings">
+          <div id="print-offset-label" class="prop-label" data-i18n="print_offset">横位置の補正</div>
+          <div class="flex items-center gap-2">
+            <button type="button" data-print-offset-step="-0.5" class="px-2 py-1 border border-gray-300 rounded hover:bg-gray-50 text-sm" data-i18n-title="print_offset_left" title="左へ">◀</button>
+            <input type="number" id="print-offset-x" min="-10" max="10" step="0.5" value="0" class="prop-input w-20 text-center">
+            <span class="text-sm text-gray-500">mm</span>
+            <button type="button" data-print-offset-step="0.5" class="px-2 py-1 border border-gray-300 rounded hover:bg-gray-50 text-sm" data-i18n-title="print_offset_right" title="右へ">▶</button>
+          </div>
+          <div class="text-xs text-gray-400 mt-1" data-i18n="print_offset_help">印刷が左右にずれるときに直します。＋で右へ、−で左へずらします(0.5mm 刻み)。</div>
+          <div id="print-offset-note" class="hidden text-xs text-gray-400 mt-1" data-i18n="print_offset_disconnected">プリンターに接続すると、プリンターごとに決められます</div>
+        </div>
+
         <!-- Density -->
         <div>
           <div class="prop-label" data-i18n="print_density_darkness">印刷の濃さ</div>

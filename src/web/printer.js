@@ -9,6 +9,7 @@
 import { STORAGE_KEYS } from './constants.js';
 import * as kv from './kv.js';
 import { t } from './i18n.js';
+import { getDeviceOffsetMm, offsetMmToDots, shiftRasterX } from './print-offset.js';
 
 // =============================================================================
 // PRINTER DEFINITIONS MANAGER
@@ -613,9 +614,20 @@ function rotateRaster90CCW(data, widthBytes, heightLines) {
  * @param {number} options.density - Print density 1-8 (default 6)
  * @param {number} options.feed - Feed after print in dots (default 32)
  * @param {Function} options.onProgress - Progress callback (percent)
+ * @param {number} [options.offsetMm] - 横位置の補正(mm、＋で右)。省略時はプリンターごとの設定
  */
 export async function print(transport, rasterData, options = {}) {
   const { isBLE = false, deviceName = '', printerModel = 'auto', density = 6, feed = 32, continuous = false, onProgress = null } = options;
+
+  // 横位置の補正(プリンターごと)。90° 回して送る機種では横が送り方向になるので使わない
+  if (!isRotatedPrinter(deviceName, printerModel)) {
+    const offsetMm = options.offsetMm ?? getDeviceOffsetMm(deviceName);
+    const dots = offsetMmToDots(offsetMm, getPrinterDpi(deviceName, printerModel));
+    if (dots) {
+      console.log(`Horizontal offset: ${offsetMm}mm (${dots} dots)`);
+      rasterData = shiftRasterX(rasterData, dots);
+    }
+  }
   const { data, widthBytes, heightLines } = rasterData;
 
   const isDSeries = isDSeriesPrinter(deviceName, printerModel);
