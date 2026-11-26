@@ -72,6 +72,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Roboto:wght@400;500;700&family=Open+Sans:wght@400;600;700&family=Lato:wght@400;700&family=Montserrat:wght@400;500;600;700&family=Oswald:wght@400;500;600&family=Playfair+Display:wght@400;500;600;700&family=Merriweather:wght@400;700&family=Roboto+Mono:wght@400;500;700&family=Source+Code+Pro:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
+    /* デザインを開く: グリッド表示のときの幅(design-gallery.js) */
+    .load-dialog-wide { width: 46rem; max-width: 95vw; }
     /* Hide body until styles are ready to prevent FOUC */
     body { opacity: 0; font-family: 'Inter', system-ui, sans-serif; }
     body.ready { opacity: 1; transition: opacity 0.1s ease-in; }
@@ -1443,7 +1445,7 @@
 
   <!-- Load Dialog -->
   <div id="load-dialog" class="hidden fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-50">
-    <div class="bg-white rounded-xl p-6 w-96 shadow-xl max-h-[80vh] flex flex-col">
+    <div id="load-dialog-panel" class="bg-white rounded-xl p-6 w-96 shadow-xl max-h-[80vh] flex flex-col">
       <h3 class="text-lg font-semibold text-gray-900 mb-4" data-i18n="load_design">デザインを開く</h3>
       <div id="design-list" class="flex-1 overflow-y-auto mb-4 min-h-[100px]">
         <div class="text-sm text-gray-400 text-center py-8" data-i18n="no_saved_designs">保存したデザインはありません</div>
@@ -2471,7 +2473,7 @@
     pdfjsModule.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.379/pdf.worker.min.mjs';
     window.pdfjsLib = pdfjsModule;
   </script>
-  <script type="module" src="app.js?v=159"></script>
+  <script type="module" src="app.js?v=160"></script>
   <script>
     // Show body once styles are ready
     requestAnimationFrame(() => {

@@ -63,6 +63,7 @@ import { initAssetsPanel, ASSET_DEFAULTS } from './assets-panel.js';
 import { createFrameElement, frameGeometryForLabel, FRAME_STYLES, frameStyleName } from './frames.js';
 import { t, onLangChange } from './i18n.js';
 import { openCropDialog } from './image-crop.js';
+import { renderDesignList } from './design-gallery.js';
 import { initTextStylePanel, updateTextStylePanel, mobileTextStyleHtml, wireMobileTextStyle } from './text-style-panel.js';
 import { isVertical } from './text-layout.js';
 import {
@@ -5353,59 +5354,32 @@ function showLoadDialog() {
   } else if (designs.length === 0) {
     listEl.innerHTML = `<div class="text-sm text-gray-400 text-center py-8">${t('no_saved_designs')}</div>`;
   } else {
-    listEl.innerHTML = designs.map(d => {
-      // Build info badges
-      const badges = [];
-      if (d.hasImages) {
-        badges.push('<span class="px-1.5 py-0.5 text-xs bg-blue-100 text-blue-700 rounded">🖼️</span>');
-      }
-      if (d.isTemplate) {
-        badges.push(`<span class="px-1.5 py-0.5 text-xs bg-purple-100 text-purple-700 rounded">${t('template')}</span>`);
-      }
-      if (d.templateDataCount > 0) {
-        badges.push(`<span class="px-1.5 py-0.5 text-xs bg-green-100 text-green-700 rounded">${t('n_records', { n: d.templateDataCount })}</span>`);
-      }
-      if (d.isMultiLabel) {
-        badges.push(`<span class="px-1.5 py-0.5 text-xs bg-orange-100 text-orange-700 rounded">${t('n_up', { n: d.multiLabel.labelsAcross })}</span>`);
-      }
-      if (d.dirty) {
-        badges.push(`<span class="px-1.5 py-0.5 text-xs bg-amber-100 text-amber-700 rounded" title="${t('not_synced_title')}">${t('not_synced')}</span>`);
-      }
-
-      const badgeHtml = badges.length > 0 ? `<div class="flex gap-1 mt-1">${badges.join('')}</div>` : '';
-
-      return `
-        <div class="design-item flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg cursor-pointer border border-gray-100 mb-2" data-name="${d.name}">
-          <div class="flex-1">
-            <div class="font-medium text-sm text-gray-900">${d.name}</div>
-            <div class="text-xs text-gray-400">${d.labelSize.width}x${d.labelSize.height}mm · ${t('n_elements', { n: d.elementCount })}</div>
-            ${badgeHtml}
-          </div>
-          <button class="delete-design text-red-500 hover:text-red-700 text-xs px-2 py-1 ml-2" data-name="${d.name}">${t('delete')}</button>
-        </div>
-      `;
-    }).join('');
-
-    // Bind click handlers
-    listEl.querySelectorAll('.design-item').forEach(item => {
-      item.addEventListener('click', (e) => {
-        if (e.target.classList.contains('delete-design')) {
-          e.stopPropagation();
-          const name = e.target.dataset.name;
-          if (confirm(t('confirm_delete_design', { name }))) {
-            deleteDesign(name);
-            showLoadDialog(); // Refresh list
-            setStatus(t('status_design_deleted', { name }));
-          }
-          return;
+    // グリッド(サムネイル)/リスト表示は design-gallery.js
+    renderDesignList(listEl, designs, {
+      getDesign: loadDesign,
+      onOpen: (name) => handleLoad(name),
+      onDelete: (name) => {
+        if (confirm(t('confirm_delete_design', { name }))) {
+          deleteDesign(name);
+          showLoadDialog(); // Refresh list
+          setStatus(t('status_design_deleted', { name }));
         }
-        handleLoad(item.dataset.name);
-      });
+      },
+      onViewChange: setLoadDialogWidth,
     });
   }
+  if (isGuest() || designs.length === 0) setLoadDialogWidth('list');
 
   $('#load-dialog').classList.remove('hidden');
   $('#load-dialog').hidden = false;
+}
+
+/** グリッド表示のときはダイアログを広げる */
+function setLoadDialogWidth(view) {
+  const panel = $('#load-dialog-panel');
+  if (!panel) return;
+  panel.classList.toggle('w-96', view !== 'grid');
+  panel.classList.toggle('load-dialog-wide', view === 'grid');
 }
 
 /**

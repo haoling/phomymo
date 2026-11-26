@@ -701,4 +701,11 @@ export const MESSAGES = {
   err_no_ble_service: { ja: "対応するBluetoothサービスが見つかりませんでした。最後のエラー: {message}", en: "No compatible Bluetooth service found. Last error: {message}" },
   // ---- JS: fix ----
   err_design_name_required: { ja: "デザイン名を入力してください", en: "Design name is required" },
+  // ---- JS: design-gallery.js ----
+  gallery_view_grid: { ja: "グリッド", en: "Grid" },
+  gallery_view_list: { ja: "リスト", en: "List" },
+  gallery_thumb_loading: { ja: "読み込み中…", en: "Loading…" },
+  gallery_thumb_failed: { ja: "プレビューなし", en: "No preview" },
+  gallery_has_images: { ja: "画像あり", en: "Has images" },
+  gallery_round_size: { ja: "丸 {width}mm", en: "{width}mm round" },
 };
