@@ -4,10 +4,11 @@
  * v116
  */
 
-import { CanvasRenderer } from './canvas.js?v=119';
+import { CanvasRenderer } from './canvas.js?v=120';
 import { BLETransport } from './ble.js?v=103';
 import { USBTransport } from './usb.js?v=101';
 import { normalizeMirror, defaultOrientFor, DEFAULT_MIRROR } from './mirror.js';
+import { PRINT_ROTATIONS, ROTATION_FOLLOW_DEVICE, normalizeDesignRotation, getDeviceRotation, setDeviceRotation, resolvePrintRotation, rotatedSize } from './print-rotation.js';
 import { print, printDensityTest, isDSeriesPrinter, isP12Printer, isA30Printer, isTapePrinter, isPM241Printer, isTSPLPrinter, isRotatedPrinter, getPrinterWidthBytes, getPrinterDpi, getPrinterAlignment, getPrinterDescription, isDeviceRecognized, getMatchedPattern, loadPrinterDefinitions, getAllPrinterDefinitions, getPrinterDefinition, getCustomPrinterDefinitions, saveCustomPrinterDefinition, deleteCustomPrinterDefinition, isBuiltinPrinter, resetBuiltinPrinter, getAvailableProtocols, getAvailableLabelPresets, getDetectedDefinition } from './printer.js?v=129';
 import {
   createTextElement,
@@ -59,7 +60,8 @@ import {
   listDesigns,
   deleteDesign,
   updateDesignCounter,
-} from './storage.js?v=102';
+  updateDesignPrintRotation,
+} from './storage.js?v=103';
 import { initAccountUI, showGuestNotice, showAccountDialog, isGuest } from './account-ui.js';
 import { initAssetsPanel, ASSET_DEFAULTS } from './assets-panel.js';
 import { createFrameElement, frameGeometryForLabel, FRAME_STYLES, frameStyleName } from './frames.js';
@@ -180,6 +182,8 @@ const state = {
   renderer: null,
   canPrint: true,   // Set to false if browser doesn't support Bluetooth/USB
   currentDesignName: null,  // Name of the currently loaded design
+  // 印刷時の回転(デザインごと)。'device' = 接続中の機体の既定に従う、または 0/90/180/270
+  printRotation: ROTATION_FOLLOW_DEVICE,
   // Drag state
   isDragging: false,
   dragType: null, // 'move', 'resize', 'rotate'
@@ -294,6 +298,14 @@ function saveDeviceMapping(deviceName, printerModel) {
  * @param {string} deviceName - BLE device name
  * @returns {string|null} Saved printer model or null
  */
+/**
+ * 印刷で実際に使う回転の角度(デザインの指定 > 接続中の機体の既定)
+ */
+function currentPrintRotation() {
+  const deviceName = state.transport?.getDeviceName?.() || '';
+  return resolvePrintRotation(state.printRotation, deviceName);
+}
+
 function getSavedDeviceModel(deviceName) {
   if (!deviceName) return null;
   const mappings = getDeviceMappings();
@@ -345,6 +357,7 @@ function refreshLanguageTexts() {
   if (state.transport?.isConnected?.()) {
     updatePrinterInfoUI(deviceName, state.printSettings?.printerModel);
   }
+  updatePrintRotationTexts();
   if ($('#template-data-dialog') && !$('#template-data-dialog').classList.contains('hidden')) updateTemplateDataTable();
   else if ($('#template-record-count')) $('#template-record-count').textContent = t('n_records', { n: state.templateData.length });
   const previewCount = $('#preview-count');
@@ -1428,6 +1441,59 @@ function updateCounterUI() {
   if (note) note.classList.toggle('hidden', !state.counter.resume || !!state.currentDesignName);
 }
 
+/** 印刷設定ダイアログの「印刷の向き」欄を state から作り直す */
+function loadPrintRotationUI() {
+  const designSelect = $('#print-rotation-design');
+  const deviceSelect = $('#print-rotation-device');
+  if (!designSelect || !deviceSelect) return;
+  const deviceName = state.transport?.isConnected?.() ? (state.transport.getDeviceName?.() || '') : '';
+  designSelect.value = String(state.printRotation);
+  deviceSelect.value = String(getDeviceRotation(deviceName));
+  deviceSelect.disabled = !deviceName;
+  updatePrintRotationTexts();
+}
+
+/** 「印刷の向き」欄の、選んでいる値から決まる文言を書き直す */
+function updatePrintRotationTexts() {
+  const designSelect = $('#print-rotation-design');
+  const deviceSelect = $('#print-rotation-device');
+  const result = $('#print-rotation-result');
+  if (!designSelect || !deviceSelect || !result) return;
+  const deviceName = state.transport?.isConnected?.() ? (state.transport.getDeviceName?.() || '') : '';
+  const label = $('#print-rotation-device-label');
+  if (label) label.textContent = deviceName ? t('print_rotation_device_named', { name: deviceName }) : t('print_rotation_device');
+  $('#print-rotation-device-note')?.classList.toggle('hidden', !!deviceName);
+
+  const design = normalizeDesignRotation(designSelect.value);
+  const rotation = design === ROTATION_FOLLOW_DEVICE ? (Number(deviceSelect.value) || 0) : design;
+  // 多面ラベルのときは並べた全体の大きさ
+  const size = state.renderer?.getDimensions?.();
+  const mm = (px) => Math.round((px / 8) * 10) / 10;
+  const paper = size?.width
+    ? rotatedSize(mm(size.width), mm(size.height), rotation)
+    : rotatedSize(state.labelSize.width, state.labelSize.height, rotation);
+  result.textContent = t('print_rotation_result', { width: paper.width, height: paper.height, rotation });
+  result.dataset.rotation = String(rotation);
+}
+
+/** 「印刷の向き」欄で選んだ値を保存する(印刷設定の「保存」で呼ぶ) */
+function savePrintRotationUI() {
+  const designSelect = $('#print-rotation-design');
+  const deviceSelect = $('#print-rotation-device');
+  if (!designSelect || !deviceSelect) return;
+  state.printRotation = normalizeDesignRotation(designSelect.value);
+  const deviceName = state.transport?.isConnected?.() ? (state.transport.getDeviceName?.() || '') : '';
+  if (deviceName) setDeviceRotation(deviceName, Number(deviceSelect.value));
+  // 保存済みのデザインを開いているなら、デザインにも書き込む
+  if (state.currentDesignName) {
+    try {
+      updateDesignPrintRotation(state.currentDesignName, state.printRotation);
+    } catch (e) {
+      logError(e, 'savePrintRotationUI');
+    }
+  }
+}
+
 function initCounterSettings() {
   $('#counter-resume')?.addEventListener('change', (e) => {
     state.counter.resume = e.target.checked;
@@ -2469,8 +2535,8 @@ async function handleBatchPrint() {
         ditherMode = 'threshold';
       }
       const rasterData = isRotatedPrinter(deviceName, printerModel)
-        ? state.renderer.getRasterDataRaw(mergedElements, ditherMode)
-        : state.renderer.getRasterData(mergedElements, printerWidth, 203, ditherMode, printerAlignment);
+        ? state.renderer.getRasterDataRaw(mergedElements, ditherMode, currentPrintRotation())
+        : state.renderer.getRasterData(mergedElements, printerWidth, 203, ditherMode, printerAlignment, currentPrintRotation());
 
       // Print
       await print(state.transport, rasterData, {
@@ -2564,8 +2630,8 @@ async function handlePrintSinglePreview() {
       ditherMode = 'threshold';
     }
     const rasterData = isRotatedPrinter(deviceName, printerModel)
-      ? state.renderer.getRasterDataRaw(mergedElements, ditherMode)
-      : state.renderer.getRasterData(mergedElements, printerWidth, 203, ditherMode, printerAlignment);
+      ? state.renderer.getRasterDataRaw(mergedElements, ditherMode, currentPrintRotation())
+      : state.renderer.getRasterData(mergedElements, printerWidth, 203, ditherMode, printerAlignment, currentPrintRotation());
 
     // Print
     await print(state.transport, rasterData, {
@@ -5594,8 +5660,8 @@ async function handlePrint() {
         console.log('TSPL printer: forcing threshold mode for crisp barcodes');
       }
       return isRotatedPrinter(deviceName, printerModel)
-        ? state.renderer.getRasterDataRaw(elementsToRender, ditherMode)
-        : state.renderer.getRasterData(elementsToRender, printerWidth, printerDpi, ditherMode, printerAlignment);
+        ? state.renderer.getRasterDataRaw(elementsToRender, ditherMode, currentPrintRotation())
+        : state.renderer.getRasterData(elementsToRender, printerWidth, printerDpi, ditherMode, printerAlignment, currentPrintRotation());
     };
 
     let rasterData = await buildRaster(0);
@@ -5726,6 +5792,11 @@ function handleSave() {
     // 連番の状態(前回の続きから振るためのもの)
     designData.counter = { ...state.counter };
 
+    // 印刷時の回転(機体の既定に従うときは保存しない)
+    if (state.printRotation !== ROTATION_FOLLOW_DEVICE) {
+      designData.printRotation = state.printRotation;
+    }
+
     saveDesign(name, designData);
     hideSaveDialog();
 
@@ -5836,6 +5907,11 @@ function handleExport() {
   // Include multi-label config if enabled
   if (state.multiLabel.enabled) {
     exportData.multiLabel = { ...state.multiLabel };
+  }
+
+  // 印刷時の回転
+  if (state.printRotation !== ROTATION_FOLLOW_DEVICE) {
+    exportData.printRotation = state.printRotation;
   }
 
   // Create and download file
@@ -6137,6 +6213,9 @@ function handleLoad(name, sampleDesign = null) {
   state.templateColumns = columnsOfRecords(state.templateData);
   state.templateSheets = null;
   state.mergePreview = { enabled: false, row: 0 };
+
+  // 印刷時の回転を復元(無ければ機体の既定に従う)
+  state.printRotation = normalizeDesignRotation(design.printRotation);
 
   // 連番の状態を復元
   state.counter = {
@@ -8274,6 +8353,7 @@ function init() {
     feedSelect.value = state.printSettings.feed;
     printerModelSelect.value = state.printSettings.printerModel || 'auto';
     updateCounterUI();
+    loadPrintRotationUI();
     printSettingsDialog.classList.remove('hidden');
   });
 
@@ -8292,13 +8372,20 @@ function init() {
     copiesInput.value = 1;
     feedSelect.value = 32;
     printerModelSelect.value = 'auto';
+    $('#print-rotation-design').value = ROTATION_FOLLOW_DEVICE;
+    $('#print-rotation-device').value = '0';
+    updatePrintRotationTexts();
   });
+
+  $('#print-rotation-design').addEventListener('change', updatePrintRotationTexts);
+  $('#print-rotation-device').addEventListener('change', updatePrintRotationTexts);
 
   $('#print-settings-save').addEventListener('click', () => {
     state.printSettings.density = parseInt(densitySlider.value);
     state.printSettings.copies = Math.max(PRINT.MIN_COPIES, Math.min(PRINT.MAX_COPIES, parseInt(copiesInput.value) || PRINT.DEFAULT_COPIES));
     state.printSettings.feed = parseInt(feedSelect.value);
     state.printSettings.printerModel = printerModelSelect.value;
+    savePrintRotationUI();
 
     // Save to localStorage
     safeStorageSet('phomymo_print_settings', safeJsonStringify(state.printSettings));

@@ -6,7 +6,7 @@ import { isGoogleLoginConfigured } from './config.js';
 import * as kv from './kv.js';
 import * as auth from './auth.js';
 import * as sync from './sync.js';
-import { countUnsyncedDesigns } from './storage.js?v=102';
+import { countUnsyncedDesigns } from './storage.js?v=103';
 import { t } from './i18n.js';
 
 export { isGoogleLoginConfigured };

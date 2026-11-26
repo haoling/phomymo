@@ -8,7 +8,7 @@
  * app.js からは renderDesignList() だけを使う。サンプル(samples.js)も同じ一覧の下に並べる。
  */
 
-import { CanvasRenderer } from './canvas.js?v=119';
+import { CanvasRenderer } from './canvas.js?v=120';
 import { substituteFields, evaluateExpressions } from './templates.js?v=102';
 import { waitForElementFonts } from './fonts-ja.js?v=1';
 import * as kv from './kv.js';

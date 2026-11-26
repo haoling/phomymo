@@ -193,6 +193,24 @@ export function updateDesignCounter(name, counter) {
 }
 
 /**
+ * 保存済みデザインの「印刷時の回転」だけを書き換える
+ * @param {string} name - Design name
+ * @param {'device'|0|90|180|270} printRotation - 'device' は機体の既定に従う(項目を消す)
+ * @returns {boolean} - false if the design does not exist
+ */
+export function updateDesignPrintRotation(name, printRotation) {
+  const records = readRecords();
+  const record = findLiveByName(records, name);
+  if (!record) {
+    return false;
+  }
+  if ([0, 90, 180, 270].includes(printRotation)) record.design.printRotation = printRotation;
+  else delete record.design.printRotation;
+  touch(record);
+  return writeRecords(records);
+}
+
+/**
  * Rename a design
  * @param {string} oldName - Current name
  * @param {string} newName - New name
@@ -331,6 +349,11 @@ export function importDesign(jsonString, overrideName = null) {
         gapMm: data.multiLabel.gapMm || 2,
         cloneMode: data.multiLabel.cloneMode !== false, // Default to true
       };
+    }
+
+    // 印刷時の回転(0/90/180/270)
+    if ([0, 90, 180, 270].includes(data.printRotation)) {
+      designData.printRotation = data.printRotation;
     }
 
     saveDesign(name, designData);

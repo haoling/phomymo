@@ -1622,6 +1622,33 @@
           <input type="number" id="print-copies" min="1" max="99" value="1" class="prop-input w-20">
         </div>
 
+        <!-- 印刷時の回転 -->
+        <div id="print-rotation-settings" class="rounded-lg border border-gray-200 p-3 space-y-2">
+          <div class="prop-label mb-0" data-i18n="print_rotation">印刷の向き</div>
+          <p class="text-xs text-gray-500 leading-relaxed" data-i18n="print_rotation_help">デザインと用紙の縦横が違うときに、回して印刷します。例: 30×40mm で作ったデザインを 40×30mm の用紙に印刷するときは「右に90°」か「左に90°」を選びます。</p>
+          <div>
+            <div class="text-xs text-gray-600 mb-1" data-i18n="print_rotation_design">このデザイン</div>
+            <select id="print-rotation-design" class="prop-input">
+              <option value="device" data-i18n="print_rotation_follow_device">プリンターの既定に従う</option>
+              <option value="0" data-i18n="rotation_0">回さない(0°)</option>
+              <option value="90" data-i18n="rotation_90">右に90°回す</option>
+              <option value="180" data-i18n="rotation_180">180°回す(上下逆さま)</option>
+              <option value="270" data-i18n="rotation_270">左に90°回す(270°)</option>
+            </select>
+          </div>
+          <div>
+            <div id="print-rotation-device-label" class="text-xs text-gray-600 mb-1" data-i18n="print_rotation_device">このプリンターの既定</div>
+            <select id="print-rotation-device" class="prop-input">
+              <option value="0" data-i18n="rotation_0">回さない(0°)</option>
+              <option value="90" data-i18n="rotation_90">右に90°回す</option>
+              <option value="180" data-i18n="rotation_180">180°回す(上下逆さま)</option>
+              <option value="270" data-i18n="rotation_270">左に90°回す(270°)</option>
+            </select>
+            <p id="print-rotation-device-note" class="hidden text-xs text-gray-400 mt-1" data-i18n="print_rotation_device_disconnected">プリンターに接続すると、プリンターごとの既定を決められます</p>
+          </div>
+          <p id="print-rotation-result" class="text-xs font-medium text-gray-700"></p>
+        </div>
+
         <!-- Counter / 連番 (#31) -->
         <div id="counter-settings" class="rounded-lg border border-gray-200 p-3 space-y-2">
           <div class="flex items-center justify-between">
@@ -2557,7 +2584,7 @@
     pdfjsModule.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.379/pdf.worker.min.mjs';
     window.pdfjsLib = pdfjsModule;
   </script>
-  <script type="module" src="app.js?v=162"></script>
+  <script type="module" src="app.js?v=163"></script>
   <script>
     // Show body once styles are ready
     requestAnimationFrame(() => {

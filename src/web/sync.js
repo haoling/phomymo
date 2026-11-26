@@ -19,7 +19,7 @@ import {
   removeDesignRecord,
   countUnsyncedDesigns,
   DESIGN_RECORDS_KEY,
-} from './storage.js?v=102';
+} from './storage.js?v=103';
 
 const FILE_RE = /^design-([0-9a-zA-Z-]{8,})\.json$/;
 const DAY_MS = 24 * 60 * 60 * 1000;
