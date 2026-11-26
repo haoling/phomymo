@@ -91,7 +91,11 @@ function substituteString(str, record) {
   return str.replace(FIELD_PATTERN, (match, field) => {
     const trimmedField = field.trim();
     // Return the value if it exists, otherwise keep the placeholder
-    return record.hasOwnProperty(trimmedField) ? record[trimmedField] : match;
+    if (Object.prototype.hasOwnProperty.call(record, trimmedField)) return record[trimmedField];
+    // 表の見出しと大文字・小文字や前後の空白が違っても差し込む
+    const lower = trimmedField.toLowerCase();
+    const key = Object.keys(record).find(k => k.trim().toLowerCase() === lower);
+    return key !== undefined ? record[key] : match;
   });
 }
 

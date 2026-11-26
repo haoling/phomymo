@@ -153,7 +153,9 @@ Click **Manage Data** to open the data dialog. You can import a CSV file or manu
 
 ![Empty data dialog](screenshots/04-templates-batch/03-template-data-dialog-empty.png)
 
-Click **Import CSV** and select your file. The CSV headers should match your field names (e.g., `Name,Price`).
+Click **Import table (CSV / Excel)** and select your file. CSV, TSV and Excel (`.xlsx`) files work; Shift_JIS CSV saved by Japanese Excel is detected automatically. The first row is the header, and each header becomes a field name you can use as `{{Header}}` (e.g., `Name,Price`). Upper/lower case differences are ignored.
+
+For Google Sheets, select the cells including the header row, copy them, click **Paste** and paste into the box (or download the sheet as `.xlsx` / CSV). If an Excel file has several sheets, choose one in the **Sheet** menu.
 
 ![CSV imported](screenshots/04-templates-batch/04-csv-data-imported.png)
 
@@ -163,9 +165,17 @@ Click **Preview** to see all your labels rendered with the data. Click any thumb
 
 ![Preview grid](screenshots/04-templates-batch/05-preview-grid.png)
 
+### Previewing a Row on the Canvas
+
+Click a row number in the data dialog, or use **Preview row** in the template panel (◀ ▶ or type the number), to show that row merged into the label on the canvas. Turn off **Show merged data on canvas** to see the `{{fields}}` again. The design itself is not changed.
+
+### Choosing Rows to Print
+
+Type the rows to print in **Rows to print**, e.g. `1-10, 15` or `20-` (row 20 to the end). Row numbers count data rows, starting at 1 right below the header. The checkboxes in the data dialog follow the range, and vice versa.
+
 ### Batch Printing
 
-Click **Print All** to print every label in sequence. A progress indicator shows the current label being printed. You can cancel at any time.
+Click **Print All** (or **Print selected** when only some rows are chosen) to print the chosen rows in sequence. A progress indicator shows the current label being printed. You can cancel at any time.
 
 ---
 

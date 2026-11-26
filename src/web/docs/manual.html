@@ -394,9 +394,16 @@ src="screenshots/04-templates-batch/03-template-data-dialog-empty.png"
 alt="Empty data dialog" />
 <figcaption aria-hidden="true">Empty data dialog</figcaption>
 </figure>
-<p>Click <strong>Import CSV</strong> and select your file. The CSV
-headers should match your field names (e.g.,
-<code>Name,Price</code>).</p>
+<p>Click <strong>Import table (CSV / Excel)</strong> and select your
+file. CSV, TSV and Excel (<code>.xlsx</code>) files work; Shift_JIS CSV
+saved by Japanese Excel is detected automatically. The first row is the
+header, and each header becomes a field name you can use as
+<code>{{Header}}</code> (e.g., <code>Name,Price</code>). Upper/lower case
+differences are ignored.</p>
+<p>For Google Sheets, select the cells including the header row, copy
+them, click <strong>Paste</strong> and paste into the box (or download the
+sheet as <code>.xlsx</code> / CSV). If an Excel file has several sheets,
+choose one in the <strong>Sheet</strong> menu.</p>
 <figure>
 <img src="screenshots/04-templates-batch/04-csv-data-imported.png"
 alt="CSV imported" />
@@ -410,8 +417,20 @@ the data. Click any thumbnail to see it full-size.</p>
 alt="Preview grid" />
 <figcaption aria-hidden="true">Preview grid</figcaption>
 </figure>
+<h3 id="previewing-a-row-on-the-canvas">Previewing a Row on the Canvas</h3>
+<p>Click a row number in the data dialog, or use <strong>Preview row</strong>
+in the template panel (◀ ▶ or type the number), to show that row merged
+into the label on the canvas. Turn off <strong>Show merged data on
+canvas</strong> to see the <code>{{fields}}</code> again. The design
+itself is not changed.</p>
+<h3 id="choosing-rows-to-print">Choosing Rows to Print</h3>
+<p>Type the rows to print in <strong>Rows to print</strong>, e.g.
+<code>1-10, 15</code> or <code>20-</code> (row 20 to the end). Row numbers
+count data rows, starting at 1 right below the header. The checkboxes in
+the data dialog follow the range, and vice versa.</p>
 <h3 id="batch-printing">Batch Printing</h3>
-<p>Click <strong>Print All</strong> to print every label in sequence. A
+<p>Click <strong>Print All</strong> (or <strong>Print selected</strong> when
+only some rows are chosen) to print the chosen rows in sequence. A
 progress indicator shows the current label being printed. You can cancel
 at any time.</p>
 <hr />
