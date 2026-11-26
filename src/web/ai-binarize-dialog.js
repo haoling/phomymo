@@ -50,6 +50,7 @@ const CSS = `
 #ai-bw-dialog .aibw-bar { width: 70%; height: 6px; background: #e5e7eb; border-radius: 9999px; overflow: hidden; }
 #ai-bw-dialog .aibw-bar > div { height: 100%; width: 0; background: #2563eb; transition: width .15s; }
 #ai-bw-dialog .aibw-note { margin: 0; padding: 8px 16px 0; font-size: 11px; color: #6b7280; line-height: 1.5; }
+#ai-bw-dialog .aibw-crop-note { color: #b45309; }
 #ai-bw-dialog .aibw-error { margin: 0; padding: 6px 16px 0; font-size: 12px; color: #b91c1c; }
 #ai-bw-dialog .aibw-error[hidden] { display: none; }
 #ai-bw-dialog .aibw-foot { display: flex; align-items: center; gap: 8px; padding: 10px 16px 14px; }
@@ -110,6 +111,7 @@ function buildDialog() {
         </div>
       </div>
       <p class="aibw-error" id="aibw-error" role="alert" hidden></p>
+      <p class="aibw-note aibw-crop-note" id="aibw-crop-note" data-i18n="aibw_cropped_note" hidden>${t('aibw_cropped_note')}</p>
       <p class="aibw-note" data-i18n="aibw_privacy_note">${t('aibw_privacy_note')}</p>
       <div class="aibw-foot">
         <span class="aibw-spacer"></span>
@@ -155,10 +157,11 @@ function onKeyDown(e) {
 /**
  * 画面を開く
  * @param {Object} opts
- * @param {string} opts.imageData - 画像(data URL)
+ * @param {string} opts.imageData - 画像(data URL)。トリミングしている画像は、切り抜いたあとの画像を渡す
+ * @param {boolean} [opts.cropped] - トリミングした範囲だけを加工するか(注意書きを出す)
  * @returns {Promise<{imageData:string, mode:string, lineMode:boolean}|null>}
  */
-export function openAiBinarizeDialog({ imageData }) {
+export function openAiBinarizeDialog({ imageData, cropped = false }) {
   if (!dialog) dialog = buildDialog();
   else {
     applyI18n(dialog);
@@ -181,6 +184,7 @@ export function openAiBinarizeDialog({ imageData }) {
       returnFocus: document.activeElement,
     };
     $('#aibw-before', dialog).src = imageData;
+    $('#aibw-crop-note', dialog).hidden = !cropped;
     $('#aibw-rmbg-first', dialog).checked = session.removeBgFirst;
     $('#aibw-strength', dialog).value = String(session.strength);
     $('#aibw-error', dialog).hidden = true;

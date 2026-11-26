@@ -209,6 +209,54 @@ test.describe('AIで白黒に', () => {
     await expect(page.locator('#prop-image-dither')).toHaveValue('none');
   });
 
+  test('トリミングした画像は、切り抜いた範囲だけを加工し、あとから範囲を広げられない', async ({ page }) => {
+    await installFakes(page);
+    await addImage(page, 'split');
+    // 右の辺を左へ半分動かして、左半分(黒)だけにする
+    await page.click('#prop-image-crop');
+    const stage = (await page.locator('#crop-stage').boundingBox())!;
+    const h = (await page.locator('#crop-box .crop-handle-e').boundingBox())!;
+    await page.mouse.move(h.x + h.width / 2, h.y + h.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(h.x + h.width / 2 - stage.width / 4, h.y + h.height / 2, { steps: 4 });
+    await page.mouse.move(h.x + h.width / 2 - stage.width / 2, h.y + h.height / 2, { steps: 4 });
+    await page.mouse.up();
+    await expect(page.locator('#crop-size')).toHaveText(/^(99|100|101) × 200 px$/);
+    await page.click('#crop-apply');
+    await expect(page.locator('#prop-image-crop-clear')).toBeVisible();
+
+    await page.click('#prop-image-ai-bw');
+    await expect(page.locator('#aibw-crop-note')).toBeVisible();
+    // 「変換前」は切り抜いたあとの画像(左半分の黒だけ)
+    await expect.poll(() => page.locator('#aibw-before').evaluate((img: HTMLImageElement) => img.naturalWidth)).toBeGreaterThan(95);
+    expect(await page.locator('#aibw-before').evaluate((img: HTMLImageElement) => img.naturalWidth)).toBeLessThan(105);
+    await page.click('.aibw-mode[data-mode="edges"]');
+    await expect(page.locator('#aibw-apply')).toBeEnabled();
+    const w = await page.locator('#aibw-after').evaluate((c: HTMLCanvasElement) => c.width);
+    expect(w).toBeLessThan(105);
+    await page.click('#aibw-apply');
+    await expect(page.locator('#ai-bw-dialog')).toBeHidden();
+
+    // トリミングは解除され、加工した範囲が画像全体になる(外側はもう無い)
+    await expect(page.locator('#prop-image-crop-clear')).toBeHidden();
+    await page.click('#prop-image-crop');
+    await expect(page.locator('#crop-size')).toHaveText(/^(99|100|101) × 200 px$/);
+    await page.keyboard.press('Escape');
+
+    // Ctrl+Z で、トリミングした元の画像に戻る
+    await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
+    await page.keyboard.press('Control+z');
+    await expect(page.locator('#prop-image-crop-clear')).toBeVisible();
+  });
+
+  test('トリミングしていない画像では、注意書きを出さない', async ({ page }) => {
+    await installFakes(page);
+    await addImage(page, 'blue');
+    await page.click('#prop-image-ai-bw');
+    await expect(page.locator('#ai-bw-dialog')).toBeVisible();
+    await expect(page.locator('#aibw-crop-note')).toBeHidden();
+  });
+
   test('モデルが読めないときはエラーを出し、もう一度試せる', async ({ page }) => {
     await page.route('https://cdn.jsdelivr.net/npm/onnxruntime-web@*/dist/**', route =>
       route.fulfill({ body: FAKE_ORT, contentType: 'text/javascript' }));

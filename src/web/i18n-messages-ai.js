@@ -27,6 +27,7 @@ export const AI_BINARIZE_MESSAGES = {
   aibw_err_failed: { ja: "変換できませんでした({message})", en: "Could not convert ({message})" },
   aibw_err_image: { ja: "画像を読み込めませんでした", en: "Could not load the image" },
   aibw_privacy_note: { ja: "画像はこの端末の中だけで処理され、外部には送られません。AIモデルは初回だけダウンロードし、ブラウザに保存します。適用したあとも Ctrl+Z で元に戻せます。", en: "Images are processed on this device only and never uploaded. The AI model is downloaded once and kept in your browser. You can undo with Ctrl+Z after applying." },
+  aibw_cropped_note: { ja: "トリミングした範囲だけを加工します。加工したあとは、トリミングの範囲を元の画像より広げられなくなります(Ctrl+Z で加工前に戻せます)。", en: "Only the cropped area is converted. After converting, the crop can no longer be widened beyond it (Ctrl+Z restores the original)." },
   aibw_apply: { ja: "適用", en: "Apply" },
   status_aibw_applied: { ja: "画像を白黒に変換しました(Ctrl+Z で元に戻せます)", en: "Converted the image to black & white (Ctrl+Z to undo)" },
 };

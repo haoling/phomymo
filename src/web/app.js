@@ -38,6 +38,7 @@ import {
   removeElementsInHigherZones,
   normalizeCrop,
   getImageBaseSize,
+  getImageSourceRect,
 } from './elements.js?v=104';
 import {
   HandleType,
@@ -4833,18 +4834,56 @@ async function openImageCrop(id) {
 }
 
 /**
+ * トリミングしている画像は、切り抜いた範囲だけの画像(data URL)にする。
+ * 反転は表示のときにかかるので、ここでは反転前の画像のまま切り抜く
+ */
+async function cropImageDataUrl(element) {
+  const crop = normalizeCrop(element.crop);
+  if (!crop) return element.imageData;
+  const img = await new Promise((resolve, reject) => {
+    const im = new Image();
+    im.onload = () => resolve(im);
+    im.onerror = () => reject(new Error('image load failed'));
+    im.src = element.imageData;
+  });
+  const { sx, sy, sw, sh } = getImageSourceRect(element, img.naturalWidth, img.naturalHeight);
+  const c = document.createElement('canvas');
+  c.width = Math.max(1, Math.round(sw));
+  c.height = Math.max(1, Math.round(sh));
+  c.getContext('2d').drawImage(img, sx, sy, sw, sh, 0, 0, c.width, c.height);
+  return c.toDataURL('image/png');
+}
+
+/**
  * 「AIで白黒に」の画面を開き、決定したら画像を差し替える。
- * 画像の大きさ(縦横比)は変わらないので、トリミングや拡大率はそのまま使える。
+ * トリミングしている画像は、切り抜いた範囲だけを加工し、その範囲を新しい画像にする
+ * (トリミングは解除される。外側はもう無いので、あとから範囲を広げることはできない)。
+ * 拡大率が変わらないよう、naturalWidth/Height は加工前の見かけの大きさにそろえる。
  * 線の加工は白黒にしてあるので、ディザは「なし(しきい値)」にする
  */
 async function openAiBinarize(id) {
   const element = state.elements.find(e => e.id === id);
   if (!element || element.type !== 'image' || !element.imageData) return;
-  const result = await openAiBinarizeDialog({ imageData: element.imageData });
+  const cropped = !!normalizeCrop(element.crop);
+  let source;
+  try {
+    source = await cropImageDataUrl(element);
+  } catch {
+    setStatus(t('aibw_err_image'));
+    return;
+  }
+  const result = await openAiBinarizeDialog({ imageData: source, cropped });
   if (!result) return;
-  if (!state.elements.some(e => e.id === id)) return;
+  const current = state.elements.find(e => e.id === id);
+  if (!current || current.imageData !== element.imageData) return;
+  const base = getImageBaseSize(current);
   saveHistory();
-  const changes = { imageData: result.imageData };
+  const changes = {
+    imageData: result.imageData,
+    crop: null,
+    naturalWidth: base.width,
+    naturalHeight: base.height,
+  };
   if (result.lineMode) changes.dither = 'none';
   modifyElement(id, changes);
   updatePropertiesPanel();
