@@ -65,6 +65,7 @@ import {
 } from './storage.js?v=103';
 import { initAccountUI, showGuestNotice, showAccountDialog, isGuest } from './account-ui.js';
 import { onTokenChange } from './auth.js';
+import { onStatus as onSyncStatus } from './sync.js';
 import { initAssetsPanel, ASSET_DEFAULTS } from './assets-panel.js';
 import { createFrameElement, frameGeometryForLabel, FRAME_STYLES, frameStyleName } from './frames.js';
 import { t, onLangChange } from './i18n.js';
@@ -2481,6 +2482,8 @@ function initSpreadsheetMerge() {
     setStatus(t('status_gsheet_unlinked'));
   });
   onTokenChange(() => updateGsheetUI());
+  // ログインした直後(トークンが来たあとでアカウントが決まる)にもボタンを出す
+  onSyncStatus(() => updateGsheetUI());
 
   // プレビューする行
   $('#merge-row-prev')?.addEventListener('click', () => setMergePreviewRow(state.mergePreview.row - 1, true));
