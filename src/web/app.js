@@ -8,7 +8,8 @@ import { CanvasRenderer } from './canvas.js?v=119';
 import { BLETransport } from './ble.js?v=103';
 import { USBTransport } from './usb.js?v=101';
 import { normalizeMirror, defaultOrientFor, DEFAULT_MIRROR } from './mirror.js';
-import { print, printDensityTest, isDSeriesPrinter, isP12Printer, isA30Printer, isTapePrinter, isPM241Printer, isTSPLPrinter, isRotatedPrinter, getPrinterWidthBytes, getPrinterDpi, getPrinterAlignment, getPrinterDescription, isDeviceRecognized, getMatchedPattern, loadPrinterDefinitions, getAllPrinterDefinitions, getPrinterDefinition, getCustomPrinterDefinitions, saveCustomPrinterDefinition, deleteCustomPrinterDefinition, isBuiltinPrinter, resetBuiltinPrinter, getAvailableProtocols, getAvailableLabelPresets, getDetectedDefinition } from './printer.js?v=129';
+import { print, printDensityTest, isDSeriesPrinter, isP12Printer, isA30Printer, isTapePrinter, isPM241Printer, isTSPLPrinter, isRotatedPrinter, getPrinterWidthBytes, getPrinterDpi, getPrinterAlignment, getPrinterDescription, isDeviceRecognized, getMatchedPattern, loadPrinterDefinitions, getAllPrinterDefinitions, getPrinterDefinition, getCustomPrinterDefinitions, saveCustomPrinterDefinition, deleteCustomPrinterDefinition, isBuiltinPrinter, resetBuiltinPrinter, getAvailableProtocols, getAvailableLabelPresets, getDetectedDefinition } from './printer.js?v=130';
+import { densityTestLevels, buildDensityTestElements, DEFAULT_DENSITY_TEST_RANGE } from './density-test.js?v=1';
 import {
   createTextElement,
   createImageElement,
@@ -8336,18 +8337,63 @@ function init() {
         }
       }
 
+      // 何段階を印刷するか(既定: 今の濃さとその前後)
+      const range = $('#density-test-range')?.value || DEFAULT_DENSITY_TEST_RANGE;
+      const { feed, printerModel } = state.printSettings;
+      // 保存前でも、画面のつまみで選んでいる濃さを基準にする
+      const currentDensity = Number($('#print-density')?.value) || state.printSettings.density;
+      const levels = densityTestLevels(currentDensity, range);
+
       btn.disabled = true;
       btn.textContent = t('btn_printing_test');
       printSettingsDialog.classList.add('hidden');
-      setStatus(t('status_density_test_printing'));
+      setStatus(t('status_density_test_printing', { n: levels.length }));
 
-      await printDensityTest(
-        state.transport,
-        state.connectionType === 'ble',
-        (progress) => setStatus(t('status_density_test_progress', { progress }))
-      );
+      const deviceName = state.transport.getDeviceName?.() || '';
+      const printerWidth = getPrinterWidthBytes(deviceName, printerModel);
+      const printerDpi = getPrinterDpi(deviceName, printerModel);
+      const printerAlignment = getPrinterAlignment(deviceName, printerModel);
+      // 見本は1枚目のラベル(複数面のときは左端)の大きさに合わせる
+      const ml = state.renderer.multiLabel;
+      const labelW = ml?.enabled ? ml.labelWidth : state.renderer.labelWidth;
+      const labelH = ml?.enabled ? ml.labelHeight : state.renderer.labelHeight;
 
-      setStatus(t('status_density_test_done'));
+      const buildRaster = async (density) => {
+        const elements = buildDensityTestElements(density, {
+          width: labelW,
+          height: labelH,
+          title: t('density_test_label_title', { n: density }),
+          isCurrent: density === currentDensity,
+        });
+        // 複数面のときは、横に並んだラベル全部に同じ見本を入れる
+        const zones = ml?.enabled ? (ml.zones?.length || 1) : 1;
+        const allElements = [];
+        for (let z = 0; z < zones; z++) {
+          elements.forEach(el => allElements.push({ ...el, id: `${el.id}_z${z}`, zone: z }));
+        }
+        await waitForElementFonts(allElements);
+        // 網かけの見え方を比べたいので、ディザは掛けずにそのまま白黒にする
+        return isRotatedPrinter(deviceName, printerModel)
+          ? state.renderer.getRasterDataRaw(allElements, 'threshold')
+          : state.renderer.getRasterData(allElements, printerWidth, printerDpi, 'threshold', printerAlignment);
+      };
+
+      let labelIndex = 0;
+      await printDensityTest(state.transport, {
+        levels,
+        buildRaster,
+        isBLE: state.connectionType === 'ble',
+        deviceName,
+        printerModel,
+        feed,
+        continuous: !!(state.labelSize?.continuous),
+        onLabel: (i) => { labelIndex = i; },
+        onProgress: (progress) => setStatus(t('status_density_test_progress', {
+          n: labelIndex + 1, total: levels.length, progress,
+        })),
+      });
+
+      setStatus(t('status_density_test_done', { from: levels[0], to: levels[levels.length - 1], current: currentDensity }));
     } catch (error) {
       logError(error, 'densityTest');
       setStatus(error.message || t('status_density_test_failed'));
