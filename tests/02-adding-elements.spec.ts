@@ -20,7 +20,7 @@ test.describe.serial('Adding Elements', () => {
 
     await expect(page.locator('#props-text')).toBeVisible();
     const content = await page.locator('#prop-text-content').inputValue();
-    expect(content).toContain('Text');
+    expect(content).toBe('新しいテキスト');
 
     await screenshot(page, CH, 1, 'text-element-added');
   });

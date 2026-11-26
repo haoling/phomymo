@@ -12,8 +12,8 @@
  *   fitToLabel  : true ならラベルのサイズが変わったときに自動で合わせ直す
  *   color       : 'black' | 'white'
  */
-
 import { generateId } from './elements.js';
+import { getLang } from './i18n.js';
 
 /** 仮決め: 新しい枠の既定値(あとから変えられるよう定数にしておく) */
 export const FRAME_DEFAULTS = {
@@ -25,21 +25,28 @@ export const FRAME_DEFAULTS = {
 
 /** 枠のスタイル一覧(パネルの並び順) */
 export const FRAME_STYLES = [
-  { id: 'single', name: '一本線', tags: ['シンプル', '線', 'single'] },
-  { id: 'double', name: '二重線', tags: ['二重', 'double'] },
-  { id: 'thick-thin', name: '太細二重', tags: ['二重', '太い', 'thick'] },
-  { id: 'rounded', name: '角丸', tags: ['丸', 'まる', 'rounded'] },
-  { id: 'rounded-double', name: '角丸二重', tags: ['丸', '二重', 'rounded'] },
-  { id: 'dashed', name: '破線', tags: ['点線', 'ミシン目', 'dashed'] },
-  { id: 'dotted', name: '点線', tags: ['ドット', '水玉', 'dotted'] },
-  { id: 'stitch', name: 'ステッチ', tags: ['縫い目', '破線', 'stitch'] },
-  { id: 'corners', name: 'コーナー', tags: ['かぎ括弧', '角', 'corner'] },
-  { id: 'ticket', name: 'チケット', tags: ['切符', 'クーポン', 'ticket'] },
-  { id: 'scallop', name: 'スカラップ', tags: ['波', 'なみ', 'フリル', 'scallop'] },
-  { id: 'ornament', name: '飾り罫', tags: ['ひし形', '装飾', 'クラシック', 'ornament'] },
-  { id: 'hearts', name: 'ハートの角', tags: ['ハート', 'かわいい', 'heart'] },
-  { id: 'stars', name: '星の角', tags: ['星', 'ほし', 'star'] },
+  { id: 'single', name: '一本線', nameEn: 'Single line', tags: ['シンプル', '線', 'single'] },
+  { id: 'double', name: '二重線', nameEn: 'Double line', tags: ['二重', 'double'] },
+  { id: 'thick-thin', name: '太細二重', nameEn: 'Thick & thin', tags: ['二重', '太い', 'thick'] },
+  { id: 'rounded', name: '角丸', nameEn: 'Rounded', tags: ['丸', 'まる', 'rounded'] },
+  { id: 'rounded-double', name: '角丸二重', nameEn: 'Rounded double', tags: ['丸', '二重', 'rounded'] },
+  { id: 'dashed', name: '破線', nameEn: 'Dashed', tags: ['点線', 'ミシン目', 'dashed'] },
+  { id: 'dotted', name: '点線', nameEn: 'Dotted', tags: ['ドット', '水玉', 'dotted'] },
+  { id: 'stitch', name: 'ステッチ', nameEn: 'Stitch', tags: ['縫い目', '破線', 'stitch'] },
+  { id: 'corners', name: 'コーナー', nameEn: 'Corners', tags: ['かぎ括弧', '角', 'corner'] },
+  { id: 'ticket', name: 'チケット', nameEn: 'Ticket', tags: ['切符', 'クーポン', 'ticket'] },
+  { id: 'scallop', name: 'スカラップ', nameEn: 'Scallop', tags: ['波', 'なみ', 'フリル', 'scallop'] },
+  { id: 'ornament', name: '飾り罫', nameEn: 'Ornament', tags: ['ひし形', '装飾', 'クラシック', 'ornament'] },
+  { id: 'hearts', name: 'ハートの角', nameEn: 'Heart corners', tags: ['ハート', 'かわいい', 'heart'] },
+  { id: 'stars', name: '星の角', nameEn: 'Star corners', tags: ['星', 'ほし', 'star'] },
 ];
+
+/** 枠の種類の表示名(表示言語に合わせる) */
+export function frameStyleName(style) {
+  if (!style) return '';
+  return getLang() === 'en' ? (style.nameEn || style.name) : style.name;
+}
+
 
 const STYLE_IDS = new Set(FRAME_STYLES.map(s => s.id));
 

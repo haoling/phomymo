@@ -60,7 +60,8 @@ import {
 } from './storage.js?v=102';
 import { initAccountUI, showGuestNotice, showAccountDialog, isGuest } from './account-ui.js';
 import { initAssetsPanel, ASSET_DEFAULTS } from './assets-panel.js';
-import { createFrameElement, frameGeometryForLabel, FRAME_STYLES } from './frames.js';
+import { createFrameElement, frameGeometryForLabel, FRAME_STYLES, frameStyleName } from './frames.js';
+import { t, onLangChange } from './i18n.js';
 import { openCropDialog } from './image-crop.js';
 import { initTextStylePanel, updateTextStylePanel, mobileTextStyleHtml, wireMobileTextStyle } from './text-style-panel.js';
 import { isVertical } from './text-layout.js';
@@ -282,6 +283,76 @@ function getSavedDeviceModel(deviceName) {
 }
 
 /**
+ * 表示言語が変わったとき(と起動時)に、JS が書いている文言を書き直す。
+ * data-i18n の付いた静的な文言は i18n.js が書き換える。
+ */
+function refreshLanguageTexts() {
+  const connectBtn = $('#connect-btn');
+  if (connectBtn && !connectBtn.disabled) connectBtn.textContent = t('connect');
+  const printBtn = $('#print-btn');
+  if (printBtn && !printBtn.disabled) printBtn.textContent = t('print');
+  const fontsBtn = $('#add-system-fonts-btn');
+  if (fontsBtn) fontsBtn.textContent = t('add_system_fonts');
+  const saveTitle = $('#save-dialog-title');
+  if (saveTitle && $('#save-dialog')?.classList.contains('hidden')) saveTitle.textContent = t('save_design');
+  const status = $('#status-message');
+  if (status && ['', 'Ready', '準備完了'].includes(status.textContent.trim())) status.textContent = t('ready');
+
+  updateMobileLabelName();
+  updateTemplateIndicator();
+  updateCounterUI();
+  updatePrintSize();
+  updateElementsList();
+  updatePropertiesPanel();
+  if (state.mobile?.propsOpen) populateMobileProps();
+  else if ($('#mobile-props-title')) $('#mobile-props-title').textContent = t('properties');
+  const mobileTemplateStatus = $('#mobile-template-status');
+  if (mobileTemplateStatus && !state.templateFields.length) mobileTemplateStatus.textContent = t('n_fields', { n: 0 });
+
+  // JS で作り直したラベルサイズの選択肢は、作り直して訳す
+  const deviceName = state.transport?.getDeviceName?.() || '';
+  const model = state.printSettings?.printerModel || 'auto';
+  if ($('#label-size') && !$('#label-size option[data-i18n]')) updateLabelSizeDropdown(deviceName, model);
+  if ($('#mobile-label-size') && !$('#mobile-label-size option[data-i18n]')) updateMobileLabelSizeDropdown(deviceName, model);
+
+  // 機種の一覧(グループ名)と枠の種類
+  if (getAllPrinterDefinitions().length) populatePrinterModelDropdown();
+  const frameStyleSelect = $('#prop-frame-style');
+  if (frameStyleSelect) {
+    const v = frameStyleSelect.value;
+    frameStyleSelect.innerHTML = FRAME_STYLES.map(fs => `<option value="${fs.id}">${frameStyleName(fs)}</option>`).join('');
+    frameStyleSelect.value = v;
+  }
+  if (state.transport?.isConnected?.()) {
+    updatePrinterInfoUI(deviceName, state.printSettings?.printerModel);
+  }
+  if ($('#template-data-dialog') && !$('#template-data-dialog').classList.contains('hidden')) updateTemplateDataTable();
+  else if ($('#template-record-count')) $('#template-record-count').textContent = t('n_records', { n: state.templateData.length });
+  const previewCount = $('#preview-count');
+  if (previewCount && /^\d+\D*$/.test(previewCount.textContent.trim())) {
+    previewCount.textContent = t('n_labels', { n: parseInt(previewCount.textContent, 10) || 0 });
+  }
+}
+
+/**
+ * プリンター機種の一覧のグループ名(printers.json の英語名)を表示用にする
+ */
+function printerGroupLabel(group) {
+  const map = { 'Tape Printers': 'tape_printers_group', 'D-Series': 'd_series_group' };
+  if (map[group]) return t(map[group]);
+  const m = /^(.+) Series$/.exec(group);
+  return m ? t('series_group', { name: m[1] }) : group;
+}
+
+/**
+ * 図形の種類の表示名
+ */
+function shapeName(shapeType) {
+  const keys = { rectangle: 'rectangle', ellipse: 'ellipse', triangle: 'triangle', line: 'line' };
+  return t(keys[shapeType] || 'shape');
+}
+
+/**
  * Update status message
  */
 function setStatus(message) {
@@ -302,12 +373,12 @@ function isLocalFontAccessAvailable() {
 async function loadLocalFonts() {
   if (!isLocalFontAccessAvailable()) {
     console.log('Local Font Access API not available');
-    setStatus('System fonts not supported in this browser');
+    setStatus(t('status_system_fonts_unsupported'));
     return false;
   }
 
   try {
-    setStatus('Requesting font access...');
+    setStatus(t('status_requesting_font_access'));
     const fonts = await window.queryLocalFonts();
 
     // Deduplicate by family name, keep unique families
@@ -328,15 +399,15 @@ async function loadLocalFonts() {
     // Update all font dropdowns
     updateFontDropdowns();
 
-    setStatus(`Loaded ${state.localFonts.length} system fonts`);
+    setStatus(t('status_loaded_system_fonts', { n: state.localFonts.length }));
     console.log(`Loaded ${state.localFonts.length} local fonts`);
     return true;
   } catch (err) {
     console.error('Failed to load local fonts:', err);
     if (err.name === 'NotAllowedError') {
-      setStatus('Font access denied. Enable in browser settings.');
+      setStatus(t('status_font_access_denied'));
     } else {
-      setStatus('Failed to load system fonts');
+      setStatus(t('status_system_fonts_failed'));
     }
     return false;
   }
@@ -350,13 +421,15 @@ function updateFontDropdowns() {
   if (!dropdown) return;
 
   // Remove existing "System Fonts" optgroup if present
-  const existing = dropdown.querySelector('optgroup[label="System Fonts"]');
+  const existing = dropdown.querySelector('optgroup[data-system-fonts]');
   if (existing) existing.remove();
 
   // Add new optgroup with local fonts
   if (state.localFonts.length > 0) {
     const optgroup = document.createElement('optgroup');
-    optgroup.label = 'System Fonts';
+    optgroup.label = t('system_fonts');
+    optgroup.dataset.systemFonts = '';
+    optgroup.dataset.i18nLabel = 'system_fonts';
 
     for (const font of state.localFonts) {
       const option = document.createElement('option');
@@ -510,7 +583,7 @@ function undo() {
   updateToolbarState();
   updateUndoRedoButtons();
   detectTemplateFields();
-  setStatus('Undo');
+  setStatus(t('undo'));
 }
 
 /**
@@ -535,7 +608,7 @@ function redo() {
   updateToolbarState();
   updateUndoRedoButtons();
   detectTemplateFields();
-  setStatus('Redo');
+  setStatus(t('redo'));
 }
 
 /**
@@ -612,9 +685,9 @@ function showPrintProgress(title, total) {
   printProgressCancelled = false;
   const modal = $('#print-progress-modal');
   $('#progress-title').textContent = title;
-  $('#progress-subtitle').textContent = 'Preparing...';
+  $('#progress-subtitle').textContent = t('progress_preparing');
   $('#progress-bar').style.width = '0%';
-  $('#progress-detail').textContent = `0 of ${total}`;
+  $('#progress-detail').textContent = t('progress_count', { current: 0, total });
   modal.classList.remove('hidden');
   modal.classList.add('flex');
 }
@@ -625,8 +698,8 @@ function showPrintProgress(title, total) {
 function updatePrintProgress(current, total, sublabel = '') {
   const percent = Math.round((current / total) * 100);
   $('#progress-bar').style.width = `${percent}%`;
-  $('#progress-detail').textContent = `${current} of ${total}`;
-  $('#progress-subtitle').textContent = sublabel || `Printing label ${current}...`;
+  $('#progress-detail').textContent = t('progress_count', { current, total });
+  $('#progress-subtitle').textContent = sublabel || t('progress_printing_label', { n: current });
 }
 
 /**
@@ -715,10 +788,10 @@ function updatePrinterInfoUI(deviceName, printerModel) {
 
   // Update device info
   $('#pi-device-name').textContent = deviceName || '--';
-  $('#pi-model').textContent = getMatchedPattern(deviceName) || effectiveModel || 'Unknown';
+  $('#pi-model').textContent = getMatchedPattern(deviceName) || effectiveModel || t('unknown');
   // P12 uses M-series protocol but prints rotated like D-series
-  $('#pi-protocol').textContent = isP12 ? 'P12 (rotated, M-series)' : isDSeries ? 'D-series (rotated)' : 'M-series (ESC/POS)';
-  $('#pi-width').textContent = isDSeries ? 'Variable' : `${width * 8}px (${Math.round(width * 8 / 8)}mm)`;
+  $('#pi-protocol').textContent = isP12 ? t('protocol_p12') : isDSeries ? t('protocol_d_series') : t('protocol_m_series');
+  $('#pi-width').textContent = isDSeries ? t('variable') : `${width * 8}px (${Math.round(width * 8 / 8)}mm)`;
 
   // Update summary in button
   const battery = state.transport?.printerInfo?.battery;
@@ -738,7 +811,7 @@ function updatePrinterInfoUI(deviceName, printerModel) {
 function updateMobileLabelName() {
   const mobileLabelName = $('#mobile-label-name');
   if (mobileLabelName) {
-    mobileLabelName.textContent = state.currentDesignName || 'Untitled Label';
+    mobileLabelName.textContent = state.currentDesignName || t('untitled_label');
   }
 }
 
@@ -762,7 +835,7 @@ function updatePrinterInfoFromQuery(field, value, allInfo) {
       break;
     case 'paper':
       // Use icon prefix for accessibility (not just color)
-      $('#pi-paper').textContent = value === 'ok' ? '✓ OK' : (value === 'out' ? '⚠ Out!' : '--');
+      $('#pi-paper').textContent = value === 'ok' ? t('paper_ok') : (value === 'out' ? t('paper_out') : '--');
       if (value === 'out') {
         $('#pi-paper').classList.add('text-red-600', 'font-semibold');
       } else {
@@ -843,13 +916,13 @@ function updateLabelSizeDropdown(deviceName = '', model = 'auto') {
   if (Object.keys(roundSizes).length > 0) {
     const separator = document.createElement('option');
     separator.disabled = true;
-    separator.textContent = '── Round Labels ──';
+    separator.textContent = t('round_labels');
     select.appendChild(separator);
 
     for (const [key, size] of Object.entries(roundSizes)) {
       const option = document.createElement('option');
       option.value = key;
-      option.textContent = key; // e.g., "20mm Round"
+      option.textContent = t('round_size', { w: size.width }); // e.g., "20mm Round"
       select.appendChild(option);
     }
   }
@@ -858,13 +931,13 @@ function updateLabelSizeDropdown(deviceName = '', model = 'auto') {
   if (Object.keys(continuousSizes).length > 0) {
     const separator = document.createElement('option');
     separator.disabled = true;
-    separator.textContent = '── Continuous Tape ──';
+    separator.textContent = t('continuous_tape_separator');
     select.appendChild(separator);
 
     for (const [key, size] of Object.entries(continuousSizes)) {
       const option = document.createElement('option');
       option.value = key;
-      option.textContent = `${size.width}x${size.height}mm (cont.)`;
+      option.textContent = t('continuous_size', { w: size.width, h: size.height });
       select.appendChild(option);
     }
   }
@@ -872,13 +945,13 @@ function updateLabelSizeDropdown(deviceName = '', model = 'auto') {
   // Add custom option
   const customOption = document.createElement('option');
   customOption.value = 'custom';
-  customOption.textContent = 'Custom...';
+  customOption.textContent = t('custom');
   select.appendChild(customOption);
 
   // Add multi-label option
   const multiLabelOption = document.createElement('option');
   multiLabelOption.value = 'multi-label';
-  multiLabelOption.textContent = 'Multi-Label Roll...';
+  multiLabelOption.textContent = t('multi_label_roll');
   select.appendChild(multiLabelOption);
 
   // Try to restore current size or pick a sensible default
@@ -963,13 +1036,13 @@ function updateMobileLabelSizeDropdown(deviceName = '', model = 'auto') {
   if (Object.keys(roundSizes).length > 0) {
     const separator = document.createElement('option');
     separator.disabled = true;
-    separator.textContent = '── Round ──';
+    separator.textContent = t('round_labels_short');
     mobileSelect.appendChild(separator);
 
     for (const [key, size] of Object.entries(roundSizes)) {
       const option = document.createElement('option');
       option.value = key;
-      option.textContent = key;
+      option.textContent = t('round_size', { w: size.width });
       mobileSelect.appendChild(option);
     }
   }
@@ -978,13 +1051,13 @@ function updateMobileLabelSizeDropdown(deviceName = '', model = 'auto') {
   if (Object.keys(continuousSizes).length > 0) {
     const separator = document.createElement('option');
     separator.disabled = true;
-    separator.textContent = '── Continuous ──';
+    separator.textContent = t('continuous_separator');
     mobileSelect.appendChild(separator);
 
     for (const [key, size] of Object.entries(continuousSizes)) {
       const option = document.createElement('option');
       option.value = key;
-      option.textContent = `${size.width}x${size.height}mm (cont.)`;
+      option.textContent = t('continuous_size', { w: size.width, h: size.height });
       mobileSelect.appendChild(option);
     }
   }
@@ -992,13 +1065,13 @@ function updateMobileLabelSizeDropdown(deviceName = '', model = 'auto') {
   // Add custom option
   const customOption = document.createElement('option');
   customOption.value = 'custom';
-  customOption.textContent = 'Custom...';
+  customOption.textContent = t('custom');
   mobileSelect.appendChild(customOption);
 
   // Add multi-label option
   const multiLabelOption = document.createElement('option');
   multiLabelOption.value = 'multi-label';
-  multiLabelOption.textContent = 'Multi-Label...';
+  multiLabelOption.textContent = t('multi_label_short');
   mobileSelect.appendChild(multiLabelOption);
 
   // Sync with desktop selection
@@ -1148,7 +1221,7 @@ function adjustLabelLength(delta) {
 function updatePrintSize() {
   const { width, height, round } = state.labelSize;
   if (round) {
-    $('#print-size').textContent = `${width}mm round`;
+    $('#print-size').textContent = t('print_size_round', { w: width });
   } else {
     $('#print-size').textContent = `${width} x ${height} mm`;
   }
@@ -1322,10 +1395,10 @@ function updateCounterUI() {
 
   const value = previewCounter(state.elements, counterBase());
   if (value === null) {
-    preview.textContent = 'このデザインには連番がありません';
+    preview.textContent = t('counter_none_in_design');
     preview.dataset.hasCounter = 'false';
   } else {
-    preview.textContent = `次に印刷される番号: ${value}`;
+    preview.textContent = t('counter_next_number', { value });
     preview.dataset.hasCounter = 'true';
   }
   const note = $('#counter-unsaved-note');
@@ -1411,12 +1484,12 @@ function updateTemplateIndicator() {
 
     // Update toolbar label with record count
     if (state.templateData.length > 0) {
-      toolbarLabel.textContent = `Template (${state.templateData.length})`;
+      toolbarLabel.textContent = t('template_with_count', { n: state.templateData.length });
     } else {
-      toolbarLabel.textContent = 'Template';
+      toolbarLabel.textContent = t('template');
     }
   } else {
-    fieldTags.innerHTML = '<span class="text-purple-400 italic">None</span>';
+    fieldTags.innerHTML = `<span class="text-purple-400 italic">${t('none')}</span>`;
 
     // Hide toolbar button and template panel
     toolbarBtn.classList.add('hidden');
@@ -1437,7 +1510,7 @@ function updateTemplateIndicator() {
 
   if (mobileStatus) {
     if (hasFields) {
-      mobileStatus.textContent = `${state.templateFields.length} field${state.templateFields.length > 1 ? 's' : ''}`;
+      mobileStatus.textContent = t('n_fields', { n: state.templateFields.length });
       mobileStatus.classList.remove('hidden');
       mobileFields?.classList.remove('hidden');
       if (mobileFieldTags) {
@@ -1489,7 +1562,7 @@ function updateFieldDropdowns() {
         `<button class="field-option w-full text-left px-3 py-1.5 text-sm hover:bg-purple-50 text-gray-700" data-field="${escapeHtml(f)}" data-type="${type}">{{${escapeHtml(f)}}}</button>`
       ).join('');
     } else {
-      fieldList.innerHTML = '<div class="px-3 py-2 text-xs text-gray-400 italic">No fields yet</div>';
+      fieldList.innerHTML = `<div class="px-3 py-2 text-xs text-gray-400 italic">${t('no_fields_yet')}</div>`;
     }
   }
 }
@@ -1660,7 +1733,7 @@ function updateTemplateDataTable() {
     emptyState.classList.remove('hidden');
     tableHeader.classList.add('hidden');
     tableBody.innerHTML = '';
-    recordCount.textContent = '0 records';
+    recordCount.textContent = t('n_records', { n: 0 });
     updateTemplateIndicator();
     return;
   }
@@ -1678,7 +1751,7 @@ function updateTemplateDataTable() {
     ${state.templateFields.map(f => `
       <th class="px-2 py-1 text-left text-xs font-medium text-gray-500">${escapeHtml(f)}</th>
     `).join('')}
-    <th class="px-2 py-1 text-right text-xs font-medium text-gray-500 w-16">Actions</th>
+    <th class="px-2 py-1 text-right text-xs font-medium text-gray-500 w-16">${t('actions')}</th>
   `;
 
   // Build rows
@@ -1696,12 +1769,12 @@ function updateTemplateDataTable() {
         </td>
       `).join('')}
       <td class="px-2 py-1 text-right">
-        <button class="template-delete-row text-red-500 hover:text-red-700 text-xs" data-index="${idx}">Delete</button>
+        <button class="template-delete-row text-red-500 hover:text-red-700 text-xs" data-index="${idx}">${t('delete')}</button>
       </td>
     </tr>
   `).join('');
 
-  recordCount.textContent = `${state.templateData.length} record${state.templateData.length !== 1 ? 's' : ''}`;
+  recordCount.textContent = t('n_records', { n: state.templateData.length });
 
   // Bind event handlers
   bindTemplateTableEvents();
@@ -1769,7 +1842,7 @@ function handleCSVFileImport(file) {
     importCSVData(evt.target.result);
   };
   reader.onerror = () => {
-    setStatus('Failed to read CSV file');
+    setStatus(t('status_csv_read_failed'));
   };
   reader.readAsText(file);
 }
@@ -1785,7 +1858,7 @@ function importCSVData(csvString) {
   }
 
   if (result.records.length === 0) {
-    setStatus('No data found in CSV');
+    setStatus(t('status_csv_no_data'));
     return;
   }
 
@@ -1810,7 +1883,7 @@ function importCSVData(csvString) {
   state.templateData = mappedRecords;
   state.selectedRecords = mappedRecords.map((_, i) => i);
   updateTemplateDataTable();
-  setStatus(`Imported ${mappedRecords.length} records`);
+  setStatus(t('status_imported_records', { n: mappedRecords.length }));
 }
 
 /**
@@ -1834,7 +1907,7 @@ function hideTemplateDataDialog() {
  */
 function showPreviewDialog() {
   if (state.templateData.length === 0) {
-    setStatus('No data to preview - add records first');
+    setStatus(t('status_no_data_to_preview'));
     return;
   }
 
@@ -1847,7 +1920,7 @@ function showPreviewDialog() {
   grid.innerHTML = recordsToPreview.map(idx => {
     const record = state.templateData[idx];
     const firstField = state.templateFields[0];
-    const label = record[firstField] || `Record ${idx + 1}`;
+    const label = record[firstField] || t('record_n', { n: idx + 1 });
 
     return `
       <div class="preview-thumbnail cursor-pointer hover:ring-2 hover:ring-blue-500 rounded-lg p-2 bg-gray-50"
@@ -1874,7 +1947,7 @@ function showPreviewDialog() {
     });
   });
 
-  $('#preview-count').textContent = `${recordsToPreview.length} label${recordsToPreview.length !== 1 ? 's' : ''}`;
+  $('#preview-count').textContent = t('n_labels', { n: recordsToPreview.length });
   $('#preview-dialog').classList.remove('hidden');
 }
 
@@ -1934,8 +2007,8 @@ function showFullPreview(recordIndex) {
 
   // Update label info
   const firstField = state.templateFields[0];
-  const label = record[firstField] || `Record ${recordIndex + 1}`;
-  $('#full-preview-title').textContent = `Label ${recordIndex + 1}: ${label}`;
+  const label = record[firstField] || t('record_n', { n: recordIndex + 1 });
+  $('#full-preview-title').textContent = t('label_n_title', { n: recordIndex + 1, label });
 
   // Update include checkbox
   $('#full-preview-include').checked = state.selectedRecords.includes(recordIndex);
@@ -1976,7 +2049,7 @@ async function handleBatchPrint() {
     : state.templateData.map((_, i) => i);
 
   if (recordsToPrint.length === 0) {
-    showToast('No records selected to print', 'warning');
+    showToast(t('toast_no_records_selected'), 'warning');
     return;
   }
 
@@ -2002,19 +2075,19 @@ async function handleBatchPrint() {
     // Ensure connected
     if (!state.transport || !state.transport.isConnected()) {
       hideTemplateDataDialog();
-      setStatus('Connecting...');
+      setStatus(t('connecting'));
       await handleConnect();
 
       if (!state.transport || !state.transport.isConnected()) {
-        throw new Error('Please connect to printer first');
+        throw new Error(t('error_connect_first'));
       }
       showTemplateDataDialog();
     }
 
     // Show progress modal
     const labelText = isMultiLabel && !cloneMode
-      ? `Printing ${totalRows} Row${totalRows !== 1 ? 's' : ''} (${totalRecords} labels)`
-      : `Printing ${totalRecords} Label${totalRecords !== 1 ? 's' : ''}`;
+      ? t('progress_title_rows', { rows: totalRows, labels: totalRecords })
+      : t('progress_title_labels', { n: totalRecords });
     showPrintProgress(labelText, totalRows);
 
     let labelsPrinted = 0;
@@ -2022,7 +2095,7 @@ async function handleBatchPrint() {
     for (let rowIndex = 0; rowIndex < totalRows; rowIndex++) {
       // Check for cancellation
       if (isPrintCancelled()) {
-        showToast(`Printing cancelled after ${rowIndex} row${rowIndex !== 1 ? 's' : ''}`, 'warning');
+        showToast(t('toast_print_cancelled_rows', { n: rowIndex }), 'warning');
         break;
       }
 
@@ -2045,8 +2118,8 @@ async function handleBatchPrint() {
         // 連番: ゾーンごとに1つずつ進める
         counterIndex = (el) => counterIndexForLabel(startIdx + (el.zone || 0));
 
-        updatePrintProgress(rowIndex + 1, totalRows, `Printing row ${rowIndex + 1}...`);
-        btn.textContent = `Printing row ${rowIndex + 1}/${totalRows}...`;
+        updatePrintProgress(rowIndex + 1, totalRows, t('progress_printing_row', { n: rowIndex + 1 }));
+        btn.textContent = t('btn_printing_row', { n: rowIndex + 1, total: totalRows });
       } else {
         // Clone mode ON or single-label: Same data for all zones
         const recordIndex = recordsToPrint[rowIndex];
@@ -2055,8 +2128,8 @@ async function handleBatchPrint() {
         // 連番: CSV の印刷順に番号を振る
         counterIndex = counterIndexForLabel(rowIndex);
 
-        updatePrintProgress(rowIndex + 1, totalRows, `Printing label ${rowIndex + 1}...`);
-        btn.textContent = `Printing ${rowIndex + 1}/${totalRows}...`;
+        updatePrintProgress(rowIndex + 1, totalRows, t('progress_printing_label', { n: rowIndex + 1 }));
+        btn.textContent = t('btn_printing_n_of', { n: rowIndex + 1, total: totalRows });
       }
 
       // Evaluate instant expressions (date/time, counter, etc.)
@@ -2085,7 +2158,7 @@ async function handleBatchPrint() {
         feed,
         continuous: !!(state.labelSize?.continuous),
         onProgress: (progress) => {
-          updatePrintProgress(rowIndex + 1, totalRows, `Sending data... ${progress}%`);
+          updatePrintProgress(rowIndex + 1, totalRows, t('progress_sending', { progress }));
         },
       });
 
@@ -2095,7 +2168,7 @@ async function handleBatchPrint() {
 
       // Delay between prints
       if (rowIndex < totalRows - 1 && !isPrintCancelled()) {
-        updatePrintProgress(rowIndex + 1, totalRows, 'Waiting...');
+        updatePrintProgress(rowIndex + 1, totalRows, t('progress_waiting'));
         await new Promise(r => setTimeout(r, 500));
       }
     }
@@ -2105,8 +2178,8 @@ async function handleBatchPrint() {
 
     if (!isPrintCancelled()) {
       const successMsg = isMultiLabel && !cloneMode
-        ? `Printed ${totalRows} row${totalRows !== 1 ? 's' : ''} (${totalRecords} labels)!`
-        : `Printed ${totalRecords} label${totalRecords !== 1 ? 's' : ''}!`;
+        ? t('toast_printed_rows', { rows: totalRows, labels: totalRecords })
+        : t('toast_printed_labels', { n: totalRecords });
       showToast(successMsg, 'success');
       setStatus(successMsg);
     }
@@ -2114,7 +2187,7 @@ async function handleBatchPrint() {
 
   } catch (error) {
     logError(error, 'handleBatchPrint');
-    setStatus(error.message || 'Print failed');
+    setStatus(error.message || t('print_failed'));
     btn.textContent = originalText;
   } finally {
     btn.disabled = false;
@@ -2130,7 +2203,7 @@ async function handlePrintSinglePreview() {
   const record = state.templateData[recordIndex];
 
   if (!record) {
-    setStatus('No record to print');
+    setStatus(t('status_no_record_to_print'));
     return;
   }
 
@@ -2140,16 +2213,16 @@ async function handlePrintSinglePreview() {
 
   try {
     btn.disabled = true;
-    btn.textContent = 'Printing...';
+    btn.textContent = t('printing');
 
     // Ensure connected
     if (!state.transport || !state.transport.isConnected()) {
       hideFullPreview();
-      setStatus('Connecting...');
+      setStatus(t('connecting'));
       await handleConnect();
 
       if (!state.transport || !state.transport.isConnected()) {
-        throw new Error('Please connect to printer first');
+        throw new Error(t('error_connect_first'));
       }
     }
 
@@ -2180,16 +2253,16 @@ async function handlePrintSinglePreview() {
       feed,
       continuous: !!(state.labelSize?.continuous),
       onProgress: (progress) => {
-        btn.textContent = `Printing... ${progress}%`;
+        btn.textContent = t('printing_progress', { progress });
       },
     });
 
-    setStatus('Label printed!');
+    setStatus(t('status_label_printed'));
     btn.textContent = originalText;
 
   } catch (error) {
     logError(error, 'handlePrintSinglePreview');
-    setStatus(error.message || 'Print failed');
+    setStatus(error.message || t('print_failed'));
     btn.textContent = originalText;
   } finally {
     btn.disabled = false;
@@ -2427,9 +2500,9 @@ function updatePropertiesPanel() {
   if (!element) {
     if (selectedCount > 1) {
       // Multiple elements selected
-      $('#props-empty').innerHTML = `<span class="text-gray-500">${selectedCount} elements selected</span>`;
+      $('#props-empty').innerHTML = `<span class="text-gray-500">${t('n_elements_selected', { n: selectedCount })}</span>`;
     } else {
-      $('#props-empty').innerHTML = '<span class="text-gray-400">Select an element to edit</span>';
+      $('#props-empty').innerHTML = `<span class="text-gray-400">${t('select_element_to_edit')}</span>`;
     }
     $('#props-empty').classList.remove('hidden');
     $('#props-content').classList.add('hidden');
@@ -2744,7 +2817,7 @@ function applyMultiLabelConfig() {
   updatePrintSize();
   render();
 
-  showToast(`Multi-label: ${labelsAcross} × ${labelWidth}×${labelHeight}mm`, 'success');
+  showToast(t('toast_multi_label', { n: labelsAcross, w: labelWidth, h: labelHeight }), 'success');
 }
 
 /**
@@ -2831,7 +2904,7 @@ function cloneToAllZones() {
     state.multiLabel.labelsAcross
   );
   render();
-  showToast('Cloned to all zones', 'success');
+  showToast(t('toast_cloned_to_all'), 'success');
 }
 
 /**
@@ -2874,7 +2947,7 @@ function loadMultiLabelPresets() {
  * Save current multi-label config as a preset
  */
 function saveMultiLabelPreset() {
-  const name = prompt('Enter preset name:');
+  const name = prompt(t('prompt_preset_name'));
   if (!name || !name.trim()) return;
 
   const presets = safeJsonParse(safeStorageGet(STORAGE_KEYS.MULTI_LABEL_PRESETS), {});
@@ -2888,7 +2961,7 @@ function saveMultiLabelPreset() {
 
   safeStorageSet(STORAGE_KEYS.MULTI_LABEL_PRESETS, safeJsonStringify(presets));
   loadMultiLabelPresets();
-  showToast(`Preset "${name.trim()}" saved`, 'success');
+  showToast(t('toast_preset_saved', { name: name.trim() }), 'success');
 }
 
 /**
@@ -2919,7 +2992,7 @@ function deleteMultiLabelPreset() {
 
   if (!name) return;
 
-  if (!confirm(`Delete preset "${name}"?`)) return;
+  if (!confirm(t('confirm_delete_preset', { name }))) return;
 
   const presets = safeJsonParse(safeStorageGet(STORAGE_KEYS.MULTI_LABEL_PRESETS), {});
   delete presets[name];
@@ -2928,7 +3001,7 @@ function deleteMultiLabelPreset() {
   loadMultiLabelPresets();
   select.value = '';
   $('#multi-label-delete-preset').classList.add('hidden');
-  showToast(`Preset "${name}" deleted`, 'success');
+  showToast(t('toast_preset_deleted', { name }), 'success');
 }
 
 /**
@@ -4580,7 +4653,7 @@ function handleCanvasTouchCancel(e) {
 function addTextElement() {
   saveHistory();
   const dims = state.renderer.getSingleLabelDimensions();
-  const element = createTextElement('New Text', {
+  const element = createTextElement(t('new_text'), {
     x: dims.width / 2 - 75,
     y: dims.height / 2 - 20,
     width: 150,
@@ -4590,7 +4663,7 @@ function addTextElement() {
   state.elements.push(element);
   autoCloneIfEnabled();
   selectElement(element.id);
-  setStatus('Text added');
+  setStatus(t('status_text_added'));
 
   // Start inline editing immediately so user can type
   setTimeout(() => startInlineEdit(element.id), 50);
@@ -4637,10 +4710,10 @@ async function addImageElement(file) {
     state.elements.push(element);
     autoCloneIfEnabled();
     selectElement(element.id);
-    setStatus(scale < 1 ? `Image scaled to ${Math.round(scale * 100)}%` : (isPDF ? 'PDF imported as image' : 'Image added'));
+    setStatus(scale < 1 ? t('status_image_scaled', { percent: Math.round(scale * 100) }) : (isPDF ? t('status_pdf_imported') : t('status_image_added')));
   } catch (e) {
     logError(e, 'addImageElement');
-    setStatus(file.type === 'application/pdf' ? 'Failed to load PDF' : 'Failed to load image');
+    setStatus(file.type === 'application/pdf' ? t('status_pdf_load_failed') : t('status_image_load_failed'));
   }
 }
 
@@ -4660,7 +4733,7 @@ function addBarcodeElement() {
   state.elements.push(element);
   autoCloneIfEnabled();
   selectElement(element.id);
-  setStatus('Barcode added');
+  setStatus(t('status_barcode_added'));
 }
 
 /**
@@ -4680,7 +4753,7 @@ function addQRElement() {
   state.elements.push(element);
   autoCloneIfEnabled();
   selectElement(element.id);
-  setStatus('QR code added');
+  setStatus(t('status_qr_added'));
 }
 
 /**
@@ -4702,7 +4775,7 @@ function addShapeElement(shapeType = 'rectangle') {
   state.elements.push(element);
   autoCloneIfEnabled();
   selectElement(element.id);
-  setStatus(`${shapeType.charAt(0).toUpperCase() + shapeType.slice(1)} added`);
+  setStatus(t('status_shape_added', { shape: shapeName(shapeType) }));
 }
 
 // ---------------------------------------------------------------------------
@@ -4718,7 +4791,7 @@ function toggleImageFlip(id, key) {
   updatePropertiesPanel();
   refreshMobilePropsIfOpen();
   const on = !element[key];
-  setStatus(`${key === 'flipX' ? '左右' : '上下'}反転を${on ? 'オン' : 'オフ'}にしました`);
+  setStatus(t(key === 'flipX' ? (on ? 'status_flip_x_on' : 'status_flip_x_off') : (on ? 'status_flip_y_on' : 'status_flip_y_off')));
 }
 
 /**
@@ -4740,7 +4813,7 @@ function applyImageCrop(id, crop) {
   modifyElement(id, { crop: next, width, height, x: cx - width / 2, y: cy - height / 2 });
   updatePropertiesPanel();
   refreshMobilePropsIfOpen();
-  setStatus(next ? 'トリミングしました' : 'トリミングを解除しました');
+  setStatus(next ? t('status_cropped') : t('status_crop_removed'));
 }
 
 /** トリミング画面を開き、決定したら反映する */
@@ -4800,7 +4873,7 @@ function addAssetImage({ dataUrl, width, height, name, assetId }) {
   state.elements.push(element);
   autoCloneIfEnabled();
   selectElement(element.id);
-  setStatus(`素材「${name}」を追加しました`);
+  setStatus(t('status_asset_added', { name }));
 }
 
 /**
@@ -4819,7 +4892,7 @@ function addFrameElement(frameStyle) {
   autoCloneIfEnabled();
   selectElement(element.id);
   const style = FRAME_STYLES.find(s => s.id === frameStyle);
-  setStatus(`枠「${style ? style.name : frameStyle}」を追加しました`);
+  setStatus(t('status_frame_added', { name: style ? frameStyleName(style) : frameStyle }));
 }
 
 /**
@@ -4921,7 +4994,7 @@ function initPrinterModelPrompt() {
 
     // Update status
     const modelDesc = getPrinterDescription(deviceName, model);
-    setStatus(`Connected: ${deviceName} (${modelDesc})`);
+    setStatus(t('status_connected', { device: deviceName, model: modelDesc }));
 
     // Initialize tape width for tape printers
     if (isTapePrinter(deviceName, model)) {
@@ -4948,7 +5021,7 @@ function initPrinterModelPrompt() {
 async function handleConnect(event) {
   // Check if printing is supported in this browser
   if (!state.canPrint) {
-    alert('Printing is not available in this browser.\n\nPlease use Chrome, Edge, or Opera on desktop for Bluetooth printing.');
+    alert(t('alert_printing_unavailable'));
     return;
   }
 
@@ -4963,19 +5036,19 @@ async function handleConnect(event) {
 
   try {
     btn.disabled = true;
-    btn.textContent = 'Connecting...';
-    setStatus(showAllDevices ? 'Select your printer (showing all devices)' : 'Select printer with signal indicator (📶)');
+    btn.textContent = t('connecting');
+    setStatus(showAllDevices ? t('status_select_printer_all') : t('status_select_printer'));
 
     const isBLE = state.connectionType === 'ble';
 
     if (isBLE) {
       if (!BLETransport.isAvailable()) {
-        throw new Error('Bluetooth is not supported');
+        throw new Error(t('error_bluetooth_unsupported'));
       }
       state.transport = BLETransport.getShared();
     } else {
       if (!USBTransport.isAvailable()) {
-        throw new Error('USB is not supported');
+        throw new Error(t('error_usb_unsupported'));
       }
       state.transport = USBTransport.getShared();
     }
@@ -4983,7 +5056,7 @@ async function handleConnect(event) {
     await state.transport.connect({ showAllDevices });
 
     if (!state.transport.isConnected()) {
-      throw new Error('Connection failed');
+      throw new Error(t('connection_failed'));
     }
 
     updateConnectionStatus(true);
@@ -5010,10 +5083,10 @@ async function handleConnect(event) {
     // Show detected/configured model in status
     const modelDesc = getPrinterDescription(deviceName, effectiveModel);
     if (recognized || savedModel || printerModel !== 'auto') {
-      setStatus(`Connected: ${deviceName} (${modelDesc})`);
+      setStatus(t('status_connected', { device: deviceName, model: modelDesc }));
     } else {
       // Device not recognized and no saved preference - prompt user
-      setStatus(`Connected: ${deviceName} - Please select printer model`);
+      setStatus(t('status_connected_select_model', { device: deviceName }));
       showPrinterModelPrompt(deviceName);
     }
 
@@ -5049,7 +5122,7 @@ async function handleConnect(event) {
 
   } catch (error) {
     logError(error, 'handleConnect');
-    setStatus(error.message || 'Connection failed');
+    setStatus(error.message || t('connection_failed'));
     btn.textContent = originalText;
     updateConnectionStatus(false);
   } finally {
@@ -5069,15 +5142,15 @@ async function handlePrint() {
     btn.disabled = true;
 
     if (!state.transport || !state.transport.isConnected()) {
-      setStatus('Connecting...');
+      setStatus(t('connecting'));
       await handleConnect();
 
       if (!state.transport || !state.transport.isConnected()) {
-        throw new Error('Please connect to printer first');
+        throw new Error(t('error_connect_first'));
       }
     }
 
-    btn.textContent = 'Printing...';
+    btn.textContent = t('printing');
 
     // Substitute template fields if template data is loaded
     const elements = state.templateData.length > 0
@@ -5121,7 +5194,7 @@ async function handlePrint() {
     // Print multiple copies if requested
     for (let copy = 1; copy <= copies; copy++) {
       const copyText = copies > 1 ? ` (${copy}/${copies})` : '';
-      setStatus(`Printing${copyText}...`);
+      setStatus(t('status_printing_copy', { copy: copyText }));
 
       if (usesCounter && copy > 1) {
         rasterData = await buildRaster(copy - 1);
@@ -5135,8 +5208,8 @@ async function handlePrint() {
         feed,
         continuous: !!(state.labelSize?.continuous),
         onProgress: (progress) => {
-          btn.textContent = `Printing... ${progress}%`;
-          setStatus(`Printing${copyText}... ${progress}%`);
+          btn.textContent = t('printing_progress', { progress });
+          setStatus(t('status_printing_copy_progress', { copy: copyText, progress }));
         },
       });
       printedCopies++;
@@ -5150,12 +5223,12 @@ async function handlePrint() {
       if (usesCounter) advanceCounter(printedCopies * labelsPerCopy);
     }
 
-    setStatus(copies > 1 ? `Printed ${copies} copies!` : 'Print complete!');
-    btn.textContent = 'Print';
+    setStatus(copies > 1 ? t('status_printed_copies', { n: copies }) : t('status_print_complete'));
+    btn.textContent = t('print');
 
   } catch (error) {
     logError(error, 'handlePrint');
-    setStatus(error.message || 'Print failed');
+    setStatus(error.message || t('print_failed'));
     btn.textContent = originalText;
   } finally {
     btn.disabled = false;
@@ -5193,7 +5266,7 @@ function showSaveDialog(opts = {}) {
     showGuestNotice('save');
     return;
   }
-  $('#save-dialog-title').textContent = opts.title || 'Save Design';
+  $('#save-dialog-title').textContent = opts.title || t('save_design');
   $('#save-dialog').classList.remove('hidden');
   $('#save-dialog').hidden = false;
   $('#save-name').value = '';
@@ -5250,9 +5323,9 @@ function handleSave() {
     updateMobileLabelName();
 
     const templateInfo = state.templateData.length > 0
-      ? ` (with ${state.templateData.length} data records)`
+      ? t('with_n_data_records', { n: state.templateData.length })
       : '';
-    setStatus(`Design "${name}" saved${templateInfo}`);
+    setStatus(t('status_design_saved', { name, info: templateInfo }));
   } catch (e) {
     showToast(e.message, 'error');
     setStatus(e.message);
@@ -5270,15 +5343,15 @@ function showLoadDialog() {
     // ゲストモード(3.4): 保存したデザインは無い。ファイルからの読み込みは使える
     listEl.innerHTML = `
       <div id="load-guest-notice" class="text-sm text-gray-500 text-center py-6 px-2">
-        <p class="mb-3">ゲストモードでは、デザインは保存されません。<br>ログインすると、保存したデザインをここから開けます。</p>
-        <button id="load-guest-login" class="px-3 py-1.5 bg-gray-900 text-white rounded-lg text-sm">ログインについて</button>
+        <p class="mb-3">${t('load_guest_notice_html')}</p>
+        <button id="load-guest-login" class="px-3 py-1.5 bg-gray-900 text-white rounded-lg text-sm">${t('about_signing_in')}</button>
       </div>`;
     $('#load-guest-login').addEventListener('click', () => {
       hideLoadDialog();
-      showAccountDialog('ログインすると、保存したデザインを開けます。');
+      showAccountDialog(t('account_reason_load'));
     });
   } else if (designs.length === 0) {
-    listEl.innerHTML = '<div class="text-sm text-gray-400 text-center py-8">No saved designs</div>';
+    listEl.innerHTML = `<div class="text-sm text-gray-400 text-center py-8">${t('no_saved_designs')}</div>`;
   } else {
     listEl.innerHTML = designs.map(d => {
       // Build info badges
@@ -5287,16 +5360,16 @@ function showLoadDialog() {
         badges.push('<span class="px-1.5 py-0.5 text-xs bg-blue-100 text-blue-700 rounded">🖼️</span>');
       }
       if (d.isTemplate) {
-        badges.push('<span class="px-1.5 py-0.5 text-xs bg-purple-100 text-purple-700 rounded">Template</span>');
+        badges.push(`<span class="px-1.5 py-0.5 text-xs bg-purple-100 text-purple-700 rounded">${t('template')}</span>`);
       }
       if (d.templateDataCount > 0) {
-        badges.push(`<span class="px-1.5 py-0.5 text-xs bg-green-100 text-green-700 rounded">${d.templateDataCount} records</span>`);
+        badges.push(`<span class="px-1.5 py-0.5 text-xs bg-green-100 text-green-700 rounded">${t('n_records', { n: d.templateDataCount })}</span>`);
       }
       if (d.isMultiLabel) {
-        badges.push(`<span class="px-1.5 py-0.5 text-xs bg-orange-100 text-orange-700 rounded">${d.multiLabel.labelsAcross}-up</span>`);
+        badges.push(`<span class="px-1.5 py-0.5 text-xs bg-orange-100 text-orange-700 rounded">${t('n_up', { n: d.multiLabel.labelsAcross })}</span>`);
       }
       if (d.dirty) {
-        badges.push('<span class="px-1.5 py-0.5 text-xs bg-amber-100 text-amber-700 rounded" title="まだ Google Drive に送っていません">未送信</span>');
+        badges.push(`<span class="px-1.5 py-0.5 text-xs bg-amber-100 text-amber-700 rounded" title="${t('not_synced_title')}">${t('not_synced')}</span>`);
       }
 
       const badgeHtml = badges.length > 0 ? `<div class="flex gap-1 mt-1">${badges.join('')}</div>` : '';
@@ -5305,10 +5378,10 @@ function showLoadDialog() {
         <div class="design-item flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg cursor-pointer border border-gray-100 mb-2" data-name="${d.name}">
           <div class="flex-1">
             <div class="font-medium text-sm text-gray-900">${d.name}</div>
-            <div class="text-xs text-gray-400">${d.labelSize.width}x${d.labelSize.height}mm · ${d.elementCount} elements</div>
+            <div class="text-xs text-gray-400">${d.labelSize.width}x${d.labelSize.height}mm · ${t('n_elements', { n: d.elementCount })}</div>
             ${badgeHtml}
           </div>
-          <button class="delete-design text-red-500 hover:text-red-700 text-xs px-2 py-1 ml-2" data-name="${d.name}">Delete</button>
+          <button class="delete-design text-red-500 hover:text-red-700 text-xs px-2 py-1 ml-2" data-name="${d.name}">${t('delete')}</button>
         </div>
       `;
     }).join('');
@@ -5319,10 +5392,10 @@ function showLoadDialog() {
         if (e.target.classList.contains('delete-design')) {
           e.stopPropagation();
           const name = e.target.dataset.name;
-          if (confirm(`Delete "${name}"?`)) {
+          if (confirm(t('confirm_delete_design', { name }))) {
             deleteDesign(name);
             showLoadDialog(); // Refresh list
-            setStatus(`Design "${name}" deleted`);
+            setStatus(t('status_design_deleted', { name }));
           }
           return;
         }
@@ -5348,13 +5421,13 @@ function hideLoadDialog() {
  */
 function handleExport() {
   if (state.elements.length === 0) {
-    setStatus('Nothing to export');
+    setStatus(t('status_nothing_to_export'));
     return;
   }
 
   // Build export data
   const exportData = {
-    name: 'Untitled Design',
+    name: t('untitled_design'),
     version: 3, // Version 3 includes multi-label support
     elements: state.elements,
     labelSize: state.labelSize,
@@ -5388,7 +5461,7 @@ function handleExport() {
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
 
-  setStatus('Design exported');
+  setStatus(t('status_design_exported'));
 }
 
 /**
@@ -5396,7 +5469,7 @@ function handleExport() {
  */
 async function handleExportPDF() {
   if (state.elements.length === 0) {
-    setStatus('Nothing to export');
+    setStatus(t('status_nothing_to_export'));
     return;
   }
 
@@ -5441,7 +5514,7 @@ async function handleExportPDF() {
     : `label-${Date.now()}.pdf`;
   pdf.save(filename);
 
-  setStatus('PDF exported');
+  setStatus(t('status_pdf_exported'));
 }
 
 /**
@@ -5449,7 +5522,7 @@ async function handleExportPDF() {
  */
 async function handleExportPNG() {
   if (state.elements.length === 0) {
-    setStatus('Nothing to export');
+    setStatus(t('status_nothing_to_export'));
     return;
   }
 
@@ -5480,7 +5553,7 @@ async function handleExportPNG() {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    setStatus('PNG exported');
+    setStatus(t('status_png_exported'));
   }, 'image/png');
 }
 
@@ -5502,7 +5575,7 @@ function handleImportFile(file) {
 
       // Validate the data
       if (!data.elements || !Array.isArray(data.elements)) {
-        throw new Error('Invalid design file: missing elements');
+        throw new Error(t('error_invalid_design_file'));
       }
 
       // Load the design
@@ -5548,13 +5621,13 @@ function handleImportFile(file) {
       render();
       hideLoadDialog();
 
-      const name = data.name || 'Imported design';
+      const name = data.name || t('imported_design');
       state.currentDesignName = name;
       updateMobileLabelName();
-      setStatus(`Imported: ${name}`);
+      setStatus(t('status_imported', { name }));
     } catch (err) {
       logError(err, 'importDesign');
-      setStatus(`Import failed: ${err.message}`);
+      setStatus(t('status_import_failed', { message: err.message }));
     }
   };
   reader.readAsText(file);
@@ -5567,7 +5640,7 @@ function updateElementsList() {
   const container = $('#elements-list');
 
   if (state.elements.length === 0) {
-    container.innerHTML = '<div class="px-3 py-2 text-gray-400 text-center">No elements</div>';
+    container.innerHTML = `<div class="px-3 py-2 text-gray-400 text-center">${t('no_elements')}</div>`;
     return;
   }
 
@@ -5622,22 +5695,21 @@ function getElementIcon(type) {
 function getElementLabel(el) {
   switch (el.type) {
     case 'text':
-      return el.text ? (el.text.substring(0, 20) + (el.text.length > 20 ? '...' : '')) : 'Text';
+      return el.text ? (el.text.substring(0, 20) + (el.text.length > 20 ? '...' : '')) : t('text');
     case 'image':
-      return 'Image';
+      return t('image');
     case 'barcode':
-      return el.barcodeData ? `Barcode: ${el.barcodeData.substring(0, 10)}` : 'Barcode';
+      return el.barcodeData ? `${t('barcode')}: ${el.barcodeData.substring(0, 10)}` : t('barcode');
     case 'qr':
-      return el.qrData ? `QR: ${el.qrData.substring(0, 15)}` : 'QR Code';
+      return el.qrData ? `QR: ${el.qrData.substring(0, 15)}` : t('qr_code');
     case 'shape':
-      const shapeNames = { rectangle: 'Rectangle', ellipse: 'Ellipse', triangle: 'Triangle', line: 'Line' };
-      return shapeNames[el.shapeType] || 'Shape';
+      return shapeName(el.shapeType);
     case 'frame': {
       const style = FRAME_STYLES.find(s => s.id === el.frameStyle);
-      return `枠: ${style ? style.name : ''}`;
+      return `${t('frame')}: ${style ? frameStyleName(style) : ''}`;
     }
     default:
-      return 'Element';
+      return t('element');
   }
 }
 
@@ -5647,7 +5719,7 @@ function getElementLabel(el) {
 function handleLoad(name) {
   const design = loadDesign(name);
   if (!design) {
-    setStatus('Design not found');
+    setStatus(t('status_design_not_found'));
     return;
   }
 
@@ -5735,12 +5807,12 @@ function handleLoad(name) {
 
   // Show status with template info
   const templateInfo = state.templateData.length > 0
-    ? ` (${state.templateData.length} data records)`
+    ? t('n_data_records_suffix', { n: state.templateData.length })
     : '';
   const multiLabelInfo = state.multiLabel.enabled
-    ? ` [${state.multiLabel.labelsAcross}-up]`
+    ? ` [${t('n_up', { n: state.multiLabel.labelsAcross })}]`
     : '';
-  setStatus(`Loaded "${name}"${templateInfo}${multiLabelInfo}`);
+  setStatus(t('status_design_loaded', { name, info: `${templateInfo}${multiLabelInfo}` }));
 }
 
 /**
@@ -5786,7 +5858,7 @@ function handleKeyDown(e) {
       });
       autoCloneIfEnabled();
       deselect();
-      setStatus(count > 1 ? `${count} elements deleted` : 'Element deleted');
+      setStatus(count > 1 ? t('status_n_elements_deleted', { n: count }) : t('status_element_deleted'));
     }
   }
 
@@ -5837,7 +5909,7 @@ function handleKeyDown(e) {
     state.selectedIds = newIds;
     updateToolbarState();
     render();
-    setStatus(selectedElements.length > 1 ? `${selectedElements.length} elements duplicated` : 'Element duplicated');
+    setStatus(selectedElements.length > 1 ? t('status_n_elements_duplicated', { n: selectedElements.length }) : t('status_element_duplicated'));
   }
 
   // Ctrl/Cmd + G to group
@@ -5880,13 +5952,13 @@ function handleKeyDown(e) {
 function handleGroup() {
   const selectedElements = getSelectedElements();
   if (selectedElements.length < 2) {
-    showToast('Select at least 2 elements to group', 'warning');
+    showToast(t('toast_select_two_to_group'), 'warning');
     return;
   }
 
   // Check if any are already grouped
   if (selectedElements.some(e => e.groupId)) {
-    showToast('Cannot group elements that are already grouped', 'warning');
+    showToast(t('toast_already_grouped'), 'warning');
     return;
   }
 
@@ -5895,8 +5967,8 @@ function handleGroup() {
   state.elements = result.elements;
   render();
   updateToolbarState();
-  showToast('Elements grouped', 'success');
-  setStatus('Elements grouped');
+  showToast(t('status_elements_grouped'), 'success');
+  setStatus(t('status_elements_grouped'));
 }
 
 /**
@@ -5907,7 +5979,7 @@ function handleUngroup() {
   const groupIds = new Set(selectedElements.map(e => e.groupId).filter(Boolean));
 
   if (groupIds.size === 0) {
-    showToast('No groups to ungroup', 'warning');
+    showToast(t('toast_no_groups'), 'warning');
     return;
   }
 
@@ -5919,8 +5991,8 @@ function handleUngroup() {
 
   render();
   updateToolbarState();
-  showToast('Elements ungrouped', 'success');
-  setStatus('Elements ungrouped');
+  showToast(t('status_elements_ungrouped'), 'success');
+  setStatus(t('status_elements_ungrouped'));
 }
 
 /**
@@ -5932,7 +6004,7 @@ function copyElements() {
 
   // Deep clone the elements
   state.clipboard = JSON.parse(JSON.stringify(selectedElements));
-  showToast(`${selectedElements.length} element${selectedElements.length > 1 ? 's' : ''} copied`, 'success');
+  showToast(t('toast_n_copied', { n: selectedElements.length }), 'success');
 }
 
 /**
@@ -5963,7 +6035,7 @@ async function handlePaste() {
  */
 function pasteElements() {
   if (state.clipboard.length === 0) {
-    showToast('Nothing to paste', 'warning');
+    showToast(t('toast_nothing_to_paste'), 'warning');
     return;
   }
 
@@ -5988,8 +6060,8 @@ function pasteElements() {
   render();
   updatePropertiesPanel();
   updateToolbarState();
-  showToast(`${newElements.length} element${newElements.length > 1 ? 's' : ''} pasted`, 'success');
-  setStatus('Elements pasted');
+  showToast(t('toast_n_pasted', { n: newElements.length }), 'success');
+  setStatus(t('status_elements_pasted'));
 }
 
 /**
@@ -6014,12 +6086,12 @@ function checkCompatibility() {
   let canPrint = true;
 
   if (!window.isSecureContext) {
-    warnings.push('HTTPS required for printing - this app must be served over a secure connection');
+    warnings.push(t('compat_https_required'));
     canPrint = false;
   }
 
   if (!('bluetooth' in navigator)) {
-    warnings.push('Web Bluetooth not supported - printing requires Chrome, Edge, or Opera');
+    warnings.push(t('compat_no_web_bluetooth'));
     canPrint = false;
   }
 
@@ -6043,8 +6115,8 @@ function checkCompatibility() {
               <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
             </div>
             <div>
-              <h3 class="text-lg font-bold">Limited Browser Support</h3>
-              <p class="text-amber-100 text-xs">Printing requires Chrome, Edge, or Opera</p>
+              <h3 class="text-lg font-bold" data-i18n="compat_title">${t('compat_title')}</h3>
+              <p class="text-amber-100 text-xs" data-i18n="compat_subtitle">${t('compat_subtitle')}</p>
             </div>
           </div>
         </div>
@@ -6068,51 +6140,51 @@ function checkCompatibility() {
                 <div class="w-6 h-6 bg-green-500 rounded flex items-center justify-center">
                   <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                 </div>
-                <h4 class="font-semibold text-gray-900 text-sm">Design Labels</h4>
+                <h4 class="font-semibold text-gray-900 text-sm" data-i18n="compat_design_labels">${t('compat_design_labels')}</h4>
               </div>
-              <p class="text-xs text-gray-600">Create text, barcodes, QR codes, shapes</p>
+              <p class="text-xs text-gray-600" data-i18n="compat_design_labels_desc">${t('compat_design_labels_desc')}</p>
             </div>
             <div class="bg-green-50 rounded-lg p-3 border border-green-100">
               <div class="flex items-center gap-2 mb-1">
                 <div class="w-6 h-6 bg-green-500 rounded flex items-center justify-center">
                   <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                 </div>
-                <h4 class="font-semibold text-gray-900 text-sm">Save & Export</h4>
+                <h4 class="font-semibold text-gray-900 text-sm" data-i18n="compat_save_export">${t('compat_save_export')}</h4>
               </div>
-              <p class="text-xs text-gray-600">Save designs, export as JSON, PDF, or PNG</p>
+              <p class="text-xs text-gray-600" data-i18n="compat_save_export_desc">${t('compat_save_export_desc')}</p>
             </div>
           </div>
 
           <!-- User Manual Link -->
           <a href="docs/manual.html" target="_blank" rel="noopener" class="flex items-center justify-center gap-2 w-full px-4 py-2 bg-blue-50 text-blue-700 rounded-lg border border-blue-200 hover:bg-blue-100 transition-colors text-sm font-medium">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
-            Read the User Manual
+            ${t('read_the_user_manual')}
           </a>
 
           <!-- Supported Printers (compact) -->
           <div class="bg-gray-50 rounded-lg p-3 border border-gray-200">
-            <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Supported Printers</p>
+            <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1" data-i18n="supported_printers">${t('supported_printers')}</p>
             <p class="text-xs text-gray-700">P12, A30, M02-M260, M04S, T02, D30-D110, Q30/Q30S, PM-241</p>
           </div>
 
           <!-- Action Button -->
-          <button id="dismiss-warning-btn" class="w-full px-6 py-2.5 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors font-medium">
-            Continue to Designer
+          <button id="dismiss-warning-btn" class="w-full px-6 py-2.5 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors font-medium" data-i18n="compat_continue">
+            ${t('compat_continue')}
           </button>
         </div>
 
         <!-- Footer -->
         <div class="bg-gray-50 px-5 py-3 border-t border-gray-100 flex items-center justify-between">
           <div class="flex items-center gap-3">
-            <p class="text-xs text-gray-400">Unofficial app, not affiliated with Phomemo</p>
-            <a href="https://donate.stripe.com/7sY7sMese0182tXgn8eAg00" target="_blank" rel="noopener" data-donate-original title="Support Affordable Magic, the creator of the original Phomymo. (Donations go to Affordable Magic, not to the operator of this fork.)" class="inline-flex items-center gap-1 px-2 py-1 text-pink-600 text-xs hover:text-pink-700 transition-colors">
+            <p class="text-xs text-gray-400" data-i18n="not_affiliated_with_phomemo">${t('not_affiliated_with_phomemo')}</p>
+            <a href="https://donate.stripe.com/7sY7sMese0182tXgn8eAg00" target="_blank" rel="noopener" data-donate-original data-i18n-title="support_original_author_tooltip" title="${t('support_original_author_tooltip')}" class="inline-flex items-center gap-1 px-2 py-1 text-pink-600 text-xs hover:text-pink-700 transition-colors">
               <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
-              Support the original author
+              <span data-i18n="support_original_author">${t('support_original_author')}</span>
             </a>
           </div>
           <a href="https://affordablemagic.net" target="_blank" rel="noopener" class="inline-flex items-center gap-2 px-3 py-1.5 bg-white border border-gray-200 rounded-lg hover:border-gray-300 hover:shadow-sm transition-all">
             <img src="https://affordablemagic.net/affordablemagic-400w.png" alt="Affordable Magic" class="h-4">
-            <span class="text-xs font-medium text-gray-700">Original by Affordable Magic</span>
+            <span class="text-xs font-medium text-gray-700" data-i18n="original_by_affordable_magic">${t('original_by_affordable_magic')}</span>
           </a>
         </div>
       </div>
@@ -6216,7 +6288,7 @@ function initMobileUI() {
       mobileBtn?.classList.remove('bg-blue-500', 'text-white');
       mobileBtn?.classList.add('bg-gray-100', 'text-gray-700');
     }
-    setStatus(state.ditherPreview ? 'Print preview: ON' : 'Print preview: OFF');
+    setStatus(state.ditherPreview ? t('status_preview_on') : t('status_preview_off'));
     render();
   });
 
@@ -6351,7 +6423,7 @@ function initMobileUI() {
       state.transport = null;
     }
     updateConnectionStatus(false);
-    setStatus('Disconnected');
+    setStatus(t('status_disconnected'));
   });
 
   // Fixed toolbar - add element buttons
@@ -6375,7 +6447,7 @@ function initMobileUI() {
       state.elements = duplicateElement(state.elements, selected.id);
       autoCloneIfEnabled();
       selectElement(state.elements[state.elements.length - 1].id);
-      setStatus('Element duplicated');
+      setStatus(t('status_element_duplicated'));
     }
   });
 
@@ -6388,7 +6460,7 @@ function initMobileUI() {
       });
       autoCloneIfEnabled();
       deselect();
-      setStatus('Element deleted');
+      setStatus(t('status_element_deleted'));
     }
   });
 
@@ -6398,7 +6470,7 @@ function initMobileUI() {
       saveHistory();
       state.elements = bringToFront(state.elements, selected.id);
       render();
-      setStatus('Element raised');
+      setStatus(t('status_element_raised'));
     }
   });
 
@@ -6408,7 +6480,7 @@ function initMobileUI() {
       saveHistory();
       state.elements = sendToBack(state.elements, selected.id);
       render();
-      setStatus('Element lowered');
+      setStatus(t('status_element_lowered'));
     }
   });
 
@@ -6478,21 +6550,21 @@ function populateMobileProps() {
 
   const selected = getSelected();
   if (!selected) {
-    content.innerHTML = '<p class="text-gray-500 text-center py-4">No element selected</p>';
-    title.textContent = 'Properties';
+    content.innerHTML = `<p class="text-gray-500 text-center py-4">${t('no_element_selected')}</p>`;
+    title.textContent = t('properties');
     return;
   }
 
   // Set title based on element type
   const typeNames = {
-    text: 'Text',
-    image: 'Image',
-    shape: selected.shapeType ? selected.shapeType.charAt(0).toUpperCase() + selected.shapeType.slice(1) : 'Shape',
-    barcode: 'Barcode',
-    qr: 'QR Code',
-    frame: '枠',
+    text: t('text'),
+    image: t('image'),
+    shape: shapeName(selected.shapeType),
+    barcode: t('barcode'),
+    qr: t('qr_code'),
+    frame: t('frame'),
   };
-  title.textContent = typeNames[selected.type] || 'Properties';
+  title.textContent = typeNames[selected.type] || t('properties');
 
   // Generate properties form
   let html = '<div class="space-y-4">';
@@ -6507,7 +6579,7 @@ function populateMobileProps() {
       <div class="mobile-field-dropdown hidden absolute right-0 top-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-[80] min-w-[160px] overflow-hidden">
         ${fieldOptions}
         <div class="border-t border-gray-100 p-2">
-          <input type="text" class="mobile-new-field-input w-full px-2 py-1.5 text-base border border-gray-200 rounded" placeholder="New field name..." data-target="${inputId}">
+          <input type="text" class="mobile-new-field-input w-full px-2 py-1.5 text-base border border-gray-200 rounded" placeholder="${t('new_field_name')}" data-target="${inputId}">
         </div>
       </div>
     `;
@@ -6522,11 +6594,11 @@ function populateMobileProps() {
     html += `
       <div class="prop-group">
         <div class="flex items-center justify-between mb-1">
-          <div class="prop-label mb-0">Text Content</div>
+          <div class="prop-label mb-0">${t('text_content')}</div>
           <div class="relative">
             <button class="mobile-field-btn text-xs text-purple-600 font-medium flex items-center gap-0.5 px-2 py-1 rounded hover:bg-purple-50 active:bg-purple-100">
               <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-              {{Field}}
+              ${t('field')}
             </button>
             ${fieldDropdownHtml('mobile-prop-text')}
           </div>
@@ -6536,57 +6608,57 @@ function populateMobileProps() {
       <div class="prop-group">
         <div class="prop-row">
           <div class="flex-1">
-            <div class="prop-label">Font</div>
+            <div class="prop-label">${t('font')}</div>
             <select id="mobile-prop-fontFamily" class="prop-input">
               ${japaneseFontOptionsHtml(fontFamily)}
-              <optgroup label="Sans-Serif">
+              <optgroup label="${t('sans_serif')}">
                 <option value="Inter, sans-serif" ${fontFamily === 'Inter, sans-serif' ? 'selected' : ''}>Inter</option>
                 <option value="Roboto, sans-serif" ${fontFamily === 'Roboto, sans-serif' ? 'selected' : ''}>Roboto</option>
                 <option value="Open Sans, sans-serif" ${fontFamily === 'Open Sans, sans-serif' ? 'selected' : ''}>Open Sans</option>
                 <option value="Arial, sans-serif" ${fontFamily === 'Arial, sans-serif' ? 'selected' : ''}>Arial</option>
               </optgroup>
-              <optgroup label="Serif">
+              <optgroup label="${t('serif')}">
                 <option value="Georgia, serif" ${fontFamily === 'Georgia, serif' ? 'selected' : ''}>Georgia</option>
                 <option value="Times New Roman, serif" ${fontFamily === 'Times New Roman, serif' ? 'selected' : ''}>Times New Roman</option>
               </optgroup>
-              <optgroup label="Monospace">
+              <optgroup label="${t('monospace')}">
                 <option value="Roboto Mono, monospace" ${fontFamily === 'Roboto Mono, monospace' ? 'selected' : ''}>Roboto Mono</option>
                 <option value="Courier New, monospace" ${fontFamily === 'Courier New, monospace' ? 'selected' : ''}>Courier New</option>
               </optgroup>
               ${state.localFonts.length > 0 ? `
-              <optgroup label="System Fonts">
+              <optgroup label="${t('system_fonts')}">
                 ${state.localFonts.map(f => `<option value="${f.family}" ${fontFamily === f.family ? 'selected' : ''}>${f.family}</option>`).join('')}
               </optgroup>
               ` : ''}
             </select>
             ${!state.localFontsEnabled && isLocalFontAccessAvailable() ? `
-            <button id="mobile-add-system-fonts-btn" class="w-full mt-1 py-1 text-xs text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded">+ Add System Fonts</button>
+            <button id="mobile-add-system-fonts-btn" class="w-full mt-1 py-1 text-xs text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded">${t('add_system_fonts')}</button>
             ` : ''}
           </div>
           <div class="w-20">
-            <div class="prop-label">Size</div>
+            <div class="prop-label">${t('size')}</div>
             <input type="number" id="mobile-prop-fontSize" class="prop-input" value="${selected.fontSize || 24}" min="8" max="200">
           </div>
         </div>
       </div>
       <div class="prop-group">
-        <div class="prop-label">Horizontal Align</div>
+        <div class="prop-label">${t('horizontal_align')}</div>
         <div class="flex gap-2">
-          <button class="flex-1 py-2.5 border rounded ${(selected.align || 'left') === 'left' ? 'bg-blue-100 border-blue-400' : 'border-gray-300 bg-gray-50'}" data-align="left">Left</button>
-          <button class="flex-1 py-2.5 border rounded ${selected.align === 'center' ? 'bg-blue-100 border-blue-400' : 'border-gray-300 bg-gray-50'}" data-align="center">Center</button>
-          <button class="flex-1 py-2.5 border rounded ${selected.align === 'right' ? 'bg-blue-100 border-blue-400' : 'border-gray-300 bg-gray-50'}" data-align="right">Right</button>
+          <button class="flex-1 py-2.5 border rounded ${(selected.align || 'left') === 'left' ? 'bg-blue-100 border-blue-400' : 'border-gray-300 bg-gray-50'}" data-align="left">${t('left')}</button>
+          <button class="flex-1 py-2.5 border rounded ${selected.align === 'center' ? 'bg-blue-100 border-blue-400' : 'border-gray-300 bg-gray-50'}" data-align="center">${t('center')}</button>
+          <button class="flex-1 py-2.5 border rounded ${selected.align === 'right' ? 'bg-blue-100 border-blue-400' : 'border-gray-300 bg-gray-50'}" data-align="right">${t('right')}</button>
         </div>
       </div>
       <div class="prop-group">
-        <div class="prop-label">Vertical Align</div>
+        <div class="prop-label">${t('vertical_align')}</div>
         <div class="flex gap-2">
-          <button class="flex-1 py-2.5 border rounded ${vAlign === 'top' ? 'bg-blue-100 border-blue-400' : 'border-gray-300 bg-gray-50'}" data-valign="top">Top</button>
-          <button class="flex-1 py-2.5 border rounded ${vAlign === 'middle' ? 'bg-blue-100 border-blue-400' : 'border-gray-300 bg-gray-50'}" data-valign="middle">Middle</button>
-          <button class="flex-1 py-2.5 border rounded ${vAlign === 'bottom' ? 'bg-blue-100 border-blue-400' : 'border-gray-300 bg-gray-50'}" data-valign="bottom">Bottom</button>
+          <button class="flex-1 py-2.5 border rounded ${vAlign === 'top' ? 'bg-blue-100 border-blue-400' : 'border-gray-300 bg-gray-50'}" data-valign="top">${t('top')}</button>
+          <button class="flex-1 py-2.5 border rounded ${vAlign === 'middle' ? 'bg-blue-100 border-blue-400' : 'border-gray-300 bg-gray-50'}" data-valign="middle">${t('middle')}</button>
+          <button class="flex-1 py-2.5 border rounded ${vAlign === 'bottom' ? 'bg-blue-100 border-blue-400' : 'border-gray-300 bg-gray-50'}" data-valign="bottom">${t('bottom')}</button>
         </div>
       </div>
       <div class="prop-group">
-        <div class="prop-label">Style</div>
+        <div class="prop-label">${t('style')}</div>
         <div class="flex gap-2">
           <button id="mobile-prop-bold" class="flex-1 py-2.5 border rounded font-bold ${selected.fontWeight === 'bold' ? 'bg-blue-100 border-blue-400' : 'border-gray-300 bg-gray-50'}">B</button>
           <button id="mobile-prop-italic" class="flex-1 py-2.5 border rounded italic ${selected.fontStyle === 'italic' ? 'bg-blue-100 border-blue-400' : 'border-gray-300 bg-gray-50'}">I</button>
@@ -6596,22 +6668,22 @@ function populateMobileProps() {
       <div class="prop-group">
         <div class="prop-row">
           <div class="flex-1">
-            <div class="prop-label">Text Color</div>
+            <div class="prop-label">${t('text_color')}</div>
             <div class="flex gap-2">
               <button class="flex-1 py-2.5 border rounded flex items-center justify-center gap-1 ${textColor === 'black' ? 'bg-blue-100 border-blue-400' : 'border-gray-300 bg-gray-50'}" data-color="black">
-                <span class="w-4 h-4 bg-black rounded"></span> Black
+                <span class="w-4 h-4 bg-black rounded"></span> ${t('black')}
               </button>
               <button class="flex-1 py-2.5 border rounded flex items-center justify-center gap-1 ${textColor === 'white' ? 'bg-blue-100 border-blue-400' : 'border-gray-300 bg-gray-50'}" data-color="white">
-                <span class="w-4 h-4 bg-white border border-gray-300 rounded"></span> White
+                <span class="w-4 h-4 bg-white border border-gray-300 rounded"></span> ${t('white')}
               </button>
             </div>
           </div>
         </div>
       </div>
       <div class="prop-group">
-        <div class="prop-label">Background</div>
+        <div class="prop-label">${t('background')}</div>
         <div class="flex gap-2">
-          <button class="flex-1 py-2.5 border rounded text-sm ${bgColor === 'transparent' ? 'bg-blue-100 border-blue-400' : 'border-gray-300 bg-gray-50'}" data-bg="transparent">None</button>
+          <button class="flex-1 py-2.5 border rounded text-sm ${bgColor === 'transparent' ? 'bg-blue-100 border-blue-400' : 'border-gray-300 bg-gray-50'}" data-bg="transparent">${t('none')}</button>
           <button class="flex-1 py-2.5 border rounded flex items-center justify-center gap-1 ${bgColor === 'black' ? 'bg-blue-100 border-blue-400' : 'border-gray-300 bg-gray-50'}" data-bg="black">
             <span class="w-4 h-4 bg-black rounded"></span>
           </button>
@@ -6621,19 +6693,19 @@ function populateMobileProps() {
         </div>
       </div>
       <div class="prop-group">
-        <div class="prop-label">Text Options</div>
+        <div class="prop-label">${t('text_options')}</div>
         <div class="flex flex-wrap gap-x-4 gap-y-2">
           <label class="flex items-center gap-2">
             <input type="checkbox" id="mobile-prop-noWrap" class="w-5 h-5" ${selected.noWrap ? 'checked' : ''}>
-            <span class="text-sm">No wrap</span>
+            <span class="text-sm">${t('no_wrap')}</span>
           </label>
           <label class="flex items-center gap-2">
             <input type="checkbox" id="mobile-prop-clipOverflow" class="w-5 h-5" ${selected.clipOverflow ? 'checked' : ''}>
-            <span class="text-sm">Clip</span>
+            <span class="text-sm">${t('clip')}</span>
           </label>
           <label class="flex items-center gap-2">
             <input type="checkbox" id="mobile-prop-autoScale" class="w-5 h-5" ${selected.autoScale ? 'checked' : ''}>
-            <span class="text-sm">Auto-fit</span>
+            <span class="text-sm">${t('auto_fit')}</span>
           </label>
         </div>
       </div>
@@ -6643,11 +6715,11 @@ function populateMobileProps() {
     html += `
       <div class="prop-group">
         <div class="flex items-center justify-between mb-1">
-          <div class="prop-label mb-0">Barcode Value</div>
+          <div class="prop-label mb-0">${t('barcode_value')}</div>
           <div class="relative">
             <button class="mobile-field-btn text-xs text-purple-600 font-medium flex items-center gap-0.5 px-2 py-1 rounded hover:bg-purple-50 active:bg-purple-100">
               <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-              {{Field}}
+              ${t('field')}
             </button>
             ${fieldDropdownHtml('mobile-prop-value')}
           </div>
@@ -6655,7 +6727,7 @@ function populateMobileProps() {
         <input type="text" id="mobile-prop-value" class="prop-input" value="${escapeHtml(selected.value || selected.barcodeData || '')}">
       </div>
       <div class="prop-group">
-        <div class="prop-label">Format</div>
+        <div class="prop-label">${t('format')}</div>
         <select id="mobile-prop-format" class="prop-input">
           <option value="CODE128" ${(selected.format || selected.barcodeFormat) === 'CODE128' ? 'selected' : ''}>Code 128</option>
           <option value="EAN13" ${(selected.format || selected.barcodeFormat) === 'EAN13' ? 'selected' : ''}>EAN-13</option>
@@ -6666,14 +6738,14 @@ function populateMobileProps() {
       <div class="prop-group">
         <label class="flex items-center gap-2 py-1">
           <input type="checkbox" id="mobile-prop-showText" class="w-5 h-5" ${selected.showText !== false ? 'checked' : ''}>
-          <span class="text-sm">Show text below barcode</span>
+          <span class="text-sm">${t('show_text_below_barcode')}</span>
         </label>
       </div>
       <div class="prop-group ${selected.showText === false ? 'hidden' : ''}" id="mobile-barcode-text-options">
-        <div class="prop-label">Text Style</div>
+        <div class="prop-label">${t('text_style')}</div>
         <div class="flex items-center gap-3">
           <div class="flex items-center gap-2">
-            <label class="text-sm text-gray-600">Size:</label>
+            <label class="text-sm text-gray-600">${t('size')}:</label>
             <input type="number" id="mobile-prop-textFontSize" class="w-16 px-2 py-1.5 text-sm border border-gray-200 rounded" value="${selected.textFontSize || 12}">
           </div>
           <label class="flex items-center gap-2">
@@ -6687,11 +6759,11 @@ function populateMobileProps() {
     html += `
       <div class="prop-group">
         <div class="flex items-center justify-between mb-1">
-          <div class="prop-label mb-0">QR Content</div>
+          <div class="prop-label mb-0">${t('qr_content')}</div>
           <div class="relative">
             <button class="mobile-field-btn text-xs text-purple-600 font-medium flex items-center gap-0.5 px-2 py-1 rounded hover:bg-purple-50 active:bg-purple-100">
               <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-              {{Field}}
+              ${t('field')}
             </button>
             ${fieldDropdownHtml('mobile-prop-value')}
           </div>
@@ -6705,44 +6777,44 @@ function populateMobileProps() {
     const strokeValue = selected.stroke || 'black';
     html += `
       <div class="prop-group">
-        <div class="prop-label">Shape Type</div>
+        <div class="prop-label">${t('shape_type')}</div>
         <select id="mobile-prop-shapeType" class="prop-input">
-          <option value="rectangle" ${shapeType === 'rectangle' ? 'selected' : ''}>Rectangle</option>
-          <option value="ellipse" ${shapeType === 'ellipse' ? 'selected' : ''}>Ellipse</option>
-          <option value="triangle" ${shapeType === 'triangle' ? 'selected' : ''}>Triangle</option>
-          <option value="line" ${shapeType === 'line' ? 'selected' : ''}>Line</option>
+          <option value="rectangle" ${shapeType === 'rectangle' ? 'selected' : ''}>${t('rectangle')}</option>
+          <option value="ellipse" ${shapeType === 'ellipse' ? 'selected' : ''}>${t('ellipse')}</option>
+          <option value="triangle" ${shapeType === 'triangle' ? 'selected' : ''}>${t('triangle')}</option>
+          <option value="line" ${shapeType === 'line' ? 'selected' : ''}>${t('line')}</option>
         </select>
       </div>
       <div class="prop-group">
-        <div class="prop-label">Fill</div>
+        <div class="prop-label">${t('fill')}</div>
         <select id="mobile-prop-fill" class="prop-input">
-          <option value="none" ${fillValue === 'none' ? 'selected' : ''}>None (Outline only)</option>
-          <option value="white" ${fillValue === 'white' ? 'selected' : ''}>White (0%)</option>
-          <option value="dither-25" ${fillValue === 'dither-25' ? 'selected' : ''}>25% Gray</option>
-          <option value="dither-50" ${fillValue === 'dither-50' ? 'selected' : ''}>50% Gray</option>
-          <option value="dither-75" ${fillValue === 'dither-75' ? 'selected' : ''}>75% Gray</option>
-          <option value="black" ${fillValue === 'black' ? 'selected' : ''}>Black (100%)</option>
+          <option value="none" ${fillValue === 'none' ? 'selected' : ''}>${t('none_outline_only')}</option>
+          <option value="white" ${fillValue === 'white' ? 'selected' : ''}>${t('white_0')}</option>
+          <option value="dither-25" ${fillValue === 'dither-25' ? 'selected' : ''}>${t('25_gray')}</option>
+          <option value="dither-50" ${fillValue === 'dither-50' ? 'selected' : ''}>${t('50_gray')}</option>
+          <option value="dither-75" ${fillValue === 'dither-75' ? 'selected' : ''}>${t('75_gray')}</option>
+          <option value="black" ${fillValue === 'black' ? 'selected' : ''}>${t('black_100')}</option>
         </select>
       </div>
       <div class="prop-group">
-        <div class="prop-label">Stroke</div>
+        <div class="prop-label">${t('stroke')}</div>
         <div class="flex gap-2">
-          <button class="flex-1 py-2.5 border rounded ${strokeValue === 'none' ? 'bg-blue-100 border-blue-400' : 'border-gray-300 bg-gray-50'}" data-stroke="none">None</button>
+          <button class="flex-1 py-2.5 border rounded ${strokeValue === 'none' ? 'bg-blue-100 border-blue-400' : 'border-gray-300 bg-gray-50'}" data-stroke="none">${t('none')}</button>
           <button class="flex-1 py-2.5 border rounded flex items-center justify-center gap-1 ${strokeValue === 'black' ? 'bg-blue-100 border-blue-400' : 'border-gray-300 bg-gray-50'}" data-stroke="black">
-            <span class="w-4 h-4 bg-black rounded"></span> Black
+            <span class="w-4 h-4 bg-black rounded"></span> ${t('black')}
           </button>
           <button class="flex-1 py-2.5 border rounded flex items-center justify-center gap-1 ${strokeValue === 'white' ? 'bg-blue-100 border-blue-400' : 'border-gray-300 bg-gray-50'}" data-stroke="white">
-            <span class="w-4 h-4 bg-white border border-gray-300 rounded"></span> White
+            <span class="w-4 h-4 bg-white border border-gray-300 rounded"></span> ${t('white')}
           </button>
         </div>
       </div>
       <div class="prop-group">
-        <div class="prop-label">Stroke Width</div>
+        <div class="prop-label">${t('stroke_width')}</div>
         <input type="number" id="mobile-prop-strokeWidth" class="prop-input" value="${selected.strokeWidth || 2}" min="1" max="20">
       </div>
       ${shapeType === 'rectangle' ? `
       <div class="prop-group">
-        <div class="prop-label">Corner Radius</div>
+        <div class="prop-label">${t('corner_radius')}</div>
         <input type="number" id="mobile-prop-cornerRadius" class="prop-input" value="${selected.cornerRadius || 0}" min="0" max="100">
       </div>
       ` : ''}
@@ -6750,30 +6822,30 @@ function populateMobileProps() {
   } else if (selected.type === 'frame') {
     html += `
       <div class="prop-group">
-        <div class="prop-label">枠の種類</div>
+        <div class="prop-label">${t('frame_style')}</div>
         <select id="mobile-prop-frameStyle" class="prop-input">
-          ${FRAME_STYLES.map(fs => `<option value="${fs.id}" ${selected.frameStyle === fs.id ? 'selected' : ''}>${fs.name}</option>`).join('')}
+          ${FRAME_STYLES.map(fs => `<option value="${fs.id}" ${selected.frameStyle === fs.id ? 'selected' : ''}>${frameStyleName(fs)}</option>`).join('')}
         </select>
       </div>
       <div class="prop-group">
-        <div class="prop-label">形</div>
+        <div class="prop-label">${t('shape_2')}</div>
         <select id="mobile-prop-frameShape" class="prop-input">
-          <option value="rect" ${selected.frameShape !== 'ellipse' ? 'selected' : ''}>四角</option>
-          <option value="ellipse" ${selected.frameShape === 'ellipse' ? 'selected' : ''}>丸</option>
+          <option value="rect" ${selected.frameShape !== 'ellipse' ? 'selected' : ''}>${t('square')}</option>
+          <option value="ellipse" ${selected.frameShape === 'ellipse' ? 'selected' : ''}>${t('round')}</option>
         </select>
       </div>
       <div class="prop-group">
-        <div class="prop-label">線の太さ(px)</div>
+        <div class="prop-label">${t('line_width_px')}</div>
         <input type="number" id="mobile-prop-frameStroke" class="prop-input" value="${selected.strokeWidth || 3}" min="1" max="20">
       </div>
       <div class="prop-group">
-        <div class="prop-label">余白(px)</div>
+        <div class="prop-label">${t('margin_px')}</div>
         <input type="number" id="mobile-prop-frameMargin" class="prop-input" value="${selected.frameMargin ?? 8}" min="0" max="80">
       </div>
       <div class="prop-group">
         <label class="flex items-center gap-2 py-1">
           <input type="checkbox" id="mobile-prop-frameFit" class="w-5 h-5" ${selected.fitToLabel ? 'checked' : ''}>
-          <span class="text-sm">ラベルの大きさに合わせる</span>
+          <span class="text-sm">${t('fit_to_label_size')}</span>
         </label>
       </div>
     `;
@@ -6785,39 +6857,39 @@ function populateMobileProps() {
     const hasCrop = !!normalizeCrop(selected.crop);
     html += `
       <div class="prop-group">
-        <div class="prop-label">トリミング・反転</div>
+        <div class="prop-label">${t('crop_flip')}</div>
         <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px">
-          <button type="button" id="mobile-prop-crop" class="img-tool-btn" style="padding:10px 4px;font-size:13px" aria-pressed="${hasCrop}">トリミング</button>
-          <button type="button" id="mobile-prop-flipX" class="img-tool-btn" style="padding:10px 4px;font-size:13px" aria-pressed="${!!selected.flipX}">左右反転</button>
-          <button type="button" id="mobile-prop-flipY" class="img-tool-btn" style="padding:10px 4px;font-size:13px" aria-pressed="${!!selected.flipY}">上下反転</button>
+          <button type="button" id="mobile-prop-crop" class="img-tool-btn" style="padding:10px 4px;font-size:13px" aria-pressed="${hasCrop}">${t('crop')}</button>
+          <button type="button" id="mobile-prop-flipX" class="img-tool-btn" style="padding:10px 4px;font-size:13px" aria-pressed="${!!selected.flipX}">${t('flip_horizontally')}</button>
+          <button type="button" id="mobile-prop-flipY" class="img-tool-btn" style="padding:10px 4px;font-size:13px" aria-pressed="${!!selected.flipY}">${t('flip_vertically')}</button>
         </div>
-        ${hasCrop ? '<button type="button" id="mobile-prop-crop-clear" class="text-sm text-blue-600 mt-2">トリミングを解除</button>' : ''}
+        ${hasCrop ? `<button type="button" id="mobile-prop-crop-clear" class="text-sm text-blue-600 mt-2">${t('remove_crop')}</button>` : ''}
       </div>
       <div class="prop-group">
-        <div class="prop-label">Scale: ${currentScale}%</div>
+        <div class="prop-label">${t('scale')}: ${currentScale}%</div>
         <input type="range" id="mobile-prop-scale" class="w-full" min="10" max="200" value="${currentScale}">
       </div>
       <div class="prop-group">
         <label class="flex items-center gap-2 py-1">
           <input type="checkbox" id="mobile-prop-lockRatio" class="w-5 h-5" ${selected.lockAspectRatio !== false ? 'checked' : ''}>
-          <span class="text-sm">Lock aspect ratio</span>
+          <span class="text-sm">${t('lock_aspect_ratio')}</span>
         </label>
       </div>
       <div class="prop-group">
-        <div class="prop-label">Dithering</div>
+        <div class="prop-label">${t('dithering')}</div>
         <select id="mobile-prop-dither" class="prop-input">
-          <option value="none" ${selected.dither === 'none' ? 'selected' : ''}>None (Threshold)</option>
-          <option value="ordered" ${selected.dither === 'ordered' ? 'selected' : ''}>Ordered (Bayer)</option>
+          <option value="none" ${selected.dither === 'none' ? 'selected' : ''}>${t('none_threshold')}</option>
+          <option value="ordered" ${selected.dither === 'ordered' ? 'selected' : ''}>${t('ordered_bayer')}</option>
           <option value="atkinson" ${selected.dither === 'atkinson' ? 'selected' : ''}>Atkinson</option>
           <option value="floyd-steinberg" ${(selected.dither === 'floyd-steinberg' || !selected.dither) ? 'selected' : ''}>Floyd-Steinberg</option>
         </select>
       </div>
       <div class="prop-group">
-        <div class="prop-label">Brightness</div>
+        <div class="prop-label">${t('brightness')}</div>
         <input type="range" id="mobile-prop-brightness" class="w-full" min="-100" max="100" value="${selected.brightness || 0}">
       </div>
       <div class="prop-group">
-        <div class="prop-label">Contrast</div>
+        <div class="prop-label">${t('contrast')}</div>
         <input type="range" id="mobile-prop-contrast" class="w-full" min="-100" max="100" value="${selected.contrast || 0}">
       </div>
     `;
@@ -6826,7 +6898,7 @@ function populateMobileProps() {
   // Position/Size/Rotation section (collapsible, at bottom)
   html += `
     <div class="border-t border-gray-200 pt-4 mt-4">
-      <div class="prop-label text-gray-400 mb-3">Position & Size</div>
+      <div class="prop-label text-gray-400 mb-3">${t('position_size')}</div>
       <div class="prop-group">
         <div class="prop-row">
           <div class="flex-1">
@@ -6842,11 +6914,11 @@ function populateMobileProps() {
       <div class="prop-group">
         <div class="prop-row">
           <div class="flex-1">
-            <label class="text-xs text-gray-500">Width</label>
+            <label class="text-xs text-gray-500">${t('width')}</label>
             <input type="number" id="mobile-prop-width" class="prop-input" value="${Math.round(selected.width)}">
           </div>
           <div class="flex-1">
-            <label class="text-xs text-gray-500">Height</label>
+            <label class="text-xs text-gray-500">${t('height')}</label>
             <input type="number" id="mobile-prop-height" class="prop-input" value="${Math.round(selected.height)}">
           </div>
         </div>
@@ -6854,7 +6926,7 @@ function populateMobileProps() {
       <div class="prop-group">
         <div class="prop-row">
           <div class="flex-1">
-            <label class="text-xs text-gray-500">Rotation</label>
+            <label class="text-xs text-gray-500">${t('rotation')}</label>
             <input type="number" id="mobile-prop-rotation" class="prop-input" value="${selected.rotation || 0}" min="0" max="360">
           </div>
           <div class="flex-1"></div>
@@ -7230,7 +7302,7 @@ function populatePrinterModelDropdown() {
   // Group by group name
   const groups = {};
   for (const def of defs) {
-    const group = def.group || 'Other';
+    const group = def.group || t('other');
     if (!groups[group]) groups[group] = [];
     groups[group].push(def);
   }
@@ -7254,7 +7326,7 @@ function populatePrinterModelDropdown() {
 
     for (const [groupName, printers] of Object.entries(groups)) {
       const optgroup = document.createElement('optgroup');
-      optgroup.label = groupName;
+      optgroup.label = printerGroupLabel(groupName);
       for (const def of printers) {
         const opt = document.createElement('option');
         opt.value = def.id;
@@ -7346,8 +7418,8 @@ function initPrinterDefsManager() {
 
       const isCustomized = customIds.has(def.id) && isBuiltinPrinter(def.id);
       const isUserCreated = !isBuiltinPrinter(def.id);
-      const badge = isUserCreated ? '<span class="ml-1 text-xs bg-blue-100 text-blue-700 px-1 rounded">custom</span>'
-        : isCustomized ? '<span class="ml-1 text-xs bg-amber-100 text-amber-700 px-1 rounded">modified</span>'
+      const badge = isUserCreated ? `<span class="ml-1 text-xs bg-blue-100 text-blue-700 px-1 rounded">${t('badge_custom')}</span>`
+        : isCustomized ? `<span class="ml-1 text-xs bg-amber-100 text-amber-700 px-1 rounded">${t('badge_modified')}</span>`
         : '';
 
       row.innerHTML = `
@@ -7356,9 +7428,9 @@ function initPrinterDefsManager() {
           <div class="text-xs text-gray-400 truncate">${def.description || def.protocol}</div>
         </div>
         <div class="flex gap-1 ml-2 shrink-0">
-          <button class="pdef-edit-btn text-xs px-2 py-1 text-blue-600 hover:bg-blue-50 rounded" data-id="${def.id}">Edit</button>
-          ${isUserCreated ? `<button class="pdef-delete-btn text-xs px-2 py-1 text-red-600 hover:bg-red-50 rounded" data-id="${def.id}">Delete</button>` : ''}
-          ${isCustomized ? `<button class="pdef-reset-btn text-xs px-2 py-1 text-amber-600 hover:bg-amber-50 rounded" data-id="${def.id}">Reset</button>` : ''}
+          <button class="pdef-edit-btn text-xs px-2 py-1 text-blue-600 hover:bg-blue-50 rounded" data-id="${def.id}">${t('edit')}</button>
+          ${isUserCreated ? `<button class="pdef-delete-btn text-xs px-2 py-1 text-red-600 hover:bg-red-50 rounded" data-id="${def.id}">${t('delete')}</button>` : ''}
+          ${isCustomized ? `<button class="pdef-reset-btn text-xs px-2 py-1 text-amber-600 hover:bg-amber-50 rounded" data-id="${def.id}">${t('reset')}</button>` : ''}
         </div>
       `;
       list.appendChild(row);
@@ -7376,7 +7448,7 @@ function initPrinterDefsManager() {
     list.querySelectorAll('.pdef-delete-btn').forEach(btn => {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
-        if (confirm(`Delete custom printer "${btn.dataset.id}"?`)) {
+        if (confirm(t('confirm_delete_printer', { id: btn.dataset.id }))) {
           deleteCustomPrinterDefinition(btn.dataset.id);
           renderList();
           populatePrinterModelDropdown();
@@ -7388,7 +7460,7 @@ function initPrinterDefsManager() {
     list.querySelectorAll('.pdef-reset-btn').forEach(btn => {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
-        if (confirm(`Reset "${btn.dataset.id}" to built-in defaults?`)) {
+        if (confirm(t('confirm_reset_printer', { id: btn.dataset.id }))) {
           resetBuiltinPrinter(btn.dataset.id);
           renderList();
           populatePrinterModelDropdown();
@@ -7402,14 +7474,14 @@ function initPrinterDefsManager() {
     editor.classList.remove('hidden');
 
     const def = id ? getPrinterDefinition(id) : null;
-    editorTitle.textContent = def ? `Edit: ${def.name}` : 'New Printer Definition';
+    editorTitle.textContent = def ? t('edit_printer_title', { name: def.name }) : t('new_printer_definition');
 
     const idInput = $('#pdef-id');
     idInput.value = def?.id || '';
     idInput.disabled = !!id; // Can't change id of existing definition
 
     $('#pdef-name').value = def?.name || '';
-    $('#pdef-group').value = def?.group || 'Custom Printers';
+    $('#pdef-group').value = def?.group || t('custom_printers_group');
     $('#pdef-description').value = def?.description || '';
     protocolSelect.value = def?.protocol || 'm-series';
     $('#pdef-dpi').value = def?.dpi || 203;
@@ -7434,12 +7506,12 @@ function initPrinterDefsManager() {
     const id = $('#pdef-id').value.trim().toLowerCase().replace(/[^a-z0-9\-]/g, '-');
     const name = $('#pdef-name').value.trim();
 
-    if (!id) { alert('ID is required'); return; }
-    if (!name) { alert('Name is required'); return; }
+    if (!id) { alert(t('alert_id_required')); return; }
+    if (!name) { alert(t('alert_name_required')); return; }
 
     // Check for id collision when creating new
     if (!editingId && getPrinterDefinition(id)) {
-      alert(`A printer with ID "${id}" already exists. Choose a different ID or edit the existing one.`);
+      alert(t('alert_printer_id_exists', { id }));
       return;
     }
 
@@ -7454,7 +7526,7 @@ function initPrinterDefsManager() {
     const def = {
       id: editingId || id,
       name,
-      group: $('#pdef-group').value.trim() || 'Custom Printers',
+      group: $('#pdef-group').value.trim() || t('custom_printers_group'),
       description: $('#pdef-description').value.trim(),
       protocol: protocolSelect.value,
       widthBytes: widthVal === '' ? null : parseInt(widthVal),
@@ -7597,7 +7669,7 @@ function init() {
   connType.addEventListener('change', (e) => {
     state.connectionType = e.target.value;
     const btn = $('#connect-btn');
-    btn.textContent = 'Connect';
+    btn.textContent = t('connect');
     btn.classList.remove('bg-green-100', 'text-green-800', 'border-green-300');
     btn.classList.add('bg-white', 'hover:bg-gray-50');
     updateConnectionStatus(false);
@@ -7674,12 +7746,12 @@ function init() {
   $('#printer-info-refresh').addEventListener('click', async () => {
     if (state.transport?.isConnected() && state.transport.queryAll) {
       try {
-        setStatus('Querying printer...');
+        setStatus(t('status_querying_printer'));
         await state.transport.queryAll();
-        setStatus('Printer info updated');
+        setStatus(t('status_printer_info_updated'));
       } catch (e) {
         console.warn('Failed to query printer:', e.message);
-        setStatus('Query failed');
+        setStatus(t('status_query_failed'));
       }
     }
   });
@@ -7695,7 +7767,7 @@ function init() {
       state.transport = null;
     }
     updateConnectionStatus(false);
-    setStatus('Disconnected');
+    setStatus(t('status_disconnected'));
   });
 
   // Close popup when clicking outside
@@ -7754,7 +7826,7 @@ function init() {
     state.ditherPreview = !state.ditherPreview;
     state.renderer.setDitherPreview(state.ditherPreview);
     updatePreviewButtonState();
-    setStatus(state.ditherPreview ? 'Print preview: ON' : 'Print preview: OFF');
+    setStatus(state.ditherPreview ? t('status_preview_on') : t('status_preview_off'));
     render();
   });
 
@@ -7801,7 +7873,7 @@ function init() {
     updateLengthAdjustButtons();
 
     printSettingsDialog.classList.add('hidden');
-    setStatus('Print settings saved');
+    setStatus(t('status_print_settings_saved'));
   });
 
   // Close dialog on backdrop click
@@ -7820,29 +7892,29 @@ function init() {
       // Ensure connected
       if (!state.transport || !state.transport.isConnected()) {
         printSettingsDialog.classList.add('hidden');
-        setStatus('Connecting...');
+        setStatus(t('connecting'));
         await handleConnect();
 
         if (!state.transport || !state.transport.isConnected()) {
-          throw new Error('Please connect to printer first');
+          throw new Error(t('error_connect_first'));
         }
       }
 
       btn.disabled = true;
-      btn.innerHTML = '🧪 Printing test...';
+      btn.textContent = t('btn_printing_test');
       printSettingsDialog.classList.add('hidden');
-      setStatus('Printing density test (8 strips)...');
+      setStatus(t('status_density_test_printing'));
 
       await printDensityTest(
         state.transport,
         state.connectionType === 'ble',
-        (progress) => setStatus(`Printing density test... ${progress}%`)
+        (progress) => setStatus(t('status_density_test_progress', { progress }))
       );
 
-      setStatus('Density test complete! Compare the 8 strips (1=lightest, 8=darkest)');
+      setStatus(t('status_density_test_done'));
     } catch (error) {
       logError(error, 'densityTest');
-      setStatus(error.message || 'Density test failed');
+      setStatus(error.message || t('status_density_test_failed'));
     } finally {
       btn.disabled = false;
       btn.innerHTML = originalText;
@@ -7891,7 +7963,7 @@ function init() {
       state.elements = duplicateElement(state.elements, selected.id);
       autoCloneIfEnabled();
       selectElement(state.elements[state.elements.length - 1].id);
-      setStatus('Element duplicated');
+      setStatus(t('status_element_duplicated'));
     }
   });
 
@@ -7903,7 +7975,7 @@ function init() {
       state.elements = deleteElement(state.elements, selected.id);
       autoCloneIfEnabled();
       deselect();
-      setStatus('Element deleted');
+      setStatus(t('status_element_deleted'));
     }
   });
 
@@ -7983,7 +8055,7 @@ function init() {
   // Print progress cancel button
   $('#progress-cancel').addEventListener('click', () => {
     printProgressCancelled = true;
-    $('#progress-subtitle').textContent = 'Cancelling...';
+    $('#progress-subtitle').textContent = t('progress_cancelling');
   });
 
   // Elements dropdown
@@ -8125,7 +8197,7 @@ function init() {
 
   // === 枠(#28) ===
   const frameStyleSelect = $('#prop-frame-style');
-  frameStyleSelect.innerHTML = FRAME_STYLES.map(fs => `<option value="${fs.id}">${fs.name}</option>`).join('');
+  frameStyleSelect.innerHTML = FRAME_STYLES.map(fs => `<option value="${fs.id}">${frameStyleName(fs)}</option>`).join('');
   bindSelect('#prop-frame-style', 'frameStyle', 'frame', bindCtx);
   bindSelect('#prop-frame-shape', 'frameShape', 'frame', bindCtx);
   bindSelect('#prop-frame-color', 'color', 'frame', bindCtx);
@@ -8159,10 +8231,10 @@ function init() {
         const { dataUrl } = await state.renderer.loadImageFile(file);
         // #26: 別の画像に差し替えたら、前の画像用の切り抜き範囲は外す
         modifyElement(id, { imageData: dataUrl, crop: null });
-        setStatus('Image replaced');
+        setStatus(t('status_image_replaced'));
       } catch (err) {
         logError(err, 'replaceImage');
-        setStatus('Failed to load image');
+        setStatus(t('status_image_load_failed'));
       }
       e.target.value = '';
     }
@@ -8269,7 +8341,7 @@ function init() {
         x: cx - base.width / 2,
         y: cy - base.height / 2,
       });
-      setStatus('Image reset to native size');
+      setStatus(t('status_image_reset'));
     }
   });
 
@@ -8546,7 +8618,7 @@ function init() {
   });
   $('#template-add-row').addEventListener('click', () => addTemplateRecord());
   $('#template-clear-all').addEventListener('click', () => {
-    if (confirm('Clear all template data?')) {
+    if (confirm(t('confirm_clear_template_data'))) {
       clearTemplateData();
     }
   });
@@ -8668,6 +8740,10 @@ function init() {
 
   // Detect template fields on load
   detectTemplateFields();
+
+  // 表示言語(日本語 / English)。JS が書く文言を今の言語で出し直す
+  refreshLanguageTexts();
+  onLangChange(() => refreshLanguageTexts());
 
   // Show info dialog on first visit
   if (shouldShowInfoOnLoad()) {

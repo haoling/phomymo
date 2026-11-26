@@ -131,7 +131,7 @@ test.describe('字間・曲線文字(画面と印刷)', () => {
 
     await resetDrawnTexts(page);
     await printAndWait(page);
-    await expect(page.locator('#status-message')).toHaveText('Print complete!');
+    await expect(page.locator('#status-message')).toHaveText('印刷が終わりました!');
     const drawn = await getDrawnTexts(page);
     expect(drawn).not.toContain('ABCD');
     for (const ch of ['A', 'B', 'C', 'D']) expect(drawn).toContain(ch);

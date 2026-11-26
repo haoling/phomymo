@@ -90,6 +90,6 @@ export async function printAndWait(page: Page, timeout = 90_000) {
   await page.click('#print-btn');
   await page.waitForFunction(() => {
     const btn = document.querySelector('#print-btn') as HTMLButtonElement;
-    return btn && !btn.disabled && btn.textContent?.trim() === 'Print';
+    return btn && !btn.disabled && btn.textContent?.trim() === '印刷';
   }, null, { timeout, polling: 200 });
 }

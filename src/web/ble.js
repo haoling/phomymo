@@ -9,6 +9,7 @@
  */
 
 import { BLE } from './constants.js';
+import { t } from './i18n.js';
 
 // Printer query commands (format: [0x1F, 0x11, X])
 const QUERY_COMMANDS = {
@@ -68,7 +69,7 @@ export class BLETransport {
    */
   async connect({ showAllDevices = false } = {}) {
     if (!BLETransport.isAvailable()) {
-      throw new Error('Bluetooth not supported');
+      throw new Error(t('err_bluetooth_not_supported'));
     }
 
     // Already connected?
@@ -174,7 +175,7 @@ export class BLETransport {
       }
     }
 
-    throw new Error('Failed to connect after multiple attempts');
+    throw new Error(t('err_connect_retries'));
   }
 
   /**
@@ -284,7 +285,7 @@ export class BLETransport {
     }
 
     if (!this.service) {
-      throw new Error(`No compatible Bluetooth service found. Last error: ${lastError?.message}`);
+      throw new Error(t('err_no_ble_service', { message: lastError?.message }));
     }
 
     console.log('Getting characteristics...');
@@ -356,7 +357,7 @@ export class BLETransport {
    */
   async send(data) {
     if (!this.isConnected()) {
-      throw new Error('Not connected');
+      throw new Error(t('err_not_connected'));
     }
 
     // Ensure we have a proper ArrayBuffer with only the data we want
@@ -637,7 +638,7 @@ export class BLETransport {
    */
   async query(queryType) {
     if (!this.isConnected()) {
-      throw new Error('Not connected');
+      throw new Error(t('err_not_connected'));
     }
 
     const command = QUERY_COMMANDS[queryType];
@@ -654,7 +655,7 @@ export class BLETransport {
    */
   async queryAll() {
     if (!this.isConnected()) {
-      throw new Error('Not connected');
+      throw new Error(t('err_not_connected'));
     }
 
     console.log('Querying all printer info...');

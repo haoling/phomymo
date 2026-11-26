@@ -82,7 +82,7 @@ test.describe('日本語フォント', () => {
 
     await resetDrawnTexts(page);
     await printAndWait(page);
-    await expect(page.locator('#status-message')).toHaveText('Print complete!');
+    await expect(page.locator('#status-message')).toHaveText('印刷が終わりました!');
 
     const drawn = await page.evaluate(() => {
       const w = window as any;

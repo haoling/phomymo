@@ -60,16 +60,21 @@ test('アプリ内の GitHub リンクはこのフォークを指す', async ({ 
   for (const h of hrefs) expect(h).toMatch(/^https:\/\/github\.com\/haoling\/phomymo(\/|$)/);
 });
 
-test('寄付ボタンは元作者への寄付だと分かる', async ({ page }) => {
+test('寄付ボタンは元作者への寄付だと分かる(日本語 / English)', async ({ page }) => {
   await page.goto('/');
   await waitForAppReady(page);
   // Chromium 以外で出る警告ダイアログ(app.js が作る)にもあるので、ソースも確かめる
   const src = fs.readFileSync(path.join(__dirname, '..', 'src', 'web', 'app.js'), 'utf8');
   const tags = src.match(/<a href="https:\/\/donate\.stripe\.com[^>]*>/g) || [];
-  for (const tag of tags) expect(tag).toContain('original Phomymo');
+  for (const tag of tags) expect(tag).toContain("t('support_original_author_tooltip')");
   const links = page.locator('a[href*="donate.stripe.com"]');
   const n = await links.count();
   expect(n).toBeGreaterThan(0);
+  for (let i = 0; i < n; i++) {
+    await expect(links.nth(i)).toHaveAttribute('title', /元の Phomymo の作者/);
+    await expect(links.nth(i)).toContainText('元の作者を支援');
+  }
+  await page.selectOption('#lang-select', 'en');
   for (let i = 0; i < n; i++) {
     await expect(links.nth(i)).toHaveAttribute('title', /original Phomymo/);
     await expect(links.nth(i)).toContainText('Support the original author');

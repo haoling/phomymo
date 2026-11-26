@@ -9,6 +9,7 @@
 import * as kv from './kv.js';
 import * as account from './account.js';
 import * as sync from './sync.js';
+import { t, onLangChange } from './i18n.js';
 
 const $ = (sel) => document.querySelector(sel);
 
@@ -22,14 +23,19 @@ let hooks = {
 let suppressUnloadWarning = false;
 
 const STATE_VIEW = {
-  guest: { dot: 'acct-dot-gray', label: 'ゲスト', title: 'ゲストモード: デザインや設定はどこにも保存されません' },
-  off: { dot: 'acct-dot-gray', label: 'ログイン中', title: '' },
-  syncing: { dot: 'acct-dot-blue', label: '同期中…', title: 'Google Drive と同期しています' },
-  synced: { dot: 'acct-dot-green', label: '同期済み', title: 'Google Drive と同期済み' },
-  pending: { dot: 'acct-dot-amber', label: '未送信', title: 'まだ Drive に送っていない変更があります' },
-  'needs-auth': { dot: 'acct-dot-red', label: '再接続', title: 'Google の接続が切れました。クリックして再接続してください(変更はこの端末に残っています)' },
-  error: { dot: 'acct-dot-red', label: '同期エラー', title: '同期に失敗しました。あとでもう一度試します' },
+  guest: { dot: 'acct-dot-gray', label: 'acct_guest', title: 'acct_guest_title' },
+  off: { dot: 'acct-dot-gray', label: 'acct_signed_in', title: '' },
+  syncing: { dot: 'acct-dot-blue', label: 'acct_syncing', title: 'acct_syncing_title' },
+  synced: { dot: 'acct-dot-green', label: 'acct_synced', title: 'acct_synced_title' },
+  pending: { dot: 'acct-dot-amber', label: 'not_synced', title: 'acct_pending_title' },
+  'needs-auth': { dot: 'acct-dot-red', label: 'acct_reconnect', title: 'acct_needs_auth_title' },
+  error: { dot: 'acct-dot-red', label: 'acct_sync_error', title: 'acct_sync_error_title' },
 };
+
+/** STATE_VIEW の label / title(文言のキー)を今の言語にする */
+function viewText(key) {
+  return key ? t(key) : '';
+}
 
 function viewKey(st) {
   if (kv.isGuest()) return 'guest';
@@ -55,14 +61,14 @@ function render() {
     btn.dataset.state = key;
     const dot = $('#account-dot');
     dot.className = `acct-dot ${view.dot}${key === 'syncing' ? ' acct-pulse' : ''}`;
-    let label = view.label;
-    if (key === 'pending') label = `未送信 ${st.unsynced}`;
+    let label = viewText(view.label);
+    if (key === 'pending') label = t('acct_pending_label', { n: st.unsynced });
     $('#account-label').textContent = label;
-    btn.title = session ? `${session.email}\n${view.title}` : view.title;
+    btn.title = session ? `${session.email}\n${viewText(view.title)}` : viewText(view.title);
   }
   const mobileLabel = $('#mobile-account-label');
   if (mobileLabel) {
-    mobileLabel.textContent = session ? `アカウント: ${session.email || session.name}` : 'ゲストモード(ログイン)';
+    mobileLabel.textContent = session ? t('acct_mobile_account', { name: session.email || session.name }) : t('guest_mode_sign_in');
   }
 
   // ダイアログ
@@ -74,13 +80,13 @@ function render() {
     $('#account-login-btn').disabled = !configured;
     $('#account-login-unconfigured').hidden = configured;
   } else {
-    $('#account-name').textContent = session.name || session.email || 'Googleアカウント';
+    $('#account-name').textContent = session.name || session.email || t('google_account');
     $('#account-email').textContent = session.email || '';
-    let text = view.title;
-    if (key === 'synced' && st.lastSyncedAt) text = `Google Drive と同期済み(${formatTime(st.lastSyncedAt)})`;
-    if (key === 'pending') text = `まだ Drive に送っていない変更が ${st.unsynced} 件あります`;
-    if (key === 'error' && st.error) text = `同期に失敗しました: ${st.error}`;
-    if (key === 'needs-auth' && st.unsynced > 0) text += `(未送信 ${st.unsynced} 件)`;
+    let text = viewText(view.title);
+    if (key === 'synced' && st.lastSyncedAt) text = t('acct_synced_at', { time: formatTime(st.lastSyncedAt) });
+    if (key === 'pending') text = t('acct_pending_count', { n: st.unsynced });
+    if (key === 'error' && st.error) text = t('acct_sync_failed', { error: st.error });
+    if (key === 'needs-auth' && st.unsynced > 0) text += t('acct_unsynced_suffix', { n: st.unsynced });
     $('#account-sync-status').textContent = text;
     $('#account-sync-status').dataset.state = key;
     $('#account-reconnect').hidden = key !== 'needs-auth';
@@ -109,8 +115,8 @@ export function hideAccountDialog() {
 /** ゲストモードで「保存」「開く」を押したときの案内 */
 export function showGuestNotice(kind = 'save') {
   const msg = kind === 'load'
-    ? 'ログインすると、保存したデザインを開けます。'
-    : 'ログインすると保存できます。';
+    ? t('account_reason_load')
+    : t('account_reason_save');
   showAccountDialog(msg);
 }
 
@@ -122,21 +128,21 @@ async function handleLogin() {
   const btn = $('#account-login-btn');
   btn.disabled = true;
   const original = btn.textContent;
-  btn.textContent = 'ログインしています…';
+  btn.textContent = t('acct_signing_in');
   try {
     const user = await account.login();
     hideAccountDialog();
     render();
-    hooks.showToast(`${user.email || user.name} でログインしました`, 'success');
-    hooks.setStatus('ログインしました。デザインは Google Drive に保存されます');
+    hooks.showToast(t('acct_signed_in_as', { name: user.email || user.name }), 'success');
+    hooks.setStatus(t('acct_signed_in_status'));
     hooks.refreshLoadDialog();
     // ゲストモードで作っていたデザインがあれば、保存するか聞く
     if (hooks.hasWork()) {
-      hooks.openSaveDialog({ title: '作業中のデザインを Drive に保存しますか?' });
+      hooks.openSaveDialog({ title: t('acct_save_current_to_drive') });
     }
   } catch (e) {
     console.error('Login failed:', e);
-    hooks.showToast(`ログインできませんでした: ${e.message}`, 'error');
+    hooks.showToast(t('acct_login_failed', { message: e.message }), 'error');
   } finally {
     btn.textContent = original;
     render();
@@ -146,19 +152,19 @@ async function handleLogin() {
 async function handleReconnect() {
   try {
     await account.reconnect();
-    hooks.showToast('再接続しました', 'success');
+    hooks.showToast(t('acct_reconnected'), 'success');
   } catch (e) {
-    hooks.showToast(`再接続できませんでした: ${e.message}`, 'error');
+    hooks.showToast(t('acct_reconnect_failed', { message: e.message }), 'error');
   }
   render();
 }
 
 function handleLogout() {
   const n = account.unsyncedCount();
-  const base = 'ログアウトすると、この端末に残っているデザインや設定のキャッシュを消して、ゲストモードに戻ります。\n(Google Drive のデータは残ります。編集中の内容は閉じます)';
+  const base = t('acct_logout_base');
   const msg = n > 0
-    ? `⚠ まだ Drive に送っていない変更が ${n} 件あります。ログアウトすると失われます。\n\n${base}\n\nそれでもログアウトしますか?`
-    : `${base}\n\nログアウトしますか?`;
+    ? t('acct_logout_confirm_unsynced', { n, base })
+    : t('acct_logout_confirm', { base });
   if (!confirm(msg)) return;
   account.logout();
   suppressUnloadWarning = true;
@@ -208,6 +214,7 @@ export function initAccountUI(h = {}) {
   });
 
   sync.onStatus(render);
+  onLangChange(render);
   sync.onPulled(() => hooks.refreshLoadDialog());
   account.restore();
   render();

@@ -7,6 +7,7 @@ import * as kv from './kv.js';
 import * as auth from './auth.js';
 import * as sync from './sync.js';
 import { countUnsyncedDesigns } from './storage.js?v=102';
+import { t } from './i18n.js';
 
 export { isGoogleLoginConfigured };
 
@@ -31,12 +32,12 @@ export function preload() {
  * @returns {Promise<{email: string, name: string}>}
  */
 export async function login() {
-  if (!isGoogleLoginConfigured()) throw new Error('Googleログインが設定されていません');
+  if (!isGoogleLoginConfigured()) throw new Error(t('err_google_login_unconfigured'));
   await auth.loadGis();
   await auth.requestToken({ prompt: 'select_account' });
   const about = await sync.getDrive().getAbout();
   const user = about?.user || {};
-  if (!user.permissionId) throw new Error('Googleアカウントの情報を取得できませんでした');
+  if (!user.permissionId) throw new Error(t('err_google_account_info'));
   kv.startAccountSession({
     accountId: user.permissionId,
     email: user.emailAddress || '',
@@ -53,13 +54,13 @@ export async function login() {
  */
 export async function reconnect() {
   const session = kv.getSession();
-  if (!session) throw new Error('ログインしていません');
+  if (!session) throw new Error(t('err_not_signed_in'));
   await auth.loadGis();
   await auth.requestToken({ prompt: '', hint: session.email });
   const about = await sync.getDrive().getAbout();
   if (about?.user?.permissionId !== session.accountId) {
     auth.revokeToken();
-    throw new Error(`ログイン中のアカウント(${session.email})とは別のアカウントが選ばれました`);
+    throw new Error(t('err_different_account', { email: session.email }));
   }
   kv.updateSessionInfo({ email: about.user.emailAddress || session.email, name: about.user.displayName || session.name });
   await sync.syncNow();

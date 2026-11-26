@@ -10,6 +10,7 @@
 
 import * as kv from './kv.js';
 import { FRAME_STYLES, renderFrameThumbnail } from './frames.js';
+import { t, getLang, onLangChange, applyI18n } from './i18n.js';
 
 /** 仮決め: あとから変えられるように定数にまとめておく */
 export const ASSET_DEFAULTS = {
@@ -22,15 +23,15 @@ export const ASSET_DEFAULTS = {
 
 /** 線アイコンの太さの選択肢(Tabler Icons の stroke-width、24px 基準) */
 export const LINE_WIDTHS = [
-  { value: '1.5', label: '細い' },
-  { value: '2', label: 'ふつう' },
-  { value: '2.5', label: '太い' },
-  { value: '3', label: '極太' },
+  { value: '1.5', labelKey: 'line_thin' },
+  { value: '2', labelKey: 'line_normal' },
+  { value: '2.5', labelKey: 'line_thick' },
+  { value: '3', labelKey: 'line_extra_thick' },
 ];
 
 const RECENT_KEY = 'phomymo_recent_assets';
 const LINE_WIDTH_KEY = 'phomymo_asset_line_width';
-const FRAME_CATEGORY = { id: 'frames', name: '枠' };
+const FRAME_CATEGORY = { id: 'frames', nameKey: 'frame' };
 const BASE = './assets/';
 
 const $ = (sel, root = document) => root.querySelector(sel);
@@ -74,8 +75,15 @@ export function normalizeQuery(s) {
 
 function frameItems() {
   return FRAME_STYLES.map(s => ({
-    id: `frame:${s.id}`, cats: ['frames'], name: s.name, tags: s.tags, kind: 'frame', frameStyle: s.id,
+    id: `frame:${s.id}`, cats: ['frames'], name: s.name, nameEn: s.nameEn, tags: s.tags, kind: 'frame', frameStyle: s.id,
   }));
+}
+
+/** 素材・カテゴリの表示名(表示言語に合わせる) */
+export function displayName(entry) {
+  if (!entry) return '';
+  if (entry.nameKey) return t(entry.nameKey);
+  return getLang() === 'en' ? (entry.nameEn || entry.name) : entry.name;
 }
 
 /**
@@ -97,7 +105,7 @@ export function filterItems(m, { category = 'all', query = '', recent = [] } = {
   const words = normalizeQuery(query).split(/\s+/).filter(Boolean);
   if (words.length === 0) return list;
   return list.filter(i => {
-    const hay = normalizeQuery([i.name, ...(i.tags || [])].join(' '));
+    const hay = normalizeQuery([i.name, i.nameEn || '', ...(i.tags || [])].join(' '));
     return words.every(w => hay.includes(w));
   });
 }
@@ -186,7 +194,7 @@ async function insertItem(item) {
   const { dataUrl, width, height } = await rasterizeSvg(text, {
     lineWidth: item.kind === 'line' ? getLineWidth() : null,
   });
-  await hooks.insertImage({ dataUrl, width, height, name: item.name, assetId: item.id });
+  await hooks.insertImage({ dataUrl, width, height, name: displayName(item), assetId: item.id });
   pushRecent(item.id);
 }
 
@@ -204,19 +212,19 @@ function buildDialog() {
   el.innerHTML = `
     <div class="assets-panel">
       <div class="assets-head">
-        <h3 id="assets-title">素材</h3>
-        <input id="assets-search" type="search" placeholder="さがす(例: ねこ、ハート、注意)" autocomplete="off">
-        <button id="assets-close" type="button" class="assets-icon-btn" aria-label="閉じる">✕</button>
+        <h3 id="assets-title" data-i18n="assets">${t('assets')}</h3>
+        <input id="assets-search" type="search" placeholder="${t('assets_search_placeholder')}" data-i18n-placeholder="assets_search_placeholder" autocomplete="off">
+        <button id="assets-close" type="button" class="assets-icon-btn" aria-label="${t('close')}" data-i18n-aria-label="close">✕</button>
       </div>
       <div id="assets-cats" class="assets-cats" role="tablist"></div>
       <div id="assets-grid" class="assets-grid"></div>
       <div class="assets-foot">
-        <label class="assets-linewidth">線の太さ
+        <label class="assets-linewidth"><span data-i18n="line_width">${t('line_width')}</span>
           <select id="assets-line-width">
-            ${LINE_WIDTHS.map(w => `<option value="${w.value}">${w.label}</option>`).join('')}
+            ${LINE_WIDTHS.map(w => `<option value="${w.value}" data-i18n="${w.labelKey}">${t(w.labelKey)}</option>`).join('')}
           </select>
         </label>
-        <span class="assets-credit">アイコン: Tabler Icons (MIT) / 絵文字: Twemoji (CC-BY 4.0)</span>
+        <span class="assets-credit" data-i18n="assets_credit">${t('assets_credit')}</span>
       </div>
     </div>`;
   document.body.appendChild(el);
@@ -248,14 +256,14 @@ function buildDialog() {
 function renderCats() {
   const box = $('#assets-cats');
   const cats = [
-    { id: 'all', name: 'すべて' },
-    ...(getRecent().length ? [{ id: 'recent', name: '最近使った' }] : []),
+    { id: 'all', nameKey: 'assets_all' },
+    ...(getRecent().length ? [{ id: 'recent', nameKey: 'assets_recent' }] : []),
     FRAME_CATEGORY,
     ...manifest.categories,
   ];
   if (!cats.some(c => c.id === current.category)) current.category = 'all';
   box.innerHTML = cats.map(c =>
-    `<button type="button" role="tab" class="assets-cat" data-cat="${c.id}" aria-selected="${c.id === current.category}">${c.name}</button>`
+    `<button type="button" role="tab" class="assets-cat" data-cat="${c.id}" aria-selected="${c.id === current.category}">${displayName(c)}</button>`
   ).join('');
   box.querySelectorAll('.assets-cat').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -279,7 +287,7 @@ function renderGrid() {
   const round = hooks.isRoundLabel();
   grid.innerHTML = '';
   if (items.length === 0) {
-    grid.innerHTML = '<p class="assets-empty">見つかりませんでした</p>';
+    grid.innerHTML = `<p class="assets-empty">${t('assets_not_found')}</p>`;
     return;
   }
   const frag = document.createDocumentFragment();
@@ -288,14 +296,15 @@ function renderGrid() {
     btn.type = 'button';
     btn.className = 'assets-item' + (item.kind === 'frame' ? ' assets-item-frame' : '');
     btn.dataset.assetId = item.id;
-    btn.title = item.name;
+    const name = displayName(item);
+    btn.title = name;
     const img = document.createElement('img');
-    img.alt = item.name;
+    img.alt = name;
     img.loading = 'lazy';
     img.decoding = 'async';
     img.src = item.kind === 'frame' ? frameThumb(item.frameStyle, round ? 'ellipse' : 'rect') : BASE + item.file;
     const label = document.createElement('span');
-    label.textContent = item.name;
+    label.textContent = name;
     btn.append(img, label);
     btn.addEventListener('click', async () => {
       btn.disabled = true;
@@ -304,7 +313,7 @@ function renderGrid() {
         if (ASSET_DEFAULTS.closeAfterInsert) closeAssetsPanel();
       } catch (e) {
         console.error('[assets] insert failed', e);
-        hooks.setStatus('素材を読み込めませんでした');
+        hooks.setStatus(t('assets_insert_failed'));
       } finally {
         btn.disabled = false;
       }
@@ -325,7 +334,7 @@ export async function openAssetsPanel({ category } = {}) {
     await loadManifest();
   } catch (e) {
     console.error('[assets] manifest load failed', e);
-    grid.innerHTML = '<p class="assets-empty">素材の一覧を読み込めませんでした</p>';
+    grid.innerHTML = `<p class="assets-empty">${t('assets_list_failed')}</p>`;
     return;
   }
   renderCats();
@@ -350,6 +359,16 @@ export function isAssetsPanelOpen() {
  */
 export function initAssetsPanel(h = {}) {
   hooks = { ...hooks, ...h };
+  // 表示言語が変わったら、開いているパネルを書き直す
+  onLangChange(() => {
+    const el = $('#assets-dialog');
+    if (!el) return;
+    applyI18n(el);
+    if (manifest) {
+      renderCats();
+      renderGrid();
+    }
+  });
   document.querySelectorAll('[data-open-assets]').forEach(btn => {
     btn.addEventListener('click', () => openAssetsPanel({ category: btn.dataset.openAssets || undefined }));
   });

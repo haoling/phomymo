@@ -9,6 +9,7 @@
  */
 
 import { normalizeCrop, MIN_CROP_FRACTION } from './elements.js';
+import { t, applyI18n } from './i18n.js';
 
 /** 仮決め: あとから変えられるように定数にまとめておく */
 export const CROP_DEFAULTS = {
@@ -23,9 +24,9 @@ export const CROP_DEFAULTS = {
  * 'original' は画像そのもの、'label' はラベルの形、'free' は自由
  */
 export const CROP_RATIOS = [
-  { id: 'free', label: '自由' },
-  { id: 'original', label: '元の形' },
-  { id: 'label', label: 'ラベルの形' },
+  { id: 'free', labelKey: 'crop_ratio_free' },
+  { id: 'original', labelKey: 'crop_ratio_original' },
+  { id: 'label', labelKey: 'crop_ratio_label' },
   { id: '1:1', label: '1:1', value: 1 },
   { id: '4:3', label: '4:3', value: 4 / 3 },
   { id: '3:4', label: '3:4', value: 3 / 4 },
@@ -47,27 +48,27 @@ function buildDialog() {
   el.innerHTML = `
     <div class="crop-panel" role="dialog" aria-modal="true" aria-labelledby="crop-title">
       <div class="crop-head">
-        <h3 id="crop-title">画像のトリミング</h3>
+        <h3 id="crop-title" data-i18n="crop_title">${t('crop_title')}</h3>
         <span class="crop-size" id="crop-size"></span>
       </div>
-      <div class="crop-ratios" role="radiogroup" aria-label="縦横比">
-        ${CROP_RATIOS.map(r => `<button type="button" class="crop-ratio" role="radio" data-ratio="${r.id}" aria-checked="false">${r.label}</button>`).join('')}
+      <div class="crop-ratios" role="radiogroup" aria-label="${t('crop_aspect')}" data-i18n-aria-label="crop_aspect">
+        ${CROP_RATIOS.map(r => `<button type="button" class="crop-ratio" role="radio" data-ratio="${r.id}" aria-checked="false"${r.labelKey ? ` data-i18n="${r.labelKey}"` : ''}>${r.labelKey ? t(r.labelKey) : r.label}</button>`).join('')}
       </div>
       <div class="crop-stage-wrap">
         <div class="crop-stage" id="crop-stage">
           <img id="crop-image" alt="" draggable="false">
-          <div class="crop-box" id="crop-box" tabindex="0" aria-label="切り抜く範囲(矢印キーで動かせます)">
+          <div class="crop-box" id="crop-box" tabindex="0" aria-label="${t('crop_box_label')}" data-i18n-aria-label="crop_box_label">
             <div class="crop-grid"></div>
             ${HANDLES.map(h => `<div class="crop-handle crop-handle-${h}" data-handle="${h}"></div>`).join('')}
           </div>
         </div>
       </div>
-      <p class="crop-hint">四すみや辺の ● をドラッグして範囲を決めます。枠の中をドラッグすると移動します。</p>
+      <p class="crop-hint" data-i18n="crop_hint">${t('crop_hint')}</p>
       <div class="crop-foot">
-        <button type="button" class="crop-btn" id="crop-reset">全体に戻す</button>
+        <button type="button" class="crop-btn" id="crop-reset" data-i18n="crop_reset">${t('crop_reset')}</button>
         <span class="crop-spacer"></span>
-        <button type="button" class="crop-btn" id="crop-cancel">キャンセル</button>
-        <button type="button" class="crop-btn crop-primary" id="crop-apply">切り抜く</button>
+        <button type="button" class="crop-btn" id="crop-cancel" data-i18n="cancel">${t('cancel')}</button>
+        <button type="button" class="crop-btn crop-primary" id="crop-apply" data-i18n="crop_apply">${t('crop_apply')}</button>
       </div>
     </div>`;
   document.body.appendChild(el);
@@ -114,6 +115,7 @@ function buildDialog() {
  */
 export function openCropDialog({ imageData, crop = null, flipX = false, flipY = false, labelAspect = 1 }) {
   if (!dialog) dialog = buildDialog();
+  else applyI18n(dialog); // 表示言語が変わっていても今の言語で出す
   if (session) finish(null);
 
   return new Promise((resolve) => {

@@ -10,9 +10,10 @@
  */
 
 import { CONFIG, isGoogleLoginConfigured } from './config.js';
+import { t } from './i18n.js';
 
 export class AuthRequiredError extends Error {
-  constructor(message = 'Googleへの再接続が必要です', cause) {
+  constructor(message = t('err_reconnect_required'), cause) {
     super(message);
     this.name = 'AuthRequiredError';
     this.code = 'AUTH_REQUIRED';
@@ -46,17 +47,17 @@ function gis() {
 /** GIS のスクリプトを読み込む(必要になったときだけ) */
 export function loadGis() {
   if (gis()) return Promise.resolve(gis());
-  if (!isGoogleLoginConfigured()) return Promise.reject(new Error('Googleログインが設定されていません'));
+  if (!isGoogleLoginConfigured()) return Promise.reject(new Error(t('err_google_login_unconfigured')));
   if (!gisPromise) {
     gisPromise = new Promise((resolve, reject) => {
       const s = document.createElement('script');
       s.src = CONFIG.gisScriptUrl;
       s.async = true;
       s.defer = true;
-      s.onload = () => (gis() ? resolve(gis()) : reject(new Error('Google Identity Services を読み込めませんでした')));
+      s.onload = () => (gis() ? resolve(gis()) : reject(new Error(t('err_gis_load_failed'))));
       s.onerror = () => {
         gisPromise = null;
-        reject(new Error('Google Identity Services を読み込めませんでした'));
+        reject(new Error(t('err_gis_load_failed')));
       };
       document.head.appendChild(s);
     });
@@ -72,7 +73,7 @@ export function isGisReady() {
 function ensureClient() {
   if (tokenClient) return tokenClient;
   const oauth2 = gis();
-  if (!oauth2) throw new Error('Google Identity Services が読み込まれていません');
+  if (!oauth2) throw new Error(t('err_gis_not_loaded'));
   tokenClient = oauth2.initTokenClient({
     client_id: CONFIG.googleClientId,
     scope: CONFIG.driveScope,
@@ -104,7 +105,7 @@ export function requestToken({ prompt = '', hint = '', timeoutMs = 0 } = {}) {
     };
     client.callback = (resp) => {
       if (!resp || resp.error || !resp.access_token) {
-        done(reject, new AuthRequiredError(resp?.error_description || resp?.error || 'ログインできませんでした'));
+        done(reject, new AuthRequiredError(resp?.error_description || resp?.error || t('err_login_failed')));
         return;
       }
       accessToken = resp.access_token;
@@ -114,10 +115,10 @@ export function requestToken({ prompt = '', hint = '', timeoutMs = 0 } = {}) {
     };
     client.error_callback = (err) => {
       // popup_failed_to_open / popup_closed など
-      done(reject, new AuthRequiredError(err?.message || err?.type || 'ログインできませんでした'));
+      done(reject, new AuthRequiredError(err?.message || err?.type || t('err_login_failed')));
     };
     if (timeoutMs > 0) {
-      timer = setTimeout(() => done(reject, new AuthRequiredError('ログインの応答がありませんでした')), timeoutMs);
+      timer = setTimeout(() => done(reject, new AuthRequiredError(t('err_login_no_response'))), timeoutMs);
     }
     const params = { prompt };
     if (hint) params.hint = hint; // login_hint

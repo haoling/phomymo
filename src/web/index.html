@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ja">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -430,8 +430,8 @@
       <!-- Label Name & Print Button -->
       <div class="flex-1 flex items-center gap-2 min-w-0 mx-2">
         <span id="mobile-status-dot" class="w-2 h-2 rounded-full bg-gray-400 flex-shrink-0"></span>
-        <span id="mobile-label-name" class="text-sm font-medium text-gray-900 truncate">Untitled Label</span>
-        <button id="mobile-dither-preview-btn" class="p-2 bg-gray-100 text-gray-700 rounded-lg active:bg-gray-200 flex-shrink-0" title="Toggle Print Preview">
+        <span id="mobile-label-name" class="text-sm font-medium text-gray-900 truncate">無題のラベル</span>
+        <button id="mobile-dither-preview-btn" class="p-2 bg-gray-100 text-gray-700 rounded-lg active:bg-gray-200 flex-shrink-0" title="印刷プレビューの切り替え" data-i18n-title="toggle_print_preview">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
@@ -462,7 +462,7 @@
       <div class="flex items-center gap-2 sm:gap-4 flex-shrink-0">
         <div class="flex items-center gap-1 sm:gap-2">
           <h1 class="text-base sm:text-lg font-semibold text-gray-900">Phomymo</h1>
-          <button id="info-btn" class="text-gray-400 hover:text-gray-600 transition-colors" title="About this project">
+          <button id="info-btn" class="text-gray-400 hover:text-gray-600 transition-colors" title="このアプリについて" data-i18n-title="about_this_project">
             <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
           </button>
         </div>
@@ -482,22 +482,22 @@
             <option value="50x30">50x30mm</option>
             <option value="50x80">50x80mm</option>
             <option value="60x40">60x40mm</option>
-            <option disabled>── Round Labels ──</option>
-            <option value="20mm Round">20mm Round</option>
-            <option value="30mm Round">30mm Round</option>
-            <option value="40mm Round">40mm Round</option>
-            <option value="50mm Round">50mm Round</option>
-            <option value="custom">Custom...</option>
-            <option value="multi-label">Multi-Label Roll...</option>
+            <option disabled data-i18n="round_labels">── 丸ラベル ──</option>
+            <option value="20mm Round" data-i18n="20mm_round">丸 20mm</option>
+            <option value="30mm Round" data-i18n="30mm_round">丸 30mm</option>
+            <option value="40mm Round" data-i18n="40mm_round">丸 40mm</option>
+            <option value="50mm Round" data-i18n="50mm_round">丸 50mm</option>
+            <option value="custom" data-i18n="custom">サイズを指定...</option>
+            <option value="multi-label" data-i18n="multi_label_roll">多面ラベル...</option>
           </select>
           <!-- P12/A30 length adjust buttons (hidden by default, shown for tape printers) -->
           <div id="label-length-adjust" class="hidden flex items-center gap-1 ml-1">
-            <button id="length-minus" class="w-6 h-6 flex items-center justify-center bg-gray-200 hover:bg-gray-300 rounded text-sm font-bold" title="Decrease length by 5mm">−</button>
-            <button id="length-plus" class="w-6 h-6 flex items-center justify-center bg-gray-200 hover:bg-gray-300 rounded text-sm font-bold" title="Increase length by 5mm">+</button>
+            <button id="length-minus" class="w-6 h-6 flex items-center justify-center bg-gray-200 hover:bg-gray-300 rounded text-sm font-bold" title="長さを5mm短くする" data-i18n-title="decrease_length_by_5mm">−</button>
+            <button id="length-plus" class="w-6 h-6 flex items-center justify-center bg-gray-200 hover:bg-gray-300 rounded text-sm font-bold" title="長さを5mm長くする" data-i18n-title="increase_length_by_5mm">+</button>
           </div>
           <!-- Tape width selector (hidden by default, shown for tape printers like P12/A30) -->
           <div id="tape-width-selector" class="hidden flex items-center gap-1 ml-2">
-            <span class="text-xs text-gray-500">Tape:</span>
+            <span class="text-xs text-gray-500" data-i18n="tape">テープ幅:</span>
             <select id="tape-width" class="text-xs px-1.5 py-1 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-gray-400">
               <option value="12">12mm</option>
               <option value="14">14mm</option>
@@ -512,19 +512,25 @@
             <span class="text-xs text-gray-400">mm</span>
             <label class="flex items-center gap-1 ml-1 cursor-pointer">
               <input type="checkbox" id="custom-round" class="w-3.5 h-3.5 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
-              <span class="text-xs text-gray-500">Round</span>
+              <span class="text-xs text-gray-500" data-i18n="round">丸</span>
             </label>
             <label id="custom-continuous-wrap" class="hidden flex items-center gap-1 ml-1 cursor-pointer">
               <input type="checkbox" id="custom-continuous" class="w-3.5 h-3.5 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
-              <span class="text-xs text-gray-500">Continuous</span>
+              <span class="text-xs text-gray-500" data-i18n="continuous">連続</span>
             </label>
           </div>
         </div>
       </div>
 
       <div class="flex items-center gap-1.5 sm:gap-3">
+        <!-- 表示言語 -->
+        <select id="lang-select" class="lang-select text-xs sm:text-sm px-1.5 py-1 sm:py-1.5 border border-gray-300 rounded-lg bg-white focus:outline-none" title="表示言語 / Language" aria-label="表示言語 / Language">
+          <option value="ja">日本語</option>
+          <option value="en">English</option>
+        </select>
+
         <!-- アカウント・同期(ゲスト / 同期済み など) -->
-        <button id="account-btn" class="acct acct-chip" data-state="guest" title="ゲストモード">
+        <button id="account-btn" class="acct acct-chip" data-state="guest" title="ゲストモード" data-i18n-title="guest_mode">
           <span id="account-dot" class="acct-dot acct-dot-gray"></span>
           <span id="account-label">ゲスト</span>
         </button>
@@ -536,7 +542,7 @@
             <option value="usb">USB</option>
           </select>
           <button id="connect-btn" class="px-2 sm:px-3 py-1 sm:py-1.5 border border-gray-300 rounded-lg bg-white hover:bg-gray-50 text-xs sm:text-sm font-medium transition-colors">
-            Connect
+            接続
           </button>
           <!-- Status dot when not connected -->
           <div id="status-dot-standalone" class="w-2 h-2 rounded-full bg-gray-400"></div>
@@ -545,19 +551,19 @@
         <!-- Printer Info & Print Controls -->
         <div class="flex items-center gap-0.5 sm:gap-1">
           <!-- Printer Info Button (shows when connected, beside print button) -->
-          <button id="printer-info-btn" class="hidden px-2 py-1.5 sm:py-2 border border-gray-200 rounded-l-lg bg-gray-50 hover:bg-gray-100 text-xs transition-colors flex items-center gap-1.5" title="Printer Info">
+          <button id="printer-info-btn" class="hidden px-2 py-1.5 sm:py-2 border border-gray-200 rounded-l-lg bg-gray-50 hover:bg-gray-100 text-xs transition-colors flex items-center gap-1.5" title="プリンター情報" data-i18n-title="printer_info">
             <div id="status-dot" class="w-2 h-2 rounded-full bg-gray-400"></div>
             <span id="printer-info-summary" class="hidden sm:inline text-gray-600">--</span>
             <svg class="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
           </button>
-          <button id="dither-preview-btn" class="p-1.5 sm:p-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-l-lg transition-colors" title="Toggle Print Preview (shows exact print output)">
+          <button id="dither-preview-btn" class="p-1.5 sm:p-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-l-lg transition-colors" title="印刷プレビューの切り替え(実際の印刷結果を表示)" data-i18n-title="toggle_print_preview_shows_exact_print">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
           </button>
-          <button id="print-settings-btn" class="p-1.5 sm:p-2 bg-gray-100 hover:bg-gray-200 text-gray-700 transition-colors" title="Print Settings">
+          <button id="print-settings-btn" class="p-1.5 sm:p-2 bg-gray-100 hover:bg-gray-200 text-gray-700 transition-colors" title="印刷設定" data-i18n-title="print_settings">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
           </button>
           <button id="print-btn" class="px-3 sm:px-5 py-1.5 sm:py-2 bg-gray-900 hover:bg-gray-800 text-white text-xs sm:text-sm font-medium rounded-r-lg transition-colors">
-            Print
+            印刷
           </button>
         </div>
       </div>
@@ -568,132 +574,132 @@
   <div class="desktop-only bg-white border-b border-gray-200 px-2 sm:px-4 py-2 flex-shrink-0">
     <div class="flex items-center gap-1 sm:gap-2 flex-wrap">
       <!-- Add Elements -->
-      <button id="add-text" class="toolbar-btn" title="Add Text">
+      <button id="add-text" class="toolbar-btn" title="テキストを追加" data-i18n-title="add_text">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h8m-8 6h16"/></svg>
-        <span class="hidden sm:inline">Text</span>
+        <span class="hidden sm:inline" data-i18n="text">テキスト</span>
       </button>
-      <button id="add-image" class="toolbar-btn" title="Add Image">
+      <button id="add-image" class="toolbar-btn" title="画像を追加" data-i18n-title="add_image">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-        <span class="hidden sm:inline">Image</span>
+        <span class="hidden sm:inline" data-i18n="image">画像</span>
       </button>
-      <button id="add-barcode" class="toolbar-btn" title="Add Barcode">
+      <button id="add-barcode" class="toolbar-btn" title="バーコードを追加" data-i18n-title="add_barcode">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h2M4 12h2m10 0h2M4 8h2m10 0h2m2-4H6a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2z"/></svg>
-        <span class="hidden sm:inline">Barcode</span>
+        <span class="hidden sm:inline" data-i18n="barcode">バーコード</span>
       </button>
-      <button id="add-qr" class="toolbar-btn" title="Add QR Code">
+      <button id="add-qr" class="toolbar-btn" title="QRコードを追加" data-i18n-title="add_qr_code">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h2M4 12h2m10 0h2M4 8h2m10 0h2m2-4H6a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2z"/></svg>
         <span class="hidden sm:inline">QR</span>
       </button>
       <!-- Shape dropdown -->
       <div class="relative flex items-center">
-        <button id="add-shape-btn" class="toolbar-btn toolbar-btn-menu" title="Add Shape">
+        <button id="add-shape-btn" class="toolbar-btn toolbar-btn-menu" title="図形を追加" data-i18n-title="add_shape">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v14a1 1 0 01-1 1H5a1 1 0 01-1-1V5z"/></svg>
-          <span class="hidden sm:inline">Shape</span>
+          <span class="hidden sm:inline" data-i18n="shape">図形</span>
         </button>
         <div id="shape-dropdown" class="hidden absolute left-0 top-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-[60] py-1 min-w-[120px]">
           <button data-shape="rectangle" class="shape-option w-full px-3 py-1.5 text-left text-sm hover:bg-gray-100 flex items-center gap-2">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="4" y="6" width="16" height="12" rx="1" stroke-width="2"/></svg>
-            Rectangle
+            <span data-i18n="rectangle">四角形</span>
           </button>
           <button data-shape="ellipse" class="shape-option w-full px-3 py-1.5 text-left text-sm hover:bg-gray-100 flex items-center gap-2">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><ellipse cx="12" cy="12" rx="8" ry="6" stroke-width="2"/></svg>
-            Ellipse
+            <span data-i18n="ellipse">楕円</span>
           </button>
           <button data-shape="triangle" class="shape-option w-full px-3 py-1.5 text-left text-sm hover:bg-gray-100 flex items-center gap-2">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M12 5l8 14H4z"/></svg>
-            Triangle
+            <span data-i18n="triangle">三角形</span>
           </button>
           <button data-shape="line" class="shape-option w-full px-3 py-1.5 text-left text-sm hover:bg-gray-100 flex items-center gap-2">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><line x1="4" y1="12" x2="20" y2="12" stroke-width="2"/></svg>
-            Line
+            <span data-i18n="line">線</span>
           </button>
         </div>
       </div>
 
       <!-- 素材(#27)・枠(#28) -->
-      <button id="add-asset" class="toolbar-btn" data-open-assets="" title="素材(アイコン・絵文字・ステッカー)">
+      <button id="add-asset" class="toolbar-btn" data-open-assets="" title="素材(アイコン・絵文字・ステッカー)" data-i18n-title="assets_icons_emoji_stickers">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3l2.6 5.6 6.1.7-4.5 4.2 1.2 6L12 16.6 6.6 19.5l1.2-6L3.3 9.3l6.1-.7z"/></svg>
-        <span class="hidden sm:inline">素材</span>
+        <span class="hidden sm:inline" data-i18n="assets">素材</span>
       </button>
-      <button id="add-frame" class="toolbar-btn" data-open-assets="frames" title="枠・ボーダー">
+      <button id="add-frame" class="toolbar-btn" data-open-assets="frames" title="枠・ボーダー" data-i18n-title="frames_borders">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2" stroke-width="2"/><rect x="6.5" y="7.5" width="11" height="9" rx="1" stroke-width="1.5" stroke-dasharray="2 2"/></svg>
-        <span class="hidden sm:inline">枠</span>
+        <span class="hidden sm:inline" data-i18n="frame">枠</span>
       </button>
 
       <div class="toolbar-divider"></div>
 
       <!-- Element Actions -->
-      <button id="duplicate-btn" class="toolbar-btn" disabled title="Duplicate">
+      <button id="duplicate-btn" class="toolbar-btn" disabled title="複製" data-i18n-title="duplicate">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
-        <span class="hidden sm:inline">Duplicate</span>
+        <span class="hidden sm:inline" data-i18n="duplicate">複製</span>
       </button>
-      <button id="delete-btn" class="toolbar-btn" disabled title="Delete">
+      <button id="delete-btn" class="toolbar-btn" disabled title="削除" data-i18n-title="delete">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-        <span class="hidden sm:inline">Delete</span>
+        <span class="hidden sm:inline" data-i18n="delete">削除</span>
       </button>
 
       <div class="toolbar-divider hidden sm:block"></div>
 
       <!-- Undo/Redo -->
-      <button id="undo-btn" class="toolbar-btn" disabled title="Undo (Ctrl+Z)">
+      <button id="undo-btn" class="toolbar-btn" disabled title="元に戻す (Ctrl+Z)" data-i18n-title="undo_ctrl_z">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/></svg>
-        <span class="hidden sm:inline">Undo</span>
+        <span class="hidden sm:inline" data-i18n="undo">元に戻す</span>
       </button>
-      <button id="redo-btn" class="toolbar-btn" disabled title="Redo (Ctrl+Shift+Z)">
+      <button id="redo-btn" class="toolbar-btn" disabled title="やり直す (Ctrl+Shift+Z)" data-i18n-title="redo_ctrl_shift_z">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 10h-10a8 8 0 00-8 8v2M21 10l-6 6m6-6l-6-6"/></svg>
-        <span class="hidden sm:inline">Redo</span>
+        <span class="hidden sm:inline" data-i18n="redo">やり直す</span>
       </button>
 
       <div class="toolbar-divider hidden sm:block"></div>
 
       <!-- Z-Order / Layers -->
-      <button id="bring-front" class="toolbar-btn" disabled title="Raise">
+      <button id="bring-front" class="toolbar-btn" disabled title="前面へ" data-i18n-title="raise">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <rect x="4" y="8" width="10" height="10" rx="1" stroke-width="2"/>
           <rect x="10" y="4" width="10" height="10" rx="1" stroke-width="2" fill="white"/>
         </svg>
-        <span class="hidden sm:inline">Raise</span>
+        <span class="hidden sm:inline" data-i18n="raise">前面へ</span>
       </button>
-      <button id="send-back" class="toolbar-btn" disabled title="Lower">
+      <button id="send-back" class="toolbar-btn" disabled title="背面へ" data-i18n-title="lower">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <rect x="10" y="10" width="10" height="10" rx="1" stroke-width="2"/>
           <rect x="4" y="4" width="10" height="10" rx="1" stroke-width="2" fill="white"/>
         </svg>
-        <span class="hidden sm:inline">Lower</span>
+        <span class="hidden sm:inline" data-i18n="lower">背面へ</span>
       </button>
 
       <div class="toolbar-divider hidden sm:block"></div>
 
       <!-- Grouping -->
-      <button id="group-btn" class="toolbar-btn" disabled title="Group (Ctrl+G)">
+      <button id="group-btn" class="toolbar-btn" disabled title="グループ化 (Ctrl+G)" data-i18n-title="group_ctrl_g">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1V5zm10 0a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1v-4zm10 0a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z"/></svg>
-        <span class="hidden sm:inline">Group</span>
+        <span class="hidden sm:inline" data-i18n="group">グループ化</span>
       </button>
-      <button id="ungroup-btn" class="toolbar-btn" disabled title="Ungroup (Ctrl+Shift+G)">
+      <button id="ungroup-btn" class="toolbar-btn" disabled title="グループ解除 (Ctrl+Shift+G)" data-i18n-title="ungroup_ctrl_shift_g">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1V5zm0 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1v-4zm10-10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zm0 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z"/></svg>
-        <span class="hidden sm:inline">Ungroup</span>
+        <span class="hidden sm:inline" data-i18n="ungroup">グループ解除</span>
       </button>
 
       <div class="toolbar-divider hidden sm:block"></div>
 
       <!-- Save/Load/Export -->
-      <button id="save-btn" class="toolbar-btn" title="Save">
+      <button id="save-btn" class="toolbar-btn" title="保存" data-i18n-title="save">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/></svg>
-        <span class="hidden sm:inline">Save</span>
+        <span class="hidden sm:inline" data-i18n="save">保存</span>
       </button>
-      <button id="load-btn" class="toolbar-btn" title="Load">
+      <button id="load-btn" class="toolbar-btn" title="開く" data-i18n-title="load">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
-        <span class="hidden sm:inline">Load</span>
+        <span class="hidden sm:inline" data-i18n="load">開く</span>
       </button>
       <div class="relative">
-        <button id="export-btn" class="toolbar-btn toolbar-btn-menu" title="Export">
+        <button id="export-btn" class="toolbar-btn toolbar-btn-menu" title="書き出し" data-i18n-title="export">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-          <span class="hidden sm:inline">Export</span>
+          <span class="hidden sm:inline" data-i18n="export">書き出し</span>
         </button>
         <div id="export-dropdown" class="hidden absolute left-0 top-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-[60] py-1 min-w-[140px]">
-          <button id="export-json-btn" class="w-full px-4 py-2 text-left text-sm hover:bg-gray-100">Export as JSON</button>
-          <button id="export-pdf-btn" class="w-full px-4 py-2 text-left text-sm hover:bg-gray-100">Export as PDF</button>
-          <button id="export-png-btn" class="w-full px-4 py-2 text-left text-sm hover:bg-gray-100">Export as PNG</button>
+          <button id="export-json-btn" class="w-full px-4 py-2 text-left text-sm hover:bg-gray-100" data-i18n="export_as_json">JSONで書き出し</button>
+          <button id="export-pdf-btn" class="w-full px-4 py-2 text-left text-sm hover:bg-gray-100" data-i18n="export_as_pdf">PDFで書き出し</button>
+          <button id="export-png-btn" class="w-full px-4 py-2 text-left text-sm hover:bg-gray-100" data-i18n="export_as_png">PNGで書き出し</button>
         </div>
       </div>
 
@@ -701,13 +707,13 @@
 
       <!-- Elements list -->
       <div class="relative flex items-center">
-        <button id="elements-btn" class="toolbar-btn toolbar-btn-menu" title="Elements List">
+        <button id="elements-btn" class="toolbar-btn toolbar-btn-menu" title="要素の一覧" data-i18n-title="elements_list">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
-          <span class="hidden sm:inline">Elements</span>
+          <span class="hidden sm:inline" data-i18n="elements">要素</span>
         </button>
         <div id="elements-dropdown" class="hidden absolute left-0 top-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-[60] py-1 min-w-[180px] max-h-[300px] overflow-y-auto">
           <div id="elements-list" class="text-sm">
-            <div class="px-3 py-2 text-gray-400 text-center">No elements</div>
+            <div class="px-3 py-2 text-gray-400 text-center" data-i18n="no_elements">要素はありません</div>
           </div>
         </div>
       </div>
@@ -715,9 +721,9 @@
       <div class="toolbar-divider hidden" id="template-toolbar-divider"></div>
 
       <!-- Template Manage Data (shows when template fields detected) -->
-      <button id="template-toolbar-btn" class="hidden toolbar-btn bg-purple-50 text-purple-700 hover:bg-purple-100 border-purple-200" title="Manage Template Data">
+      <button id="template-toolbar-btn" class="hidden toolbar-btn bg-purple-50 text-purple-700 hover:bg-purple-100 border-purple-200" title="差し込みデータの管理" data-i18n-title="manage_template_data">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z"/></svg>
-        <span id="template-toolbar-label" class="hidden sm:inline">Manage Data</span>
+        <span id="template-toolbar-label" class="hidden sm:inline" data-i18n="manage_data">データを管理</span>
       </button>
     </div>
   </div>
@@ -727,7 +733,7 @@
     <div class="flex items-center gap-2 sm:gap-4 flex-wrap">
       <!-- Zone Info -->
       <div class="flex items-center gap-2">
-        <span class="text-xs font-semibold text-blue-700 uppercase tracking-wide">Multi-Label</span>
+        <span class="text-xs font-semibold text-blue-700 uppercase tracking-wide" data-i18n="multi_label">多面ラベル</span>
         <span id="zone-config-summary" class="text-xs text-blue-600 bg-blue-100 px-2 py-0.5 rounded-full">4 × 10×20mm</span>
       </div>
 
@@ -735,7 +741,7 @@
 
       <!-- Zone Selector -->
       <div class="flex items-center gap-1">
-        <span class="text-xs text-blue-600 font-medium mr-1">Zone:</span>
+        <span class="text-xs text-blue-600 font-medium mr-1" data-i18n="zone">面:</span>
         <div id="zone-buttons" class="flex gap-1">
           <!-- Zone buttons will be dynamically added here -->
         </div>
@@ -745,12 +751,12 @@
 
       <!-- Clone Controls -->
       <div class="flex items-center gap-2">
-        <button id="clone-to-all-btn" class="px-2 py-1 text-xs font-medium text-blue-700 bg-blue-100 hover:bg-blue-200 rounded transition-colors">
-          Clone to All
+        <button id="clone-to-all-btn" class="px-2 py-1 text-xs font-medium text-blue-700 bg-blue-100 hover:bg-blue-200 rounded transition-colors" data-i18n="clone_to_all">
+          全部の面に複製
         </button>
         <label class="flex items-center gap-1.5 cursor-pointer">
           <input type="checkbox" id="zone-clone-mode" class="w-3.5 h-3.5 rounded border-blue-300 text-blue-600 focus:ring-blue-500" checked>
-          <span class="text-xs text-blue-600">Auto-clone</span>
+          <span class="text-xs text-blue-600" data-i18n="auto_clone">自動で複製</span>
         </label>
       </div>
 
@@ -759,7 +765,7 @@
       <!-- Exit Multi-Label -->
       <button id="exit-multi-label-btn" class="px-2 py-1 text-xs font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded transition-colors flex items-center gap-1">
         <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-        Exit Multi-Label
+        <span data-i18n="exit_multi_label">多面ラベルをやめる</span>
       </button>
     </div>
   </div>
@@ -777,21 +783,21 @@
 
       <!-- Zoom Controls - Centered bottom (moves to top on mobile) -->
       <div id="zoom-controls" class="absolute bottom-3 sm:bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-2 sm:gap-3 bg-white rounded-xl shadow-lg border border-gray-200 px-2 sm:px-4 py-2 sm:py-3 z-40">
-        <button id="zoom-out" class="p-1.5 sm:p-2 rounded-lg hover:bg-gray-100 transition-colors" title="Zoom Out">
+        <button id="zoom-out" class="p-1.5 sm:p-2 rounded-lg hover:bg-gray-100 transition-colors" title="縮小" data-i18n-title="zoom_out">
           <svg class="w-4 h-4 sm:w-5 sm:h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM13 10H7"/></svg>
         </button>
         <span id="zoom-level" class="text-sm sm:text-base text-gray-700 w-12 sm:w-14 text-center font-semibold">100%</span>
-        <button id="zoom-in" class="p-1.5 sm:p-2 rounded-lg hover:bg-gray-100 transition-colors" title="Zoom In">
+        <button id="zoom-in" class="p-1.5 sm:p-2 rounded-lg hover:bg-gray-100 transition-colors" title="拡大" data-i18n-title="zoom_in">
           <svg class="w-4 h-4 sm:w-5 sm:h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m3-3H7"/></svg>
         </button>
         <div class="w-px h-5 sm:h-6 bg-gray-200"></div>
-        <button id="zoom-reset" class="px-2 sm:px-3 py-1 sm:py-1.5 text-xs sm:text-sm text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors font-medium" title="Reset Zoom">
-          Reset
+        <button id="zoom-reset" class="px-2 sm:px-3 py-1 sm:py-1.5 text-xs sm:text-sm text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors font-medium" title="表示倍率を戻す" data-i18n="reset" data-i18n-title="reset_zoom">
+          リセット
         </button>
       </div>
 
       <!-- Mobile Properties Toggle Button (hidden - replaced by bottom sheet) -->
-      <button id="props-toggle" class="hidden fixed bottom-20 right-4 z-50 p-3 bg-gray-900 text-white rounded-full shadow-lg hover:bg-gray-800 transition-colors" title="Properties">
+      <button id="props-toggle" class="hidden fixed bottom-20 right-4 z-50 p-3 bg-gray-900 text-white rounded-full shadow-lg hover:bg-gray-800 transition-colors" title="プロパティ" data-i18n-title="properties">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
       </button>
     </div>
@@ -802,7 +808,7 @@
       <div class="p-4 border-b border-purple-200 flex items-center justify-between">
         <div class="flex items-center gap-2">
           <svg class="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z"/></svg>
-          <span class="text-sm font-semibold text-purple-900">Template</span>
+          <span class="text-sm font-semibold text-purple-900" data-i18n="template">差し込み印刷</span>
         </div>
         <button id="template-panel-close" class="text-purple-400 hover:text-purple-600">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
@@ -814,22 +820,22 @@
         <!-- Fields Section -->
         <div class="mb-4">
           <div class="flex items-center justify-between mb-2">
-            <span class="text-xs font-semibold text-purple-700 uppercase tracking-wide">Fields Detected</span>
+            <span class="text-xs font-semibold text-purple-700 uppercase tracking-wide" data-i18n="fields_detected">見つかった差し込み項目</span>
             <span id="template-field-count" class="text-xs text-purple-600 font-medium bg-purple-100 px-2 py-0.5 rounded-full">0</span>
           </div>
           <div id="template-field-tags" class="flex flex-wrap gap-1.5 text-xs">
-            <span class="text-purple-400 italic">None</span>
+            <span class="text-purple-400 italic" data-i18n="none">なし</span>
           </div>
         </div>
 
         <!-- Data Section -->
         <div class="mb-4">
           <div class="flex items-center justify-between mb-2">
-            <span class="text-xs font-semibold text-purple-700 uppercase tracking-wide">Data Records</span>
+            <span class="text-xs font-semibold text-purple-700 uppercase tracking-wide" data-i18n="data_records">データ件数</span>
             <span id="template-data-count" class="text-xs text-purple-600">0</span>
           </div>
-          <button id="template-manage-data" class="w-full px-3 py-2 bg-white hover:bg-purple-100 text-purple-700 border border-purple-200 rounded-lg text-sm font-medium">
-            Manage Data
+          <button id="template-manage-data" class="w-full px-3 py-2 bg-white hover:bg-purple-100 text-purple-700 border border-purple-200 rounded-lg text-sm font-medium" data-i18n="manage_data">
+            データを管理
           </button>
         </div>
       </div>
@@ -838,11 +844,11 @@
       <div class="p-4 border-t border-purple-200 flex flex-col gap-2">
         <button id="template-quick-preview" class="w-full px-3 py-2 bg-white hover:bg-purple-100 text-purple-700 border border-purple-200 rounded-lg text-sm font-medium flex items-center justify-center gap-2">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-          Preview Labels
+          <span data-i18n="preview_labels">ラベルをプレビュー</span>
         </button>
         <button id="template-quick-print" class="w-full px-3 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-sm font-medium flex items-center justify-center gap-2">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
-          Print All (<span id="template-print-count">0</span>)
+          <span data-i18n="print_all">すべて印刷 (</span><span id="template-print-count">0</span>)
         </button>
       </div>
     </aside>
@@ -856,11 +862,11 @@
       <button id="props-close" class="md:hidden absolute top-3 right-3 p-1 text-gray-400 hover:text-gray-600">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
       </button>
-      <h2 class="text-sm font-semibold text-gray-900 mb-4">Properties</h2>
+      <h2 class="text-sm font-semibold text-gray-900 mb-4" data-i18n="properties">プロパティ</h2>
 
       <!-- No Selection State -->
       <div id="props-empty" class="text-sm text-gray-400 text-center py-8">
-        Click an element to select it,<br>or add a new element.
+        <span data-i18n-html="props_empty_hint">要素をクリックして選ぶか、<br>新しい要素を追加してください。</span>
       </div>
 
       <!-- Element Properties -->
@@ -889,14 +895,14 @@
           <!-- Rotation & Layer on same row -->
           <div class="grid grid-cols-2 gap-3">
             <div>
-              <label class="text-[10px] text-gray-400 uppercase tracking-wide">Rotation</label>
+              <label class="text-[10px] text-gray-400 uppercase tracking-wide" data-i18n="rotation">回転</label>
               <div class="flex items-center gap-1">
                 <input type="number" id="prop-rotation" class="w-full px-1.5 py-1 text-xs border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-blue-400" min="0" max="360" step="15">
                 <span class="text-[10px] text-gray-400">°</span>
               </div>
             </div>
             <div>
-              <label class="text-[10px] text-gray-400 uppercase tracking-wide">Layer</label>
+              <label class="text-[10px] text-gray-400 uppercase tracking-wide" data-i18n="layer">重なり順</label>
               <div class="text-xs text-gray-600 py-1 px-1.5">
                 <span id="prop-layer" class="font-medium">1</span><span class="text-gray-400"> / <span id="prop-layer-total">1</span></span>
               </div>
@@ -911,52 +917,52 @@
           <!-- Text Content -->
           <div>
             <div class="flex items-center justify-between mb-1">
-              <label class="text-[10px] text-gray-400 uppercase tracking-wide">Text</label>
+              <label class="text-[10px] text-gray-400 uppercase tracking-wide" data-i18n="text">テキスト</label>
               <div class="flex items-center gap-2">
                 <!-- Insert Expression Button -->
                 <div class="relative">
-                  <button id="insert-expr-text" class="text-[10px] text-blue-600 hover:text-blue-800 font-medium flex items-center gap-0.5" title="Insert date/time expression">
+                  <button id="insert-expr-text" class="text-[10px] text-blue-600 hover:text-blue-800 font-medium flex items-center gap-0.5" title="日付・時刻の式を挿入" data-i18n-title="insert_date_time_expression">
                     <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                    [[Date/Time]]
+                    <span data-i18n="date_time">[[日付・時刻]]</span>
                   </button>
                   <div id="expr-dropdown-text" class="hidden absolute right-0 top-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-50 min-w-[160px] py-1">
-                    <button data-expr="[[date]]" class="expr-option w-full px-3 py-1.5 text-left text-xs hover:bg-gray-100">[[date]] - Date</button>
-                    <button data-expr="[[time]]" class="expr-option w-full px-3 py-1.5 text-left text-xs hover:bg-gray-100">[[time]] - Time</button>
-                    <button data-expr="[[dt]]" class="expr-option w-full px-3 py-1.5 text-left text-xs hover:bg-gray-100">[[dt]] - Date & Time</button>
+                    <button data-expr="[[date]]" class="expr-option w-full px-3 py-1.5 text-left text-xs hover:bg-gray-100" data-i18n="date_date">[[date]] - 日付</button>
+                    <button data-expr="[[time]]" class="expr-option w-full px-3 py-1.5 text-left text-xs hover:bg-gray-100" data-i18n="time_time">[[time]] - 時刻</button>
+                    <button data-expr="[[dt]]" class="expr-option w-full px-3 py-1.5 text-left text-xs hover:bg-gray-100"><span data-i18n="dt_date_time">[[dt]] - 日付と時刻</span></button>
                     <hr class="my-1 border-gray-100">
                     <button data-expr="[[dt|MM/DD/YY]]" class="expr-option w-full px-3 py-1.5 text-left text-xs hover:bg-gray-100">[[dt|MM/DD/YY]]</button>
-                    <button data-expr="[[dt|hh:mm A]]" class="expr-option w-full px-3 py-1.5 text-left text-xs hover:bg-gray-100">[[dt|hh:mm A]] - 12hr</button>
-                    <button data-expr="[[dt|HH:mm]]" class="expr-option w-full px-3 py-1.5 text-left text-xs hover:bg-gray-100">[[dt|HH:mm]] - 24hr</button>
+                    <button data-expr="[[dt|hh:mm A]]" class="expr-option w-full px-3 py-1.5 text-left text-xs hover:bg-gray-100" data-i18n="dt_hh_mm_a_12hr">[[dt|hh:mm A]] - 12時間制</button>
+                    <button data-expr="[[dt|HH:mm]]" class="expr-option w-full px-3 py-1.5 text-left text-xs hover:bg-gray-100" data-i18n="dt_hh_mm_24hr">[[dt|HH:mm]] - 24時間制</button>
                     <button data-expr="[[date|YYYY年M月D日]]" class="expr-option w-full px-3 py-1.5 text-left text-xs hover:bg-gray-100">[[date|YYYY年M月D日]]</button>
                     <hr class="my-1 border-gray-100">
-                    <button data-expr="[[counter]]" class="expr-option w-full px-3 py-1.5 text-left text-xs hover:bg-gray-100">[[counter]] - 連番 (1, 2, 3…)</button>
-                    <button data-expr="[[counter|pad=3]]" class="expr-option w-full px-3 py-1.5 text-left text-xs hover:bg-gray-100">[[counter|pad=3]] - 連番 (001, 002…)</button>
+                    <button data-expr="[[counter]]" class="expr-option w-full px-3 py-1.5 text-left text-xs hover:bg-gray-100" data-i18n="counter_counter_1_2_3">[[counter]] - 連番 (1, 2, 3…)</button>
+                    <button data-expr="[[counter|pad=3]]" class="expr-option w-full px-3 py-1.5 text-left text-xs hover:bg-gray-100" data-i18n="counter_pad_3_counter_001_002">[[counter|pad=3]] - 連番 (001, 002…)</button>
                   </div>
                 </div>
                 <!-- Insert Field Button -->
                 <div class="relative">
-                  <button id="insert-field-text" class="text-[10px] text-purple-600 hover:text-purple-800 font-medium flex items-center gap-0.5" title="Insert template field">
+                  <button id="insert-field-text" class="text-[10px] text-purple-600 hover:text-purple-800 font-medium flex items-center gap-0.5" title="差し込み項目を挿入" data-i18n-title="insert_template_field">
                     <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                    {{Field}}
+                    <span data-i18n="field">{{項目}}</span>
                   </button>
                   <div id="field-dropdown-text" class="hidden absolute right-0 top-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-50 min-w-[140px]">
                     <div class="p-2 border-b border-gray-100">
-                      <input type="text" id="new-field-text" class="w-full px-2 py-1 text-xs border border-gray-200 rounded" placeholder="New field name...">
+                      <input type="text" id="new-field-text" class="w-full px-2 py-1 text-xs border border-gray-200 rounded" placeholder="新しい項目名..." data-i18n-placeholder="new_field_name">
                     </div>
                     <div id="field-list-text" class="max-h-32 overflow-y-auto"></div>
                   </div>
                 </div>
               </div>
             </div>
-            <textarea id="prop-text-content" class="w-full px-2 py-1.5 text-sm border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-blue-400 h-16 resize-none" placeholder="Enter text..."></textarea>
+            <textarea id="prop-text-content" class="w-full px-2 py-1.5 text-sm border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-blue-400 h-16 resize-none" placeholder="文字を入力..." data-i18n-placeholder="enter_text"></textarea>
           </div>
 
           <!-- Font & Size on same row -->
           <div class="grid grid-cols-3 gap-1.5">
             <div class="col-span-2">
-              <label class="text-[10px] text-gray-400 uppercase tracking-wide">Font</label>
+              <label class="text-[10px] text-gray-400 uppercase tracking-wide" data-i18n="font">フォント</label>
               <select id="prop-font-family" class="w-full px-1.5 py-1 text-xs border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-blue-400">
-                <optgroup label="Sans-Serif">
+                <optgroup label="ゴシック系 (Sans-Serif)" data-i18n-label="sans_serif">
                   <option value="Inter, sans-serif">Inter</option>
                   <option value="Roboto, sans-serif">Roboto</option>
                   <option value="Open Sans, sans-serif">Open Sans</option>
@@ -966,28 +972,28 @@
                   <option value="Arial, sans-serif">Arial</option>
                   <option value="Helvetica, sans-serif">Helvetica</option>
                 </optgroup>
-                <optgroup label="Serif">
+                <optgroup label="明朝系 (Serif)" data-i18n-label="serif">
                   <option value="Playfair Display, serif">Playfair Display</option>
                   <option value="Merriweather, serif">Merriweather</option>
                   <option value="Georgia, serif">Georgia</option>
                   <option value="Times New Roman, serif">Times New Roman</option>
                 </optgroup>
-                <optgroup label="Monospace">
+                <optgroup label="等幅 (Monospace)" data-i18n-label="monospace">
                   <option value="Roboto Mono, monospace">Roboto Mono</option>
                   <option value="Source Code Pro, monospace">Source Code Pro</option>
                   <option value="Courier New, monospace">Courier New</option>
                 </optgroup>
-                <optgroup label="Display">
+                <optgroup label="装飾 (Display)" data-i18n-label="display">
                   <option value="Impact, sans-serif">Impact</option>
                   <option value="Comic Sans MS, cursive">Comic Sans</option>
                 </optgroup>
               </select>
               <button id="add-system-fonts-btn" class="hidden w-full mt-1 px-1.5 py-0.5 text-[10px] text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded transition-colors">
-                + Add System Fonts
+                + パソコンのフォントを追加
               </button>
             </div>
             <div>
-              <label class="text-[10px] text-gray-400 uppercase tracking-wide">Size</label>
+              <label class="text-[10px] text-gray-400 uppercase tracking-wide" data-i18n="size">サイズ</label>
               <input type="number" id="prop-font-size" class="w-full px-1.5 py-1 text-xs border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-blue-400 text-center" min="6" max="200" value="24">
             </div>
           </div>
@@ -995,34 +1001,34 @@
           <!-- Style, Color & Background -->
           <div class="grid grid-cols-3 gap-1.5">
             <div>
-              <label class="text-[10px] text-gray-400 uppercase tracking-wide">Style</label>
+              <label class="text-[10px] text-gray-400 uppercase tracking-wide" data-i18n="style">スタイル</label>
               <div class="flex border border-gray-200 rounded overflow-hidden">
-                <button id="style-bold" class="style-btn flex-1 py-1 hover:bg-gray-100 transition-colors font-bold text-xs" title="Bold">B</button>
-                <button id="style-italic" class="style-btn flex-1 py-1 hover:bg-gray-100 transition-colors italic text-xs border-l border-gray-200" title="Italic">I</button>
-                <button id="style-underline" class="style-btn flex-1 py-1 hover:bg-gray-100 transition-colors underline text-xs border-l border-gray-200" title="Underline">U</button>
+                <button id="style-bold" class="style-btn flex-1 py-1 hover:bg-gray-100 transition-colors font-bold text-xs" title="太字" data-i18n-title="bold">B</button>
+                <button id="style-italic" class="style-btn flex-1 py-1 hover:bg-gray-100 transition-colors italic text-xs border-l border-gray-200" title="斜体" data-i18n-title="italic">I</button>
+                <button id="style-underline" class="style-btn flex-1 py-1 hover:bg-gray-100 transition-colors underline text-xs border-l border-gray-200" title="下線" data-i18n-title="underline">U</button>
               </div>
             </div>
             <div>
-              <label class="text-[10px] text-gray-400 uppercase tracking-wide">Color</label>
+              <label class="text-[10px] text-gray-400 uppercase tracking-wide" data-i18n="color">色</label>
               <div class="flex border border-gray-200 rounded overflow-hidden">
-                <button data-color="black" class="color-btn flex-1 py-1 hover:bg-gray-50" title="Black text">
+                <button data-color="black" class="color-btn flex-1 py-1 hover:bg-gray-50" title="黒い文字" data-i18n-title="black_text">
                   <span class="block w-3 h-3 mx-auto rounded-sm border border-gray-300 bg-black"></span>
                 </button>
-                <button data-color="white" class="color-btn flex-1 py-1 hover:bg-gray-50 border-l border-gray-200" title="White text">
+                <button data-color="white" class="color-btn flex-1 py-1 hover:bg-gray-50 border-l border-gray-200" title="白い文字" data-i18n-title="white_text">
                   <span class="block w-3 h-3 mx-auto rounded-sm border border-gray-300 bg-white"></span>
                 </button>
               </div>
             </div>
             <div>
-              <label class="text-[10px] text-gray-400 uppercase tracking-wide">BG</label>
+              <label class="text-[10px] text-gray-400 uppercase tracking-wide" data-i18n="bg">背景</label>
               <div class="flex border border-gray-200 rounded overflow-hidden">
-                <button data-bg="transparent" class="bg-btn flex-1 py-1 hover:bg-gray-50" title="Transparent">
+                <button data-bg="transparent" class="bg-btn flex-1 py-1 hover:bg-gray-50" title="透明" data-i18n-title="transparent">
                   <span class="block w-3 h-3 mx-auto rounded-sm border border-gray-300" style="background-image: linear-gradient(45deg, #ccc 25%, transparent 25%), linear-gradient(-45deg, #ccc 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #ccc 75%), linear-gradient(-45deg, transparent 75%, #ccc 75%); background-size: 4px 4px; background-position: 0 0, 0 2px, 2px -2px, -2px 0px;"></span>
                 </button>
-                <button data-bg="white" class="bg-btn flex-1 py-1 hover:bg-gray-50 border-l border-gray-200" title="White">
+                <button data-bg="white" class="bg-btn flex-1 py-1 hover:bg-gray-50 border-l border-gray-200" title="白" data-i18n-title="white">
                   <span class="block w-3 h-3 mx-auto rounded-sm border border-gray-300 bg-white"></span>
                 </button>
-                <button data-bg="black" class="bg-btn flex-1 py-1 hover:bg-gray-50 border-l border-gray-200" title="Black">
+                <button data-bg="black" class="bg-btn flex-1 py-1 hover:bg-gray-50 border-l border-gray-200" title="黒" data-i18n-title="black">
                   <span class="block w-3 h-3 mx-auto rounded-sm border border-gray-300 bg-black"></span>
                 </button>
               </div>
@@ -1032,29 +1038,29 @@
           <!-- H-Align & V-Align on same row -->
           <div class="grid grid-cols-2 gap-2">
             <div>
-              <label class="text-[10px] text-gray-400 uppercase tracking-wide">H-Align</label>
+              <label class="text-[10px] text-gray-400 uppercase tracking-wide" data-i18n="h_align">左右の揃え</label>
               <div class="flex border border-gray-200 rounded overflow-hidden">
-                <button data-align="left" class="align-btn flex-1 py-1 hover:bg-gray-50" title="Left">
+                <button data-align="left" class="align-btn flex-1 py-1 hover:bg-gray-50" title="左" data-i18n-title="left">
                   <svg class="w-3 h-3 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h10M4 18h14"/></svg>
                 </button>
-                <button data-align="center" class="align-btn flex-1 py-1 hover:bg-gray-50 border-l border-gray-200" title="Center">
+                <button data-align="center" class="align-btn flex-1 py-1 hover:bg-gray-50 border-l border-gray-200" title="中央" data-i18n-title="center">
                   <svg class="w-3 h-3 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M7 12h10M5 18h14"/></svg>
                 </button>
-                <button data-align="right" class="align-btn flex-1 py-1 hover:bg-gray-50 border-l border-gray-200" title="Right">
+                <button data-align="right" class="align-btn flex-1 py-1 hover:bg-gray-50 border-l border-gray-200" title="右" data-i18n-title="right">
                   <svg class="w-3 h-3 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M10 12h10M6 18h14"/></svg>
                 </button>
               </div>
             </div>
             <div>
-              <label class="text-[10px] text-gray-400 uppercase tracking-wide">V-Align</label>
+              <label class="text-[10px] text-gray-400 uppercase tracking-wide" data-i18n="v_align">上下の揃え</label>
               <div class="flex border border-gray-200 rounded overflow-hidden">
-                <button data-valign="top" class="valign-btn flex-1 py-1 hover:bg-gray-50" title="Top">
+                <button data-valign="top" class="valign-btn flex-1 py-1 hover:bg-gray-50" title="上" data-i18n-title="top">
                   <svg class="w-3 h-3 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4h16M12 8v12"/></svg>
                 </button>
-                <button data-valign="middle" class="valign-btn flex-1 py-1 hover:bg-gray-50 border-l border-gray-200" title="Middle">
+                <button data-valign="middle" class="valign-btn flex-1 py-1 hover:bg-gray-50 border-l border-gray-200" title="中央" data-i18n-title="middle">
                   <svg class="w-3 h-3 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 12h16"/></svg>
                 </button>
-                <button data-valign="bottom" class="valign-btn flex-1 py-1 hover:bg-gray-50 border-l border-gray-200" title="Bottom">
+                <button data-valign="bottom" class="valign-btn flex-1 py-1 hover:bg-gray-50 border-l border-gray-200" title="下" data-i18n-title="bottom">
                   <svg class="w-3 h-3 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v12M4 20h16"/></svg>
                 </button>
               </div>
@@ -1065,15 +1071,15 @@
           <div class="flex flex-wrap gap-x-3 gap-y-1 pt-1">
             <label class="flex items-center gap-1 cursor-pointer text-[11px] text-gray-600">
               <input type="checkbox" id="prop-no-wrap" class="w-3 h-3 rounded border-gray-300">
-              No wrap
+              <span data-i18n="no_wrap">折り返さない</span>
             </label>
             <label class="flex items-center gap-1 cursor-pointer text-[11px] text-gray-600">
               <input type="checkbox" id="prop-clip-overflow" class="w-3 h-3 rounded border-gray-300">
-              Clip
+              <span data-i18n="clip">はみ出しを隠す</span>
             </label>
             <label class="flex items-center gap-1 cursor-pointer text-[11px] text-gray-600">
               <input type="checkbox" id="prop-auto-scale" class="w-3 h-3 rounded border-gray-300">
-              Auto-fit
+              <span data-i18n="auto_fit">自動縮小</span>
             </label>
           </div>
 
@@ -1081,56 +1087,56 @@
           <div id="text-style-extra" class="space-y-1.5 pt-2 border-t border-gray-100">
             <!-- #22 縦書き -->
             <div>
-              <div class="text-[10px] text-gray-400 tracking-wide">文字の向き</div>
+              <div class="text-[10px] text-gray-400 tracking-wide" data-i18n="writing_direction">文字の向き</div>
               <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px">
-                <button type="button" class="img-tool-btn" data-writing-mode="horizontal" aria-pressed="true" title="横書き">横書き</button>
-                <button type="button" class="img-tool-btn" data-writing-mode="vertical" aria-pressed="false" title="縦書き(右の列から左へ)">縦書き</button>
+                <button type="button" class="img-tool-btn" data-writing-mode="horizontal" aria-pressed="true" title="横書き" data-i18n-title="horizontal" data-i18n="horizontal">横書き</button>
+                <button type="button" class="img-tool-btn" data-writing-mode="vertical" aria-pressed="false" title="縦書き(右の列から左へ)" data-i18n-title="vertical_columns_from_right_to_left" data-i18n="vertical">縦書き</button>
               </div>
               <div id="prop-vertical-options" class="space-y-1 pl-1 pt-1" hidden>
-                <label class="flex items-center gap-1 cursor-pointer text-[11px] text-gray-600" title="「12月」の「12」のように、2桁までの数字を横に並べて1文字ぶんに収めます">
+                <label class="flex items-center gap-1 cursor-pointer text-[11px] text-gray-600" title="「12月」の「12」のように、2桁までの数字を横に並べて1文字ぶんに収めます" data-i18n-title="puts_numbers_of_up_to_2">
                   <input type="checkbox" id="prop-tcy" class="w-3 h-3 rounded border-gray-300">
-                  縦中横(2桁までの数字を横に並べる)
+                  <span data-i18n="tate_chu_yoko_numbers_up_to">縦中横(2桁までの数字を横に並べる)</span>
                 </label>
                 <div class="flex items-center justify-between gap-1">
-                  <label for="prop-latin-mode" class="text-[10px] text-gray-400 tracking-wide">英数字</label>
+                  <label for="prop-latin-mode" class="text-[10px] text-gray-400 tracking-wide" data-i18n="latin_text">英数字</label>
                   <select id="prop-latin-mode" class="px-1 py-0.5 text-[11px] border border-gray-200 rounded">
-                    <option value="rotate">横に寝かせる</option>
-                    <option value="upright">1文字ずつ立てる</option>
+                    <option value="rotate" data-i18n="rotate_sideways">横に寝かせる</option>
+                    <option value="upright" data-i18n="upright_one_by_one">1文字ずつ立てる</option>
                   </select>
                 </div>
-                <p class="text-[10px] text-gray-400 leading-snug">縦書きでは、左右の揃えボタンが「上・中央・下」、上下の揃えボタンが「右・中央・左」寄せになります。</p>
+                <p class="text-[10px] text-gray-400 leading-snug" data-i18n="in_vertical_text_the_h_align">縦書きでは、左右の揃えボタンが「上・中央・下」、上下の揃えボタンが「右・中央・左」寄せになります。</p>
               </div>
             </div>
             <div>
               <div class="flex items-center justify-between">
-                <label for="prop-letter-spacing" class="text-[10px] text-gray-400 tracking-wide">字間</label>
+                <label for="prop-letter-spacing" class="text-[10px] text-gray-400 tracking-wide" data-i18n="letter_spacing">字間</label>
                 <div class="flex items-center gap-1 text-[11px] text-gray-500">
-                  <input type="number" id="prop-letter-spacing-input" class="w-14 px-1 py-0.5 border border-gray-200 rounded text-right text-[11px]" min="-30" max="200" step="5" value="0" aria-label="字間(%)">%
-                  <button type="button" id="prop-letter-spacing-reset" class="text-[10px] text-blue-600 hover:underline" title="字間を元に戻す">0に戻す</button>
+                  <input type="number" id="prop-letter-spacing-input" class="w-14 px-1 py-0.5 border border-gray-200 rounded text-right text-[11px]" min="-30" max="200" step="5" value="0" aria-label="字間(%)" data-i18n-aria-label="letter_spacing_2">%
+                  <button type="button" id="prop-letter-spacing-reset" class="text-[10px] text-blue-600 hover:underline" title="字間を元に戻す" data-i18n-title="reset_letter_spacing" data-i18n="reset_to_0">0に戻す</button>
                 </div>
               </div>
-              <input type="range" id="prop-letter-spacing" class="w-full" min="-30" max="100" step="5" value="0" title="文字の大きさに対する割合。マイナスで詰め、プラスで広げます">
+              <input type="range" id="prop-letter-spacing" class="w-full" min="-30" max="100" step="5" value="0" title="文字の大きさに対する割合。マイナスで詰め、プラスで広げます" data-i18n-title="relative_to_the_font_size_negative">
             </div>
             <label class="flex items-center gap-1 cursor-pointer text-[11px] text-gray-600">
               <input type="checkbox" id="prop-arc-enabled" class="w-3 h-3 rounded border-gray-300">
-              円弧に沿わせる(曲線文字)
+              <span data-i18n="follow_an_arc_curved_text">円弧に沿わせる(曲線文字)</span>
             </label>
             <div id="prop-arc-options" class="space-y-1.5 pl-1" hidden>
               <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px">
-                <button type="button" class="img-tool-btn" data-arc-direction="up" aria-pressed="true" title="円の上側に沿わせる(丸ラベルの上の文字)">⌒ 上に沿う</button>
-                <button type="button" class="img-tool-btn" data-arc-direction="down" aria-pressed="false" title="円の下側に沿わせる(丸ラベルの下の文字)">◡ 下に沿う</button>
+                <button type="button" class="img-tool-btn" data-arc-direction="up" aria-pressed="true" title="円の上側に沿わせる(丸ラベルの上の文字)" data-i18n="top_arc" data-i18n-title="follow_the_top_of_the_circle">⌒ 上に沿う</button>
+                <button type="button" class="img-tool-btn" data-arc-direction="down" aria-pressed="false" title="円の下側に沿わせる(丸ラベルの下の文字)" data-i18n-title="follow_the_bottom_of_the_circle" data-i18n="bottom_arc">◡ 下に沿う</button>
               </div>
               <div>
                 <div class="flex items-center justify-between">
-                  <label for="prop-arc-radius" class="text-[10px] text-gray-400 tracking-wide">半径(小さいほど強く曲がる)</label>
+                  <label for="prop-arc-radius" class="text-[10px] text-gray-400 tracking-wide" data-i18n="radius_smaller_curves_more">半径(小さいほど強く曲がる)</label>
                   <span class="flex items-center gap-1 text-[11px] text-gray-500">
-                    <input type="number" id="prop-arc-radius-input" class="w-14 px-1 py-0.5 border border-gray-200 rounded text-right text-[11px]" min="1" max="250" step="0.5" value="10" aria-label="半径(mm)">mm
+                    <input type="number" id="prop-arc-radius-input" class="w-14 px-1 py-0.5 border border-gray-200 rounded text-right text-[11px]" min="1" max="250" step="0.5" value="10" aria-label="半径(mm)" data-i18n-aria-label="radius_mm">mm
                   </span>
                 </div>
                 <input type="range" id="prop-arc-radius" class="w-full" min="1" max="60" step="0.5" value="10">
               </div>
-              <button type="button" id="prop-arc-fit" class="img-tool-btn" style="width:100%" title="丸ラベル向け: 要素をラベルいっぱいに広げ、文字がラベルの縁に沿うように半径を合わせます">ラベルいっぱいに合わせる</button>
-              <p class="text-[10px] text-gray-400 leading-snug">円の中心は文字の枠の中心です。曲線文字では折り返し・自動縮小・左右揃えは使われません。</p>
+              <button type="button" id="prop-arc-fit" class="img-tool-btn" style="width:100%" title="丸ラベル向け: 要素をラベルいっぱいに広げ、文字がラベルの縁に沿うように半径を合わせます" data-i18n="fit_to_label" data-i18n-title="for_round_labels_stretches_the_element">ラベルいっぱいに合わせる</button>
+              <p class="text-[10px] text-gray-400 leading-snug" data-i18n="the_circle_is_centered_on_the">円の中心は文字の枠の中心です。曲線文字では折り返し・自動縮小・左右揃えは使われません。</p>
             </div>
           </div>
         </div>
@@ -1138,16 +1144,16 @@
         <!-- Image Properties -->
         <div id="props-image" class="hidden space-y-2">
           <div>
-            <label class="text-[10px] text-gray-400 uppercase tracking-wide">トリミング・反転</label>
+            <label class="text-[10px] text-gray-400 uppercase tracking-wide" data-i18n="crop_flip">トリミング・反転</label>
             <div class="grid grid-cols-3 gap-1" style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px">
-              <button type="button" id="prop-image-crop" class="img-tool-btn" title="切り抜く範囲を選ぶ(画像をダブルクリックでも開きます)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 5v10a1 1 0 0 0 1 1h10"/><path d="M5 8h10a1 1 0 0 1 1 1v10"/></svg>トリミング</button>
-              <button type="button" id="prop-image-flip-x" class="img-tool-btn" aria-pressed="false" title="左右反転"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18"/><path d="M16 7v10h5z"/><path d="M8 7v10H3z"/></svg>左右</button>
-              <button type="button" id="prop-image-flip-y" class="img-tool-btn" aria-pressed="false" title="上下反転"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h18"/><path d="M7 16h10v5z"/><path d="M7 8h10V3z"/></svg>上下</button>
+              <button type="button" id="prop-image-crop" class="img-tool-btn" title="切り抜く範囲を選ぶ(画像をダブルクリックでも開きます)" data-i18n-title="choose_the_area_to_crop_double"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 5v10a1 1 0 0 0 1 1h10"/><path d="M5 8h10a1 1 0 0 1 1 1v10"/></svg><span data-i18n="crop">トリミング</span></button>
+              <button type="button" id="prop-image-flip-x" class="img-tool-btn" aria-pressed="false" title="左右反転" data-i18n-title="flip_horizontally"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18"/><path d="M16 7v10h5z"/><path d="M8 7v10H3z"/></svg><span data-i18n="horiz">左右</span></button>
+              <button type="button" id="prop-image-flip-y" class="img-tool-btn" aria-pressed="false" title="上下反転" data-i18n-title="flip_vertically"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h18"/><path d="M7 16h10v5z"/><path d="M7 8h10V3z"/></svg><span data-i18n="vert">上下</span></button>
             </div>
-            <button type="button" id="prop-image-crop-clear" class="text-[10px] text-blue-600 hover:underline mt-1" hidden>トリミングを解除</button>
+            <button type="button" id="prop-image-crop-clear" class="text-[10px] text-blue-600 hover:underline mt-1" hidden data-i18n="remove_crop">トリミングを解除</button>
           </div>
           <div>
-            <label class="text-[10px] text-gray-400 uppercase tracking-wide">Scale</label>
+            <label class="text-[10px] text-gray-400 uppercase tracking-wide" data-i18n="scale">拡大率</label>
             <div class="flex items-center gap-1.5">
               <input type="range" id="prop-image-scale" min="10" max="200" value="100" class="flex-1">
               <input type="number" id="prop-image-scale-input" min="10" max="200" value="100" class="w-12 px-1.5 py-1 text-xs border border-gray-200 rounded text-center">
@@ -1157,31 +1163,31 @@
           <div class="flex items-center justify-between">
             <label class="flex items-center gap-1.5 cursor-pointer text-[11px] text-gray-600">
               <input type="checkbox" id="prop-image-lock-ratio" checked class="w-3 h-3 rounded border-gray-300">
-              Lock aspect ratio
+              <span data-i18n="lock_aspect_ratio">縦横比を固定</span>
             </label>
             <div class="flex gap-1">
-              <button id="prop-image-reset" class="px-2 py-1 text-[10px] border border-gray-200 rounded hover:bg-gray-50">Reset</button>
-              <button id="prop-replace-image" class="px-2 py-1 text-[10px] border border-gray-200 rounded hover:bg-gray-50">Replace</button>
+              <button id="prop-image-reset" class="px-2 py-1 text-[10px] border border-gray-200 rounded hover:bg-gray-50" data-i18n="reset">リセット</button>
+              <button id="prop-replace-image" class="px-2 py-1 text-[10px] border border-gray-200 rounded hover:bg-gray-50" data-i18n="replace">差し替え</button>
             </div>
           </div>
           <div>
-            <label class="text-[10px] text-gray-400 uppercase tracking-wide">Dithering</label>
+            <label class="text-[10px] text-gray-400 uppercase tracking-wide" data-i18n="dithering">ディザリング(濃淡の表現)</label>
             <select id="prop-image-dither" class="w-full px-1.5 py-1 text-xs border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-blue-400">
-              <option value="none">None (Threshold)</option>
-              <option value="ordered">Ordered (Bayer)</option>
+              <option value="none" data-i18n="none_threshold">なし(しきい値)</option>
+              <option value="ordered" data-i18n="ordered_bayer">規則的 (Bayer)</option>
               <option value="atkinson">Atkinson</option>
               <option value="floyd-steinberg" selected>Floyd-Steinberg</option>
             </select>
           </div>
           <div>
-            <label class="text-[10px] text-gray-400 uppercase tracking-wide">Brightness</label>
+            <label class="text-[10px] text-gray-400 uppercase tracking-wide" data-i18n="brightness">明るさ</label>
             <div class="flex items-center gap-1.5">
               <input type="range" id="prop-image-brightness" min="-100" max="100" value="0" class="flex-1">
               <input type="number" id="prop-image-brightness-input" min="-100" max="100" value="0" class="w-12 px-1.5 py-1 text-xs border border-gray-200 rounded text-center">
             </div>
           </div>
           <div>
-            <label class="text-[10px] text-gray-400 uppercase tracking-wide">Contrast</label>
+            <label class="text-[10px] text-gray-400 uppercase tracking-wide" data-i18n="contrast">コントラスト</label>
             <div class="flex items-center gap-1.5">
               <input type="range" id="prop-image-contrast" min="-100" max="100" value="0" class="flex-1">
               <input type="number" id="prop-image-contrast-input" min="-100" max="100" value="0" class="w-12 px-1.5 py-1 text-xs border border-gray-200 rounded text-center">
@@ -1194,24 +1200,24 @@
         <div id="props-barcode" class="hidden space-y-2">
           <div>
             <div class="flex items-center justify-between mb-1">
-              <label class="text-[10px] text-gray-400 uppercase tracking-wide">Data</label>
+              <label class="text-[10px] text-gray-400 uppercase tracking-wide" data-i18n="data">データ</label>
               <div class="relative">
-                <button id="insert-field-barcode" class="text-[10px] text-purple-600 hover:text-purple-800 font-medium flex items-center gap-0.5" title="Insert template field">
+                <button id="insert-field-barcode" class="text-[10px] text-purple-600 hover:text-purple-800 font-medium flex items-center gap-0.5" title="差し込み項目を挿入" data-i18n-title="insert_template_field">
                   <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                  {{Field}}
+                  <span data-i18n="field">{{項目}}</span>
                 </button>
                 <div id="field-dropdown-barcode" class="hidden absolute right-0 top-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-50 min-w-[140px]">
                   <div class="p-2 border-b border-gray-100">
-                    <input type="text" id="new-field-barcode" class="w-full px-2 py-1 text-xs border border-gray-200 rounded" placeholder="New field name...">
+                    <input type="text" id="new-field-barcode" class="w-full px-2 py-1 text-xs border border-gray-200 rounded" placeholder="新しい項目名..." data-i18n-placeholder="new_field_name">
                   </div>
                   <div id="field-list-barcode" class="max-h-32 overflow-y-auto"></div>
                 </div>
               </div>
             </div>
-            <input type="text" id="prop-barcode-data" class="w-full px-2 py-1.5 text-sm border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-blue-400" placeholder="Enter barcode data">
+            <input type="text" id="prop-barcode-data" class="w-full px-2 py-1.5 text-sm border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-blue-400" placeholder="バーコードの内容を入力" data-i18n-placeholder="enter_barcode_data">
           </div>
           <div>
-            <label class="text-[10px] text-gray-400 uppercase tracking-wide">Format</label>
+            <label class="text-[10px] text-gray-400 uppercase tracking-wide" data-i18n="format">形式</label>
             <select id="prop-barcode-format" class="w-full px-1.5 py-1 text-xs border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-blue-400">
               <option value="CODE128">CODE128</option>
               <option value="EAN13">EAN-13</option>
@@ -1221,18 +1227,18 @@
           <div class="flex items-center">
             <label class="flex items-center gap-1.5 cursor-pointer text-[11px] text-gray-600">
               <input type="checkbox" id="prop-barcode-showtext" checked class="w-3 h-3 rounded border-gray-300">
-              Show text below barcode
+              <span data-i18n="show_text_below_barcode">バーコードの下に文字を表示</span>
             </label>
           </div>
           <div id="barcode-text-options" class="pt-1 border-t border-gray-100 mt-2">
             <div class="flex items-center gap-3">
               <div class="flex items-center gap-1.5">
-                <label class="text-[10px] text-gray-400 uppercase tracking-wide">Text Size</label>
+                <label class="text-[10px] text-gray-400 uppercase tracking-wide" data-i18n="text_size">文字サイズ</label>
                 <input type="number" id="prop-barcode-fontsize" value="12" class="w-14 px-1.5 py-1 text-xs border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-blue-400">
               </div>
               <label class="flex items-center gap-1.5 cursor-pointer text-[11px] text-gray-600">
                 <input type="checkbox" id="prop-barcode-bold" class="w-3 h-3 rounded border-gray-300">
-                Bold
+                <span data-i18n="bold">太字</span>
               </label>
             </div>
           </div>
@@ -1242,21 +1248,21 @@
         <div id="props-qr" class="hidden space-y-2">
           <div>
             <div class="flex items-center justify-between mb-1">
-              <label class="text-[10px] text-gray-400 uppercase tracking-wide">Data</label>
+              <label class="text-[10px] text-gray-400 uppercase tracking-wide" data-i18n="data">データ</label>
               <div class="relative">
-                <button id="insert-field-qr" class="text-[10px] text-purple-600 hover:text-purple-800 font-medium flex items-center gap-0.5" title="Insert template field">
+                <button id="insert-field-qr" class="text-[10px] text-purple-600 hover:text-purple-800 font-medium flex items-center gap-0.5" title="差し込み項目を挿入" data-i18n-title="insert_template_field">
                   <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                  {{Field}}
+                  <span data-i18n="field">{{項目}}</span>
                 </button>
                 <div id="field-dropdown-qr" class="hidden absolute right-0 top-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-50 min-w-[140px]">
                   <div class="p-2 border-b border-gray-100">
-                    <input type="text" id="new-field-qr" class="w-full px-2 py-1 text-xs border border-gray-200 rounded" placeholder="New field name...">
+                    <input type="text" id="new-field-qr" class="w-full px-2 py-1 text-xs border border-gray-200 rounded" placeholder="新しい項目名..." data-i18n-placeholder="new_field_name">
                   </div>
                   <div id="field-list-qr" class="max-h-32 overflow-y-auto"></div>
                 </div>
               </div>
             </div>
-            <input type="text" id="prop-qr-data" class="w-full px-2 py-1.5 text-sm border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-blue-400" placeholder="Enter URL or text">
+            <input type="text" id="prop-qr-data" class="w-full px-2 py-1.5 text-sm border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-blue-400" placeholder="URLや文字を入力" data-i18n-placeholder="enter_url_or_text">
           </div>
         </div>
 
@@ -1264,53 +1270,53 @@
         <div id="props-shape" class="hidden space-y-2">
           <!-- Shape Type -->
           <div>
-            <label class="text-[10px] text-gray-400 uppercase tracking-wide">Shape</label>
+            <label class="text-[10px] text-gray-400 uppercase tracking-wide" data-i18n="shape">図形</label>
             <select id="prop-shape-type" class="w-full px-1.5 py-1 text-xs border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-blue-400">
-              <option value="rectangle">Rectangle</option>
-              <option value="ellipse">Ellipse</option>
-              <option value="triangle">Triangle</option>
-              <option value="line">Line</option>
+              <option value="rectangle" data-i18n="rectangle">四角形</option>
+              <option value="ellipse" data-i18n="ellipse">楕円</option>
+              <option value="triangle" data-i18n="triangle">三角形</option>
+              <option value="line" data-i18n="line">線</option>
             </select>
           </div>
           <!-- Fill -->
           <div>
-            <label class="text-[10px] text-gray-400 uppercase tracking-wide">Fill</label>
+            <label class="text-[10px] text-gray-400 uppercase tracking-wide" data-i18n="fill">塗り</label>
             <select id="shape-fill" class="prop-input">
-              <option value="white">White (0%)</option>
-              <option value="dither-6">6% Gray</option>
-              <option value="dither-12">12% Gray</option>
-              <option value="dither-25">25% Gray</option>
-              <option value="dither-37">37% Gray</option>
-              <option value="dither-50">50% Gray</option>
-              <option value="dither-62">62% Gray</option>
-              <option value="dither-75">75% Gray</option>
-              <option value="dither-87">87% Gray</option>
-              <option value="dither-94">94% Gray</option>
-              <option value="black">Black (100%)</option>
+              <option value="white" data-i18n="white_0">白 (0%)</option>
+              <option value="dither-6" data-i18n="6_gray">グレー 6%</option>
+              <option value="dither-12" data-i18n="12_gray">グレー 12%</option>
+              <option value="dither-25" data-i18n="25_gray">グレー 25%</option>
+              <option value="dither-37" data-i18n="37_gray">グレー 37%</option>
+              <option value="dither-50" data-i18n="50_gray">グレー 50%</option>
+              <option value="dither-62" data-i18n="62_gray">グレー 62%</option>
+              <option value="dither-75" data-i18n="75_gray">グレー 75%</option>
+              <option value="dither-87" data-i18n="87_gray">グレー 87%</option>
+              <option value="dither-94" data-i18n="94_gray">グレー 94%</option>
+              <option value="black" data-i18n="black_100">黒 (100%)</option>
             </select>
           </div>
           <!-- Stroke & Width -->
           <div class="grid grid-cols-2 gap-2">
             <div>
-              <label class="text-[10px] text-gray-400 uppercase tracking-wide">Stroke</label>
+              <label class="text-[10px] text-gray-400 uppercase tracking-wide" data-i18n="stroke">線</label>
               <div class="flex border border-gray-200 rounded overflow-hidden">
-                <button data-stroke="none" class="stroke-btn flex-1 py-1 hover:bg-gray-50 text-[10px]" title="No stroke">None</button>
-                <button data-stroke="black" class="stroke-btn flex-1 py-1 hover:bg-gray-50 border-l border-gray-200" title="Black stroke">
+                <button data-stroke="none" class="stroke-btn flex-1 py-1 hover:bg-gray-50 text-[10px]" title="線なし" data-i18n-title="no_stroke" data-i18n="none">なし</button>
+                <button data-stroke="black" class="stroke-btn flex-1 py-1 hover:bg-gray-50 border-l border-gray-200" title="黒い線" data-i18n-title="black_stroke">
                   <span class="block w-3 h-3 mx-auto rounded-sm border-2 border-black bg-transparent"></span>
                 </button>
-                <button data-stroke="white" class="stroke-btn flex-1 py-1 hover:bg-gray-50 border-l border-gray-200" title="White stroke">
+                <button data-stroke="white" class="stroke-btn flex-1 py-1 hover:bg-gray-50 border-l border-gray-200" title="白い線" data-i18n-title="white_stroke">
                   <span class="block w-3 h-3 mx-auto rounded-sm border-2 border-white bg-gray-400"></span>
                 </button>
               </div>
             </div>
             <div>
-              <label class="text-[10px] text-gray-400 uppercase tracking-wide">Width</label>
+              <label class="text-[10px] text-gray-400 uppercase tracking-wide" data-i18n="width">幅</label>
               <input type="number" id="prop-stroke-width" class="w-full px-1.5 py-1 text-xs border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-blue-400 text-center" min="1" max="20" value="2">
             </div>
           </div>
           <!-- Corner Radius (for rectangles) -->
           <div id="prop-corner-radius-group">
-            <label class="text-[10px] text-gray-400 uppercase tracking-wide">Corner Radius</label>
+            <label class="text-[10px] text-gray-400 uppercase tracking-wide" data-i18n="corner_radius">角の丸み</label>
             <input type="number" id="prop-corner-radius" class="w-full px-1.5 py-1 text-xs border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-blue-400 text-center" min="0" max="100" value="0">
           </div>
         </div>
@@ -1319,40 +1325,40 @@
         <!-- 枠のプロパティ(#28) -->
         <div id="props-frame" class="hidden space-y-2">
           <div>
-            <label for="prop-frame-style" class="text-[10px] text-gray-400 tracking-wide">枠の種類</label>
+            <label for="prop-frame-style" class="text-[10px] text-gray-400 tracking-wide" data-i18n="frame_style">枠の種類</label>
             <select id="prop-frame-style" class="prop-input"></select>
           </div>
           <div class="grid grid-cols-2 gap-2">
             <div>
-              <label for="prop-frame-shape" class="text-[10px] text-gray-400 tracking-wide">形</label>
+              <label for="prop-frame-shape" class="text-[10px] text-gray-400 tracking-wide" data-i18n="shape_2">形</label>
               <select id="prop-frame-shape" class="prop-input">
-                <option value="rect">四角</option>
-                <option value="ellipse">丸</option>
+                <option value="rect" data-i18n="square">四角</option>
+                <option value="ellipse" data-i18n="round">丸</option>
               </select>
             </div>
             <div>
-              <label for="prop-frame-color" class="text-[10px] text-gray-400 tracking-wide">色</label>
+              <label for="prop-frame-color" class="text-[10px] text-gray-400 tracking-wide" data-i18n="color">色</label>
               <select id="prop-frame-color" class="prop-input">
-                <option value="black">黒</option>
-                <option value="white">白</option>
+                <option value="black" data-i18n="black">黒</option>
+                <option value="white" data-i18n="white">白</option>
               </select>
             </div>
           </div>
           <div class="grid grid-cols-2 gap-2">
             <div>
-              <label for="prop-frame-stroke" class="text-[10px] text-gray-400 tracking-wide">線の太さ(px)</label>
+              <label for="prop-frame-stroke" class="text-[10px] text-gray-400 tracking-wide" data-i18n="line_width_px">線の太さ(px)</label>
               <input type="number" id="prop-frame-stroke" class="w-full px-1.5 py-1 text-xs border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-blue-400 text-center" min="1" max="20" value="3">
             </div>
             <div>
-              <label for="prop-frame-margin" class="text-[10px] text-gray-400 tracking-wide">余白(px)</label>
+              <label for="prop-frame-margin" class="text-[10px] text-gray-400 tracking-wide" data-i18n="margin_px">余白(px)</label>
               <input type="number" id="prop-frame-margin" class="w-full px-1.5 py-1 text-xs border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-blue-400 text-center" min="0" max="80" value="8">
             </div>
           </div>
           <label class="flex items-center gap-2 text-xs text-gray-600">
             <input type="checkbox" id="prop-frame-fit" class="rounded border-gray-300">
-            ラベルの大きさに合わせる
+            <span data-i18n="fit_to_label_size">ラベルの大きさに合わせる</span>
           </label>
-          <p class="text-[10px] text-gray-400 leading-snug">オンのときは、ラベルのサイズを変えると枠も自動で伸び縮みします。8px ≒ 1mm です。</p>
+          <p class="text-[10px] text-gray-400 leading-snug" data-i18n="when_on_the_frame_resizes_with">オンのときは、ラベルのサイズを変えると枠も自動で伸び縮みします。8px ≒ 1mm です。</p>
         </div>
       </div>
     </aside>
@@ -1361,7 +1367,7 @@
   <!-- Status Bar -->
   <footer class="bg-white border-t border-gray-200 px-2 sm:px-4 py-1.5 sm:py-2 flex-shrink-0">
     <div class="flex items-center justify-between text-xs text-gray-400">
-      <span id="status-message" class="truncate flex-1 mr-2">Ready</span>
+      <span id="status-message" class="truncate flex-1 mr-2">準備完了</span>
       <div class="flex items-center gap-2 sm:gap-4 flex-shrink-0">
         <span id="print-size" class="hidden sm:inline">40 x 30 mm</span>
         <span class="text-gray-300 hidden sm:inline">|</span>
@@ -1370,18 +1376,18 @@
           <span class="hidden sm:inline">GitHub</span>
         </a>
         <span class="text-gray-300 hidden sm:inline">|</span>
-        <a href="https://donate.stripe.com/7sY7sMese0182tXgn8eAg00" target="_blank" rel="noopener" data-donate-original title="Support Affordable Magic, the creator of the original Phomymo. (Donations go to Affordable Magic, not to the operator of this fork.)" class="hidden sm:inline-flex items-center gap-1 hover:text-pink-600 transition-colors">
+        <a href="https://donate.stripe.com/7sY7sMese0182tXgn8eAg00" target="_blank" rel="noopener" data-donate-original data-i18n-title="support_original_author_tooltip" title="元の Phomymo の作者、Affordable Magic を支援します(寄付は Affordable Magic に届きます。このフォークの運営者には届きません)" class="hidden sm:inline-flex items-center gap-1 hover:text-pink-600 transition-colors">
           <svg class="w-3 h-3 text-pink-500" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
-          Support the original author
+          <span data-i18n="support_original_author">元の作者を支援</span>
         </a>
         <span class="text-gray-300 hidden md:inline">|</span>
         <a href="https://affordablemagic.net" target="_blank" rel="noopener" class="hidden md:inline-flex items-center gap-1 hover:text-gray-600 transition-colors">
-          Based on Phomymo by
+          <span data-i18n="based_on_phomymo_by">元にしたアプリ: Phomymo by</span>
           <img src="https://affordablemagic.net/affordablemagic-400w.png" alt="Affordable Magic" class="h-3">
         </a>
         <span class="text-gray-300">|</span>
-        <a id="footer-privacy-link" href="privacy.html" target="_blank" rel="noopener" class="hover:text-gray-600 transition-colors">Privacy</a>
-        <a id="footer-terms-link" href="terms.html" target="_blank" rel="noopener" class="hover:text-gray-600 transition-colors">Terms</a>
+        <a id="footer-privacy-link" href="privacy.html" target="_blank" rel="noopener" class="hover:text-gray-600 transition-colors" data-i18n="privacy_short">プライバシー</a>
+        <a id="footer-terms-link" href="terms.html" target="_blank" rel="noopener" class="hover:text-gray-600 transition-colors" data-i18n="terms_of_use">利用規約</a>
       </div>
     </div>
   </footer>
@@ -1392,33 +1398,33 @@
       <p id="account-reason" hidden></p>
 
       <div id="account-guest" class="acct-stack">
-        <h3 id="account-dialog-title">ゲストモード</h3>
-        <p>いまはゲストモードです。デザインや設定は<strong>このタブの中にだけ</strong>あり、タブを閉じたりリロードしたりすると消えます。</p>
-        <p class="acct-note">JSON / PDF / PNG への書き出しは、ゲストモードでも使えます。</p>
+        <h3 id="account-dialog-title" data-i18n="guest_mode">ゲストモード</h3>
+        <p data-i18n-html="guest_mode_explanation">いまはゲストモードです。デザインや設定は<strong>このタブの中にだけ</strong>あり、タブを閉じたりリロードしたりすると消えます。</p>
+        <p class="acct-note" data-i18n="export_to_json_pdf_png_works">JSON / PDF / PNG への書き出しは、ゲストモードでも使えます。</p>
         <button id="account-login-btn" class="acct-primary">
           <svg width="16" height="16" viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg>
-          Googleでログインして保存・同期する
+          <span data-i18n="sign_in_with_google_to_save">Googleでログインして保存・同期する</span>
         </button>
-        <p id="account-login-unconfigured" class="acct-note" hidden>Googleログインはまだ設定されていません(<code>config.js</code> の <code>googleClientId</code>)。</p>
-        <p class="acct-note">ログインすると、デザインは Google Drive のアプリ専用の領域に保存され、ほかの端末と同期されます。</p>
-        <p class="acct-note"><a id="account-privacy-link" href="privacy.html" target="_blank" rel="noopener" style="text-decoration:underline">プライバシーポリシー</a>・<a id="account-terms-link" href="terms.html" target="_blank" rel="noopener" style="text-decoration:underline">利用規約</a></p>
+        <p id="account-login-unconfigured" class="acct-note" hidden data-i18n-html="google_login_unconfigured">Googleログインはまだ設定されていません(<code>config.js</code> の <code>googleClientId</code>)。</p>
+        <p class="acct-note" data-i18n="when_signed_in_designs_are_saved">ログインすると、デザインは Google Drive のアプリ専用の領域に保存され、ほかの端末と同期されます。</p>
+        <p class="acct-note"><a id="account-privacy-link" href="privacy.html" target="_blank" rel="noopener" style="text-decoration:underline" data-i18n="privacy_policy">プライバシーポリシー</a>・<a id="account-terms-link" href="terms.html" target="_blank" rel="noopener" style="text-decoration:underline" data-i18n="terms_of_use">利用規約</a></p>
       </div>
 
       <div id="account-user" hidden>
-        <h3>Googleアカウント</h3>
+        <h3 data-i18n="google_account">Googleアカウント</h3>
         <div id="account-name" style="font-weight:500;color:#111827"></div>
         <div id="account-email" class="acct-note"></div>
         <div id="account-sync-status"></div>
         <div class="acct-stack">
-          <button id="account-reconnect" class="acct-primary" hidden>Google に再接続する</button>
-          <button id="account-sync-now" class="acct-secondary">今すぐ同期</button>
-          <button id="account-logout" class="acct-secondary acct-danger">ログアウト</button>
+          <button id="account-reconnect" class="acct-primary" hidden data-i18n="reconnect_to_google">Google に再接続する</button>
+          <button id="account-sync-now" class="acct-secondary" data-i18n="sync_now">今すぐ同期</button>
+          <button id="account-logout" class="acct-secondary acct-danger" data-i18n="sign_out">ログアウト</button>
         </div>
-        <p class="acct-note" style="margin-top:8px">ログアウトすると、この端末のキャッシュは消えます(Drive のデータは残ります)。</p>
+        <p class="acct-note" style="margin-top:8px" data-i18n="signing_out_clears_the_cache_on">ログアウトすると、この端末のキャッシュは消えます(Drive のデータは残ります)。</p>
       </div>
 
       <div style="margin-top:12px">
-        <button id="account-close" class="acct-secondary">閉じる</button>
+        <button id="account-close" class="acct-secondary" data-i18n="close">閉じる</button>
       </div>
     </div>
   </div>
@@ -1426,11 +1432,11 @@
   <!-- Save Dialog -->
   <div id="save-dialog" class="hidden fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-50">
     <div class="bg-white rounded-xl p-6 w-80 shadow-xl">
-      <h3 id="save-dialog-title" class="text-lg font-semibold text-gray-900 mb-4">Save Design</h3>
-      <input type="text" id="save-name" class="prop-input mb-4" placeholder="Design name">
+      <h3 id="save-dialog-title" class="text-lg font-semibold text-gray-900 mb-4">デザインを保存</h3>
+      <input type="text" id="save-name" class="prop-input mb-4" placeholder="デザイン名" data-i18n-placeholder="design_name">
       <div class="flex gap-2">
-        <button id="save-cancel" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">Cancel</button>
-        <button id="save-confirm" class="flex-1 px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800">Save</button>
+        <button id="save-cancel" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50" data-i18n="cancel">キャンセル</button>
+        <button id="save-confirm" class="flex-1 px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800" data-i18n="save">保存</button>
       </div>
     </div>
   </div>
@@ -1438,20 +1444,20 @@
   <!-- Load Dialog -->
   <div id="load-dialog" class="hidden fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-50">
     <div class="bg-white rounded-xl p-6 w-96 shadow-xl max-h-[80vh] flex flex-col">
-      <h3 class="text-lg font-semibold text-gray-900 mb-4">Load Design</h3>
+      <h3 class="text-lg font-semibold text-gray-900 mb-4" data-i18n="load_design">デザインを開く</h3>
       <div id="design-list" class="flex-1 overflow-y-auto mb-4 min-h-[100px]">
-        <div class="text-sm text-gray-400 text-center py-8">No saved designs</div>
+        <div class="text-sm text-gray-400 text-center py-8" data-i18n="no_saved_designs">保存したデザインはありません</div>
       </div>
       <div class="border-t border-gray-200 pt-4 mb-4">
-        <p class="text-xs text-gray-500 mb-2">Or import from file:</p>
+        <p class="text-xs text-gray-500 mb-2" data-i18n="or_import_from_file">またはファイルから読み込む:</p>
         <button id="import-file-btn" class="w-full px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm flex items-center justify-center gap-2">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
-          Import from File
+          <span data-i18n="import_from_file">ファイルから読み込む</span>
         </button>
         <input type="file" id="import-file-input" class="hidden" accept=".json,application/json">
       </div>
       <div class="flex gap-2">
-        <button id="load-cancel" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">Cancel</button>
+        <button id="load-cancel" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50" data-i18n="cancel">キャンセル</button>
       </div>
     </div>
   </div>
@@ -1460,8 +1466,8 @@
   <div id="printer-info-popup" class="hidden absolute bg-white rounded-xl shadow-xl border border-gray-200 w-72 z-50" style="top: 50px; right: 200px;">
     <div class="p-4">
       <div class="flex items-center justify-between mb-3">
-        <h3 class="text-sm font-semibold text-gray-900">Printer Info</h3>
-        <button id="printer-info-refresh" class="text-gray-400 hover:text-gray-600 p-1" title="Refresh">
+        <h3 class="text-sm font-semibold text-gray-900" data-i18n="printer_info">プリンター情報</h3>
+        <button id="printer-info-refresh" class="text-gray-400 hover:text-gray-600 p-1" title="更新" data-i18n-title="refresh">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
         </button>
       </div>
@@ -1469,19 +1475,19 @@
       <!-- Device Info -->
       <div class="space-y-2 text-sm">
         <div class="flex justify-between">
-          <span class="text-gray-500">Device</span>
+          <span class="text-gray-500" data-i18n="device">デバイス</span>
           <span id="pi-device-name" class="font-medium text-gray-900 text-right max-w-[140px] truncate">--</span>
         </div>
         <div class="flex justify-between">
-          <span class="text-gray-500">Model</span>
+          <span class="text-gray-500" data-i18n="model">機種</span>
           <span id="pi-model" class="font-medium text-gray-900">--</span>
         </div>
         <div class="flex justify-between">
-          <span class="text-gray-500">Protocol</span>
+          <span class="text-gray-500" data-i18n="protocol">通信方式</span>
           <span id="pi-protocol" class="font-medium text-gray-900">--</span>
         </div>
         <div class="flex justify-between">
-          <span class="text-gray-500">Print Width</span>
+          <span class="text-gray-500" data-i18n="print_width">印字幅</span>
           <span id="pi-width" class="font-medium text-gray-900">--</span>
         </div>
 
@@ -1489,7 +1495,7 @@
 
         <!-- Status from printer queries -->
         <div class="flex justify-between items-center">
-          <span class="text-gray-500">Battery</span>
+          <span class="text-gray-500" data-i18n="battery">電池</span>
           <span id="pi-battery" class="font-medium text-gray-900 flex items-center gap-1">
             <span id="pi-battery-icon" class="text-gray-400">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7h16a2 2 0 012 2v6a2 2 0 01-2 2H3a2 2 0 01-2-2V9a2 2 0 012-2zm18 3v4"/></svg>
@@ -1498,22 +1504,22 @@
           </span>
         </div>
         <div class="flex justify-between">
-          <span class="text-gray-500">Paper</span>
+          <span class="text-gray-500" data-i18n="paper">用紙</span>
           <span id="pi-paper" class="font-medium text-gray-900">--</span>
         </div>
         <div class="flex justify-between">
-          <span class="text-gray-500">Firmware</span>
+          <span class="text-gray-500" data-i18n="firmware">ファームウェア</span>
           <span id="pi-firmware" class="font-medium text-gray-900">--</span>
         </div>
         <div class="flex justify-between">
-          <span class="text-gray-500">Serial</span>
+          <span class="text-gray-500" data-i18n="serial">シリアル番号</span>
           <span id="pi-serial" class="font-medium text-gray-900 text-right max-w-[140px] truncate text-xs">--</span>
         </div>
       </div>
 
       <div class="mt-3 pt-3 border-t border-gray-100">
-        <button id="printer-info-disconnect" class="w-full px-3 py-1.5 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors">
-          Disconnect
+        <button id="printer-info-disconnect" class="w-full px-3 py-1.5 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors" data-i18n="disconnect">
+          切断
         </button>
       </div>
     </div>
@@ -1523,7 +1529,7 @@
   <div id="print-settings-dialog" class="hidden fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-[60] p-4">
     <div class="bg-white rounded-xl p-5 sm:p-6 w-full max-w-sm sm:max-w-96 max-h-[85vh] overflow-y-auto shadow-xl">
       <div class="flex items-center justify-between mb-4">
-        <h3 class="text-lg font-semibold text-gray-900">Print Settings</h3>
+        <h3 class="text-lg font-semibold text-gray-900" data-i18n="print_settings">印刷設定</h3>
         <button id="print-settings-close" class="text-gray-400 hover:text-gray-600">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
         </button>
@@ -1532,78 +1538,78 @@
       <div class="space-y-4">
         <!-- Printer Model -->
         <div>
-          <div class="prop-label">Printer Model</div>
+          <div class="prop-label" data-i18n="printer_model">プリンター機種</div>
           <select id="printer-model" class="prop-input">
-            <option value="auto">Auto-detect</option>
+            <option value="auto" data-i18n="auto_detect">自動判別</option>
             <!-- Populated dynamically from printer definitions -->
           </select>
           <div class="flex items-center justify-between mt-1">
-            <div class="text-xs text-gray-400">Override if auto-detect doesn't work</div>
-            <button id="manage-printers-btn" class="text-xs text-blue-600 hover:text-blue-800 hover:underline">Manage Printers</button>
+            <div class="text-xs text-gray-400" data-i18n="override_if_auto_detect_doesn_t">自動判別がうまくいかないときに指定します</div>
+            <button id="manage-printers-btn" class="text-xs text-blue-600 hover:text-blue-800 hover:underline" data-i18n="manage_printers">プリンターを管理</button>
           </div>
         </div>
 
         <!-- Density -->
         <div>
-          <div class="prop-label">Print Density (Darkness)</div>
+          <div class="prop-label" data-i18n="print_density_darkness">印刷の濃さ</div>
           <div class="flex items-center gap-3">
             <input type="range" id="print-density" min="1" max="8" value="6" class="flex-1">
             <span id="print-density-value" class="text-sm font-medium w-6 text-center">6</span>
           </div>
           <div class="flex justify-between text-xs text-gray-400 mt-1">
-            <span>Light</span>
-            <span>Dark</span>
+            <span data-i18n="light">薄い</span>
+            <span data-i18n="dark">濃い</span>
           </div>
         </div>
 
         <!-- Copies -->
         <div>
-          <div class="prop-label">Copies(部数)</div>
+          <div class="prop-label" data-i18n="copies">部数</div>
           <input type="number" id="print-copies" min="1" max="99" value="1" class="prop-input w-20">
         </div>
 
         <!-- Counter / 連番 (#31) -->
         <div id="counter-settings" class="rounded-lg border border-gray-200 p-3 space-y-2">
           <div class="flex items-center justify-between">
-            <div class="prop-label mb-0">連番</div>
+            <div class="prop-label mb-0" data-i18n="counter">連番</div>
             <span id="counter-preview" class="text-xs font-medium text-gray-700" data-has-counter="false"></span>
           </div>
-          <p class="text-xs text-gray-500 leading-relaxed">
+          <p class="text-xs text-gray-500 leading-relaxed" data-i18n-html="counter_help">
             テキスト・バーコード・QRに <code class="px-1 bg-gray-100 rounded">[[counter]]</code> と書くと、1枚ごとに番号が進みます。<br>
             例: <code class="px-1 bg-gray-100 rounded">No.[[counter|start=1,pad=3]]</code> → No.001, No.002, …
           </p>
           <label class="flex items-center gap-2 text-sm text-gray-700">
             <input type="checkbox" id="counter-resume" class="rounded">
-            前回の続きから番号を振る
+            <span data-i18n="continue_numbering_from_last_time">前回の続きから番号を振る</span>
           </label>
           <div class="flex items-center gap-2 text-sm text-gray-700">
             <input type="number" id="counter-next" min="1" value="1" class="prop-input w-24" disabled>
-            <span>枚目から</span>
-            <button id="counter-reset" type="button" class="ml-auto text-xs text-blue-600 hover:text-blue-800 hover:underline disabled:text-gray-300 disabled:no-underline" disabled>最初に戻す</button>
+            <span data-i18n="start_from">枚目から</span>
+            <button id="counter-reset" type="button" class="ml-auto text-xs text-blue-600 hover:text-blue-800 hover:underline disabled:text-gray-300 disabled:no-underline" disabled data-i18n="reset_2">最初に戻す</button>
           </div>
-          <p id="counter-unsaved-note" class="hidden text-xs text-amber-600">デザインを保存すると、続きの番号もデザインごとに記憶されます。</p>
+          <p id="counter-unsaved-note" class="hidden text-xs text-amber-600" data-i18n="saving_the_design_also_saves_where">デザインを保存すると、続きの番号もデザインごとに記憶されます。</p>
         </div>
 
         <!-- Feed After Print -->
         <div>
-          <div class="prop-label">Feed After Print</div>
+          <div class="prop-label" data-i18n="feed_after_print">印刷後の紙送り</div>
           <select id="print-feed" class="prop-input">
-            <option value="0">None (no gap)</option>
-            <option value="16">Small (2mm)</option>
-            <option value="32" selected>Medium (4mm)</option>
-            <option value="48">Large (6mm)</option>
-            <option value="80">Extra Large (10mm)</option>
+            <option value="0" data-i18n="none_no_gap">なし(余白なし)</option>
+            <option value="16" data-i18n="small_2mm">少し (2mm)</option>
+            <option value="32" selected data-i18n="medium_4mm">普通 (4mm)</option>
+            <option value="48" data-i18n="large_6mm">多め (6mm)</option>
+            <option value="80" data-i18n="extra_large_10mm">かなり多め (10mm)</option>
           </select>
         </div>
       </div>
 
       <div class="mt-6 space-y-2">
-        <button id="print-density-test" class="w-full px-4 py-2 border border-blue-300 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 text-sm">
-          🧪 Print Density Test
+        <button id="print-density-test" class="w-full px-4 py-2 border border-blue-300 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 text-sm" data-i18n="print_density_test">
+          🧪 濃さのテスト印刷
         </button>
         <div class="flex gap-2">
-          <button id="print-settings-reset" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm">Reset</button>
-          <button id="print-settings-save" class="flex-1 px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 text-sm">Save</button>
+          <button id="print-settings-reset" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm" data-i18n="reset">リセット</button>
+          <button id="print-settings-save" class="flex-1 px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 text-sm" data-i18n="save">保存</button>
         </div>
       </div>
     </div>
@@ -1613,7 +1619,7 @@
   <div id="printer-defs-dialog" class="hidden fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-[70] p-4">
     <div class="bg-white rounded-xl p-5 sm:p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-xl">
       <div class="flex items-center justify-between mb-4">
-        <h3 class="text-lg font-semibold text-gray-900">Manage Printer Definitions</h3>
+        <h3 class="text-lg font-semibold text-gray-900" data-i18n="manage_printer_definitions">プリンター定義の管理</h3>
         <button id="printer-defs-close" class="text-gray-400 hover:text-gray-600">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
         </button>
@@ -1625,37 +1631,37 @@
       </div>
 
       <div class="flex gap-2 mb-4">
-        <button id="printer-def-add" class="flex-1 px-3 py-1.5 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700">Add New Printer</button>
+        <button id="printer-def-add" class="flex-1 px-3 py-1.5 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700" data-i18n="add_new_printer">プリンターを追加</button>
       </div>
 
       <!-- Editor form (hidden until add/edit) -->
       <div id="printer-def-editor" class="hidden border-t border-gray-200 pt-4">
-        <h4 id="printer-def-editor-title" class="font-semibold text-gray-800 mb-3">New Printer Definition</h4>
+        <h4 id="printer-def-editor-title" class="font-semibold text-gray-800 mb-3" data-i18n="new_printer_definition">新しいプリンター定義</h4>
 
         <div class="space-y-3">
           <div>
-            <label class="block text-xs font-medium text-gray-600 mb-1">ID (unique key, lowercase, no spaces)</label>
-            <input type="text" id="pdef-id" class="prop-input" placeholder="e.g. my-printer" pattern="[a-z0-9\-]+" />
+            <label class="block text-xs font-medium text-gray-600 mb-1" data-i18n="id_unique_key_lowercase_no_spaces">ID(重複しない名前・小文字・空白なし)</label>
+            <input type="text" id="pdef-id" class="prop-input" placeholder="例: my-printer" pattern="[a-z0-9\-]+"  data-i18n-placeholder="e_g_my_printer"/>
           </div>
 
           <div>
-            <label class="block text-xs font-medium text-gray-600 mb-1">Display Name</label>
-            <input type="text" id="pdef-name" class="prop-input" placeholder="e.g. My Custom Printer" />
+            <label class="block text-xs font-medium text-gray-600 mb-1" data-i18n="display_name">表示名</label>
+            <input type="text" id="pdef-name" class="prop-input" placeholder="例: うちのプリンター"  data-i18n-placeholder="e_g_my_custom_printer"/>
           </div>
 
           <div>
-            <label class="block text-xs font-medium text-gray-600 mb-1">Group (for dropdown)</label>
-            <input type="text" id="pdef-group" class="prop-input" placeholder="e.g. Custom Printers" />
+            <label class="block text-xs font-medium text-gray-600 mb-1" data-i18n="group_for_dropdown">グループ(一覧での見出し)</label>
+            <input type="text" id="pdef-group" class="prop-input" placeholder="例: カスタムプリンター"  data-i18n-placeholder="e_g_custom_printers"/>
           </div>
 
           <div>
-            <label class="block text-xs font-medium text-gray-600 mb-1">Description</label>
-            <input type="text" id="pdef-description" class="prop-input" placeholder="Short description" />
+            <label class="block text-xs font-medium text-gray-600 mb-1" data-i18n="description">説明</label>
+            <input type="text" id="pdef-description" class="prop-input" placeholder="短い説明"  data-i18n-placeholder="short_description"/>
           </div>
 
           <div class="grid grid-cols-2 gap-3">
             <div>
-              <label class="block text-xs font-medium text-gray-600 mb-1">Protocol</label>
+              <label class="block text-xs font-medium text-gray-600 mb-1" data-i18n="protocol">通信方式</label>
               <select id="pdef-protocol" class="prop-input">
                 <!-- Populated dynamically -->
               </select>
@@ -1663,38 +1669,38 @@
             <div>
               <label class="block text-xs font-medium text-gray-600 mb-1">DPI</label>
               <select id="pdef-dpi" class="prop-input">
-                <option value="203">203 (standard)</option>
-                <option value="300">300 (high-res)</option>
+                <option value="203" data-i18n="203_standard">203(標準)</option>
+                <option value="300" data-i18n="300_high_res">300(高解像度)</option>
               </select>
             </div>
           </div>
 
           <div class="grid grid-cols-2 gap-3">
             <div>
-              <label class="block text-xs font-medium text-gray-600 mb-1">Width (bytes)</label>
+              <label class="block text-xs font-medium text-gray-600 mb-1" data-i18n="width_bytes">幅(バイト)</label>
               <input type="number" id="pdef-width" class="prop-input" min="1" max="200" placeholder="e.g. 72" />
               <div id="pdef-width-info" class="text-xs text-gray-400 mt-0.5"></div>
             </div>
             <div>
-              <label class="block text-xs font-medium text-gray-600 mb-1">Alignment</label>
+              <label class="block text-xs font-medium text-gray-600 mb-1" data-i18n="alignment">位置揃え</label>
               <select id="pdef-alignment" class="prop-input">
-                <option value="center">Center</option>
-                <option value="left">Left</option>
-                <option value="right">Right</option>
+                <option value="center" data-i18n="center">中央</option>
+                <option value="left" data-i18n="left">左</option>
+                <option value="right" data-i18n="right">右</option>
               </select>
             </div>
           </div>
 
           <div class="grid grid-cols-2 gap-3">
             <div>
-              <label class="block text-xs font-medium text-gray-600 mb-1">Rotated Print</label>
+              <label class="block text-xs font-medium text-gray-600 mb-1" data-i18n="rotated_print">回転して印刷</label>
               <select id="pdef-rotated" class="prop-input">
-                <option value="false">No</option>
-                <option value="true">Yes (sideways)</option>
+                <option value="false" data-i18n="no">いいえ</option>
+                <option value="true" data-i18n="yes_sideways">はい(横向き)</option>
               </select>
             </div>
             <div>
-              <label class="block text-xs font-medium text-gray-600 mb-1">Label Presets</label>
+              <label class="block text-xs font-medium text-gray-600 mb-1" data-i18n="label_presets">ラベルサイズの候補</label>
               <select id="pdef-label-presets" class="prop-input">
                 <!-- Populated dynamically -->
               </select>
@@ -1702,34 +1708,34 @@
           </div>
 
           <div>
-            <label class="block text-xs font-medium text-gray-600 mb-1">Tape Printer</label>
+            <label class="block text-xs font-medium text-gray-600 mb-1" data-i18n="tape_printer">テーププリンター</label>
             <select id="pdef-tape" class="prop-input">
-              <option value="false">No</option>
-              <option value="true">Yes (continuous tape)</option>
+              <option value="false" data-i18n="no">いいえ</option>
+              <option value="true" data-i18n="yes_continuous_tape">はい(連続テープ)</option>
             </select>
           </div>
 
           <div id="pdef-tape-options" class="hidden">
-            <label class="block text-xs font-medium text-gray-600 mb-1">Tape Widths (mm, comma-separated)</label>
+            <label class="block text-xs font-medium text-gray-600 mb-1" data-i18n="tape_widths_mm_comma_separated">テープ幅(mm、カンマ区切り)</label>
             <input type="text" id="pdef-tape-widths" class="prop-input" placeholder="e.g. 12, 14, 15" />
             <div class="grid grid-cols-2 gap-3 mt-2">
               <div>
-                <label class="block text-xs font-medium text-gray-600 mb-1">Default Tape Width (mm)</label>
+                <label class="block text-xs font-medium text-gray-600 mb-1" data-i18n="default_tape_width_mm">標準のテープ幅(mm)</label>
                 <input type="number" id="pdef-default-tape-width" class="prop-input" min="1" max="50" placeholder="e.g. 12" />
               </div>
             </div>
           </div>
 
           <div>
-            <label class="block text-xs font-medium text-gray-600 mb-1">Auto-detect Name Patterns (comma-separated prefixes)</label>
+            <label class="block text-xs font-medium text-gray-600 mb-1" data-i18n="auto_detect_name_patterns_comma_separated">自動判別に使う名前(先頭の文字、カンマ区切り)</label>
             <input type="text" id="pdef-patterns" class="prop-input" placeholder="e.g. M260, M26" />
-            <div class="text-xs text-gray-400 mt-0.5">BLE device name prefixes for auto-detection. Leave empty for manual-only.</div>
+            <div class="text-xs text-gray-400 mt-0.5" data-i18n="ble_device_name_prefixes_for_auto">Bluetoothのデバイス名の先頭部分で判別します。空欄なら手動で選ぶときだけ使います。</div>
           </div>
         </div>
 
         <div class="flex gap-2 mt-4">
-          <button id="printer-def-cancel" class="flex-1 px-3 py-1.5 text-sm border border-gray-300 rounded-lg hover:bg-gray-50">Cancel</button>
-          <button id="printer-def-save" class="flex-1 px-3 py-1.5 text-sm bg-gray-900 text-white rounded-lg hover:bg-gray-800">Save</button>
+          <button id="printer-def-cancel" class="flex-1 px-3 py-1.5 text-sm border border-gray-300 rounded-lg hover:bg-gray-50" data-i18n="cancel">キャンセル</button>
+          <button id="printer-def-save" class="flex-1 px-3 py-1.5 text-sm bg-gray-900 text-white rounded-lg hover:bg-gray-800" data-i18n="save">保存</button>
         </div>
       </div>
     </div>
@@ -1744,24 +1750,24 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
           </svg>
         </div>
-        <h3 class="text-lg font-semibold text-gray-900">Select Your Printer</h3>
+        <h3 class="text-lg font-semibold text-gray-900" data-i18n="select_your_printer">プリンターを選んでください</h3>
         <p class="text-sm text-gray-500 mt-1">
-          We couldn't identify <span id="prompt-device-name" class="font-medium text-gray-700"></span>
+          <span data-i18n="we_couldn_t_identify">機種を判別できませんでした:</span> <span id="prompt-device-name" class="font-medium text-gray-700"></span>
         </p>
       </div>
 
       <div class="space-y-3">
         <select id="prompt-model-select" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-          <option value="" disabled selected>-- Select your printer model --</option>
+          <option value="" disabled selected data-i18n="select_your_printer_model">-- プリンター機種を選ぶ --</option>
           <!-- Populated dynamically from printer definitions -->
         </select>
-        <button id="prompt-model-confirm" disabled class="w-full px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed">
-          Confirm
+        <button id="prompt-model-confirm" disabled class="w-full px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed" data-i18n="confirm">
+          決定
         </button>
       </div>
 
-      <p class="text-xs text-gray-400 text-center mt-4">
-        This choice will be remembered for this device
+      <p class="text-xs text-gray-400 text-center mt-4" data-i18n="this_choice_will_be_remembered_for">
+        この選択はこのプリンターについて記憶されます
       </p>
     </div>
   </div>
@@ -1783,7 +1789,7 @@
           </div>
           <div>
             <h3 class="text-lg font-bold">Phomymo</h3>
-            <p class="text-blue-100 text-xs">Free Label Designer for Phomemo Printers</p>
+            <p class="text-blue-100 text-xs" data-i18n="free_label_designer_for_phomemo_printers">Phomemo プリンター用の無料ラベル作成ツール</p>
           </div>
         </div>
       </div>
@@ -1797,8 +1803,8 @@
               <span class="text-white text-xs font-bold">1</span>
             </div>
             <div>
-              <h4 class="font-semibold text-gray-900 text-sm">Connect</h4>
-              <p class="text-xs text-gray-600">Click <strong>Connect</strong> to pair with your Phomemo printer via Bluetooth</p>
+              <h4 class="font-semibold text-gray-900 text-sm" data-i18n="connect">接続</h4>
+              <p class="text-xs text-gray-600" data-i18n-html="welcome_connect_step"><strong>接続</strong> を押して、Bluetooth で Phomemo プリンターとつなぎます</p>
             </div>
           </div>
           <div class="flex items-start gap-3">
@@ -1806,8 +1812,8 @@
               <span class="text-white text-xs font-bold">2</span>
             </div>
             <div>
-              <h4 class="font-semibold text-gray-900 text-sm">Design</h4>
-              <p class="text-xs text-gray-600">Add text, barcodes, QR codes, images, and shapes to your label</p>
+              <h4 class="font-semibold text-gray-900 text-sm" data-i18n="design">デザイン</h4>
+              <p class="text-xs text-gray-600" data-i18n="add_text_barcodes_qr_codes_images">ラベルに文字・バーコード・QRコード・画像・図形を配置します</p>
             </div>
           </div>
           <div class="flex items-start gap-3">
@@ -1815,24 +1821,24 @@
               <span class="text-white text-xs font-bold">3</span>
             </div>
             <div>
-              <h4 class="font-semibold text-gray-900 text-sm">Print</h4>
-              <p class="text-xs text-gray-600">Hit <strong>Print</strong> to send your design straight to the printer</p>
+              <h4 class="font-semibold text-gray-900 text-sm" data-i18n="print">印刷</h4>
+              <p class="text-xs text-gray-600" data-i18n-html="welcome_print_step"><strong>印刷</strong> を押すと、デザインがそのままプリンターに送られます</p>
             </div>
           </div>
         </div>
 
         <!-- CTA Buttons -->
-        <button id="info-get-started" class="w-full px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-semibold">
-          Get Started
+        <button id="info-get-started" class="w-full px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-semibold" data-i18n="get_started">
+          はじめる
         </button>
         <a href="docs/manual.html" target="_blank" rel="noopener" class="flex items-center justify-center gap-2 w-full px-4 py-2 bg-blue-50 text-blue-700 rounded-lg border border-blue-200 hover:bg-blue-100 transition-colors text-sm font-medium">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
-          Read the User Manual
+          <span data-i18n="read_the_user_manual">使い方を読む</span>
         </a>
 
         <!-- Supported Printers (compact) -->
         <div class="bg-gray-50 rounded-lg p-3 border border-gray-200">
-          <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Supported Printers</p>
+          <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1" data-i18n="supported_printers">対応プリンター</p>
           <p class="text-xs text-gray-700">P12, A30, M02-M260, M04S, T02, D30-D110, Q30/Q30S, PM-241</p>
         </div>
 
@@ -1841,26 +1847,26 @@
           <div class="flex gap-2">
             <a href="https://github.com/haoling/phomymo" target="_blank" rel="noopener" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gray-900 text-white text-xs font-medium rounded-lg hover:bg-gray-800 transition-colors">
               <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
-              Star
+              <span data-i18n="star">スター</span>
             </a>
-            <a href="https://github.com/haoling/phomymo/issues" target="_blank" rel="noopener" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white text-gray-700 text-xs font-medium rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors">
-              Report Issue
+            <a href="https://github.com/haoling/phomymo/issues" target="_blank" rel="noopener" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white text-gray-700 text-xs font-medium rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors" data-i18n="report_issue">
+              不具合を報告
             </a>
-            <a href="https://donate.stripe.com/7sY7sMese0182tXgn8eAg00" target="_blank" rel="noopener" data-donate-original title="Support Affordable Magic, the creator of the original Phomymo. (Donations go to Affordable Magic, not to the operator of this fork.)" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-pink-50 text-pink-700 text-xs font-medium rounded-lg border border-pink-200 hover:bg-pink-100 transition-colors">
+            <a href="https://donate.stripe.com/7sY7sMese0182tXgn8eAg00" target="_blank" rel="noopener" data-donate-original data-i18n-title="support_original_author_tooltip" title="元の Phomymo の作者、Affordable Magic を支援します(寄付は Affordable Magic に届きます。このフォークの運営者には届きません)" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-pink-50 text-pink-700 text-xs font-medium rounded-lg border border-pink-200 hover:bg-pink-100 transition-colors">
               <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
-              Support the original author
+              <span data-i18n="support_original_author">元の作者を支援</span>
             </a>
           </div>
-          <p class="text-xs text-gray-400">Requires Chrome, Edge, or Chromium</p>
+          <p class="text-xs text-gray-400" data-i18n="requires_chrome_edge_or_chromium">Chrome・Edge・Chromium で動きます</p>
         </div>
       </div>
 
       <!-- Footer -->
       <div class="bg-gray-50 px-5 py-3 border-t border-gray-100 flex items-center justify-between">
-        <p class="text-xs text-gray-400">Unofficial app, not affiliated with Phomemo · <a href="about.html" target="_blank" rel="noopener" class="underline hover:text-gray-600">About</a> · <a href="privacy.html" target="_blank" rel="noopener" class="underline hover:text-gray-600">Privacy</a> · <a href="terms.html" target="_blank" rel="noopener" class="underline hover:text-gray-600">Terms</a></p>
+        <p class="text-xs text-gray-400"><span data-i18n="not_affiliated_with_phomemo">非公式アプリです。Phomemo 社とは関係ありません</span> · <a href="about.html" target="_blank" rel="noopener" class="underline hover:text-gray-600" data-i18n="about">このアプリについて</a> · <a href="privacy.html" target="_blank" rel="noopener" class="underline hover:text-gray-600" data-i18n="privacy_short">プライバシー</a> · <a href="terms.html" target="_blank" rel="noopener" class="underline hover:text-gray-600" data-i18n="terms_of_use">利用規約</a></p>
         <a href="https://affordablemagic.net" target="_blank" rel="noopener" class="inline-flex items-center gap-2 px-3 py-1.5 bg-white border border-gray-200 rounded-lg hover:border-gray-300 hover:shadow-sm transition-all">
           <img src="https://affordablemagic.net/affordablemagic-400w.png" alt="Affordable Magic" class="h-4">
-          <span class="text-xs font-medium text-gray-700">Original by Affordable Magic</span>
+          <span class="text-xs font-medium text-gray-700" data-i18n="original_by_affordable_magic">原作: Affordable Magic</span>
         </a>
       </div>
     </div>
@@ -1871,8 +1877,8 @@
     <div class="bg-white rounded-xl shadow-xl w-full max-w-4xl max-h-[90vh] flex flex-col">
       <div class="flex items-center justify-between p-4 border-b border-gray-200">
         <div>
-          <h3 class="text-lg font-semibold text-gray-900">Template Data</h3>
-          <p class="text-sm text-gray-500">Fields: <span id="template-fields-list" class="font-medium text-purple-600"></span></p>
+          <h3 class="text-lg font-semibold text-gray-900" data-i18n="template_data">差し込みデータ</h3>
+          <p class="text-sm text-gray-500"><span data-i18n="fields">項目:</span> <span id="template-fields-list" class="font-medium text-purple-600"></span></p>
         </div>
         <button id="template-data-close" class="text-gray-400 hover:text-gray-600">
           <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
@@ -1882,25 +1888,25 @@
       <div class="p-4 border-b border-gray-200 flex items-center gap-3">
         <button id="template-import-csv" class="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-medium flex items-center gap-1.5">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
-          Import CSV
+          <span data-i18n="import_csv">CSVを読み込む</span>
         </button>
         <input type="file" id="template-csv-input" class="hidden" accept=".csv,text/csv">
         <button id="template-add-row" class="px-3 py-1.5 bg-purple-100 hover:bg-purple-200 text-purple-700 rounded-lg text-sm font-medium flex items-center gap-1.5">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-          Add Row
+          <span data-i18n="add_row">行を追加</span>
         </button>
-        <button id="template-clear-all" class="px-3 py-1.5 text-red-600 hover:bg-red-50 rounded-lg text-sm font-medium">
-          Clear All
+        <button id="template-clear-all" class="px-3 py-1.5 text-red-600 hover:bg-red-50 rounded-lg text-sm font-medium" data-i18n="clear_all">
+          すべて消す
         </button>
         <div class="flex-1"></div>
-        <span id="template-record-count" class="text-sm text-gray-500">0 records</span>
+        <span id="template-record-count" class="text-sm text-gray-500">0 件</span>
       </div>
 
       <div class="flex-1 overflow-auto p-4">
         <div id="template-data-empty" class="text-center py-12 text-gray-400">
           <svg class="w-12 h-12 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
-          <p class="mb-2">No data yet</p>
-          <p class="text-sm">Import a CSV file or add rows manually</p>
+          <p class="mb-2" data-i18n="no_data_yet">まだデータがありません</p>
+          <p class="text-sm" data-i18n="import_a_csv_file_or_add">CSVファイルを読み込むか、行を追加してください</p>
         </div>
         <table class="w-full text-sm">
           <thead>
@@ -1913,11 +1919,11 @@
       <div class="p-4 border-t border-gray-200 flex items-center justify-between">
         <button id="template-preview-btn" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-medium flex items-center gap-2">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-          Preview Labels
+          <span data-i18n="preview_labels">ラベルをプレビュー</span>
         </button>
         <button id="template-print-btn" class="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium flex items-center gap-2">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
-          Print All
+          <span data-i18n="print_all_2">すべて印刷</span>
         </button>
       </div>
     </div>
@@ -1928,8 +1934,8 @@
     <div class="bg-white rounded-xl shadow-xl w-full max-w-4xl max-h-[90vh] flex flex-col">
       <div class="flex items-center justify-between p-4 border-b border-gray-200">
         <div>
-          <h3 class="text-lg font-semibold text-gray-900">Preview Labels</h3>
-          <p class="text-sm text-gray-500"><span id="preview-count">0 labels</span> - Click to view full size</p>
+          <h3 class="text-lg font-semibold text-gray-900" data-i18n="preview_labels">ラベルをプレビュー</h3>
+          <p class="text-sm text-gray-500"><span id="preview-count">0 枚</span> <span data-i18n="click_to_view_full_size">- クリックで拡大表示</span></p>
         </div>
         <button id="preview-close" class="text-gray-400 hover:text-gray-600">
           <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
@@ -1941,8 +1947,8 @@
       </div>
 
       <div class="p-4 border-t border-gray-200 flex justify-end">
-        <button id="preview-print-selected" class="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium">
-          Print Selected
+        <button id="preview-print-selected" class="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium" data-i18n="print_selected">
+          選んだものを印刷
         </button>
       </div>
     </div>
@@ -1952,7 +1958,7 @@
   <div id="full-preview-dialog" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[70] p-4">
     <div class="bg-white rounded-xl shadow-xl w-full max-w-lg flex flex-col">
       <div class="flex items-center justify-between p-4 border-b border-gray-200">
-        <h3 id="full-preview-title" class="text-lg font-semibold text-gray-900">Label Preview</h3>
+        <h3 id="full-preview-title" class="text-lg font-semibold text-gray-900" data-i18n="label_preview">ラベルのプレビュー</h3>
         <button id="full-preview-close" class="text-gray-400 hover:text-gray-600">
           <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
         </button>
@@ -1964,20 +1970,20 @@
 
       <div class="p-4 border-t border-gray-200 flex items-center justify-between">
         <div class="flex items-center gap-3">
-          <button id="full-preview-prev" class="p-2 hover:bg-gray-100 rounded-lg" title="Previous">
+          <button id="full-preview-prev" class="p-2 hover:bg-gray-100 rounded-lg" title="前へ" data-i18n-title="previous">
             <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
           </button>
-          <button id="full-preview-next" class="p-2 hover:bg-gray-100 rounded-lg" title="Next">
+          <button id="full-preview-next" class="p-2 hover:bg-gray-100 rounded-lg" title="次へ" data-i18n-title="next">
             <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
           </button>
         </div>
         <div class="flex items-center gap-3">
           <label class="flex items-center gap-2 text-sm text-gray-600">
             <input type="checkbox" id="full-preview-include" class="rounded">
-            Include in print
+            <span data-i18n="include_in_print">印刷に含める</span>
           </label>
-          <button id="full-preview-print" class="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium">
-            Print This One
+          <button id="full-preview-print" class="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium" data-i18n="print_this_one">
+            これを印刷
           </button>
         </div>
       </div>
@@ -1991,36 +1997,36 @@
   <div id="shortcuts-modal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50">
     <div class="bg-white rounded-xl shadow-xl p-6 max-w-md w-full mx-4">
       <div class="flex justify-between items-center mb-4">
-        <h2 class="text-lg font-semibold">Keyboard Shortcuts</h2>
+        <h2 class="text-lg font-semibold" data-i18n="keyboard_shortcuts">キーボードショートカット</h2>
         <button id="shortcuts-close" class="text-gray-400 hover:text-gray-600">&times;</button>
       </div>
       <div class="grid grid-cols-2 gap-2 text-sm">
-        <div class="font-medium text-gray-600">Undo</div>
+        <div class="font-medium text-gray-600" data-i18n="undo">元に戻す</div>
         <div><kbd class="px-2 py-1 bg-gray-100 rounded">Ctrl+Z</kbd></div>
-        <div class="font-medium text-gray-600">Redo</div>
+        <div class="font-medium text-gray-600" data-i18n="redo">やり直す</div>
         <div><kbd class="px-2 py-1 bg-gray-100 rounded">Ctrl+Shift+Z</kbd></div>
-        <div class="font-medium text-gray-600">Duplicate</div>
+        <div class="font-medium text-gray-600" data-i18n="duplicate">複製</div>
         <div><kbd class="px-2 py-1 bg-gray-100 rounded">Ctrl+D</kbd></div>
-        <div class="font-medium text-gray-600">Copy</div>
+        <div class="font-medium text-gray-600" data-i18n="copy">コピー</div>
         <div><kbd class="px-2 py-1 bg-gray-100 rounded">Ctrl+C</kbd></div>
-        <div class="font-medium text-gray-600">Paste</div>
+        <div class="font-medium text-gray-600" data-i18n="paste">貼り付け</div>
         <div><kbd class="px-2 py-1 bg-gray-100 rounded">Ctrl+V</kbd></div>
-        <div class="font-medium text-gray-600">Delete</div>
+        <div class="font-medium text-gray-600" data-i18n="delete">削除</div>
         <div><kbd class="px-2 py-1 bg-gray-100 rounded">Delete</kbd> / <kbd class="px-2 py-1 bg-gray-100 rounded">Backspace</kbd></div>
-        <div class="font-medium text-gray-600">Nudge 1px</div>
-        <div><kbd class="px-2 py-1 bg-gray-100 rounded">Arrow keys</kbd></div>
-        <div class="font-medium text-gray-600">Nudge 10px</div>
-        <div><kbd class="px-2 py-1 bg-gray-100 rounded">Shift+Arrow</kbd></div>
-        <div class="font-medium text-gray-600">Group</div>
+        <div class="font-medium text-gray-600" data-i18n="nudge_1px">1px 移動</div>
+        <div><kbd class="px-2 py-1 bg-gray-100 rounded" data-i18n="arrow_keys">矢印キー</kbd></div>
+        <div class="font-medium text-gray-600" data-i18n="nudge_10px">10px 移動</div>
+        <div><kbd class="px-2 py-1 bg-gray-100 rounded" data-i18n="shift_arrow">Shift+矢印キー</kbd></div>
+        <div class="font-medium text-gray-600" data-i18n="group">グループ化</div>
         <div><kbd class="px-2 py-1 bg-gray-100 rounded">Ctrl+G</kbd></div>
-        <div class="font-medium text-gray-600">Ungroup</div>
+        <div class="font-medium text-gray-600" data-i18n="ungroup">グループ解除</div>
         <div><kbd class="px-2 py-1 bg-gray-100 rounded">Ctrl+Shift+G</kbd></div>
-        <div class="font-medium text-gray-600">Multi-select</div>
-        <div><kbd class="px-2 py-1 bg-gray-100 rounded">Shift+Click</kbd></div>
-        <div class="font-medium text-gray-600">Show this help</div>
+        <div class="font-medium text-gray-600" data-i18n="multi_select">複数選択</div>
+        <div><kbd class="px-2 py-1 bg-gray-100 rounded" data-i18n="shift_click">Shift+クリック</kbd></div>
+        <div class="font-medium text-gray-600" data-i18n="show_this_help">このヘルプを表示</div>
         <div><kbd class="px-2 py-1 bg-gray-100 rounded">?</kbd></div>
       </div>
-      <div class="mt-4 text-xs text-gray-400 text-center">Press Escape to close</div>
+      <div class="mt-4 text-xs text-gray-400 text-center" data-i18n="press_escape_to_close">Esc キーで閉じます</div>
     </div>
   </div>
 
@@ -2028,20 +2034,20 @@
   <div id="multi-label-modal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50">
     <div class="bg-white rounded-xl shadow-xl p-6 max-w-md w-full mx-4">
       <div class="flex justify-between items-center mb-4">
-        <h2 class="text-lg font-semibold">Multi-Label Roll</h2>
+        <h2 class="text-lg font-semibold" data-i18n="multi_label_roll_2">多面ラベル</h2>
         <button id="multi-label-close" class="text-gray-400 hover:text-gray-600 text-2xl leading-none">&times;</button>
       </div>
 
-      <p class="text-sm text-gray-500 mb-4">Configure a roll with multiple labels side by side.</p>
+      <p class="text-sm text-gray-500 mb-4" data-i18n="configure_a_roll_with_multiple_labels">横に複数のラベルが並んだロールを設定します。</p>
 
       <!-- Preset Selector -->
       <div class="mb-4">
-        <label class="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1 block">Load Preset</label>
+        <label class="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1 block" data-i18n="load_preset">保存した設定を読み込む</label>
         <div class="flex gap-2">
           <select id="multi-label-preset" class="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-400">
-            <option value="">-- Select Preset --</option>
+            <option value="" data-i18n="select_preset">-- 設定を選ぶ --</option>
           </select>
-          <button id="multi-label-delete-preset" class="px-3 py-2 border border-red-200 text-red-600 rounded-lg text-sm hover:bg-red-50 hidden">Delete</button>
+          <button id="multi-label-delete-preset" class="px-3 py-2 border border-red-200 text-red-600 rounded-lg text-sm hover:bg-red-50 hidden" data-i18n="delete">削除</button>
         </div>
       </div>
 
@@ -2050,14 +2056,14 @@
       <!-- Label Dimensions -->
       <div class="grid grid-cols-2 gap-4 mb-4">
         <div>
-          <label class="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1 block">Label Width</label>
+          <label class="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1 block" data-i18n="label_width">ラベルの幅</label>
           <div class="flex items-center gap-2">
             <input type="number" id="multi-label-width" class="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" value="10" min="5" max="50">
             <span class="text-sm text-gray-400">mm</span>
           </div>
         </div>
         <div>
-          <label class="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1 block">Label Height</label>
+          <label class="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1 block" data-i18n="label_height">ラベルの高さ</label>
           <div class="flex items-center gap-2">
             <input type="number" id="multi-label-height" class="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" value="20" min="5" max="100">
             <span class="text-sm text-gray-400">mm</span>
@@ -2068,11 +2074,11 @@
       <!-- Labels Across and Gap -->
       <div class="grid grid-cols-2 gap-4 mb-4">
         <div>
-          <label class="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1 block">Labels Across</label>
+          <label class="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1 block" data-i18n="labels_across">横に並ぶ枚数</label>
           <input type="number" id="multi-label-count" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" value="4" min="1" max="8">
         </div>
         <div>
-          <label class="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1 block">Gap Between</label>
+          <label class="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1 block" data-i18n="gap_between">ラベルの間隔</label>
           <div class="flex items-center gap-2">
             <input type="number" id="multi-label-gap" class="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" value="2" min="0" max="10" step="0.5">
             <span class="text-sm text-gray-400">mm</span>
@@ -2085,25 +2091,25 @@
         <label class="flex items-center gap-3 cursor-pointer">
           <input type="checkbox" id="multi-label-clone-mode" class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500" checked>
           <div>
-            <span class="text-sm font-medium text-gray-700">Clone Mode</span>
-            <p class="text-xs text-gray-500">Design one label, automatically copy to all zones</p>
+            <span class="text-sm font-medium text-gray-700" data-i18n="clone_mode">複製モード</span>
+            <p class="text-xs text-gray-500" data-i18n="design_one_label_automatically_copy_to">1枚をデザインすると、全部の面に自動で複製します</p>
           </div>
         </label>
       </div>
 
       <!-- Total Width Preview -->
       <div class="mb-4 p-3 bg-blue-50 rounded-lg text-sm">
-        <span class="text-blue-700">Total roll width: </span>
+        <span class="text-blue-700" data-i18n="total_roll_width">ロール全体の幅: </span>
         <span id="multi-label-total-width" class="font-semibold text-blue-900">48mm</span>
       </div>
 
       <!-- Action Buttons -->
       <div class="flex gap-2">
-        <button id="multi-label-save-preset" class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 flex-1">
-          Save as Preset
+        <button id="multi-label-save-preset" class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 flex-1" data-i18n="save_as_preset">
+          設定を保存
         </button>
-        <button id="multi-label-apply" class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 flex-1">
-          Apply
+        <button id="multi-label-apply" class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 flex-1" data-i18n="apply">
+          適用
         </button>
       </div>
     </div>
@@ -2113,15 +2119,15 @@
   <div id="print-progress-modal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50">
     <div class="bg-white rounded-xl shadow-xl p-6 w-80">
       <div class="text-center mb-4">
-        <div class="text-lg font-semibold" id="progress-title">Printing Labels</div>
-        <div class="text-sm text-gray-500" id="progress-subtitle">Preparing...</div>
+        <div class="text-lg font-semibold" id="progress-title" data-i18n="printing_labels">ラベルを印刷中</div>
+        <div class="text-sm text-gray-500" id="progress-subtitle" data-i18n="progress_preparing">準備中...</div>
       </div>
       <div class="w-full bg-gray-200 rounded-full h-3 mb-2 overflow-hidden">
         <div id="progress-bar" class="bg-purple-600 h-3 rounded-full transition-all duration-300" style="width: 0%"></div>
       </div>
       <div class="text-center text-sm text-gray-500" id="progress-detail">0 of 0</div>
-      <button id="progress-cancel" class="mt-4 w-full px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm">
-        Cancel
+      <button id="progress-cancel" class="mt-4 w-full px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm" data-i18n="cancel">
+        キャンセル
       </button>
     </div>
   </div>
@@ -2147,7 +2153,7 @@
       <div class="p-4 overflow-y-auto" style="max-height: calc(100vh - 80px);">
         <!-- Label Settings -->
         <div class="mb-6">
-          <label class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Label Size</label>
+          <label class="text-xs font-semibold text-gray-500 uppercase tracking-wide" data-i18n="label_size">ラベルサイズ</label>
           <div class="flex items-center gap-2 mt-1">
             <select id="mobile-label-size" class="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm">
               <option value="12x40">12x40mm</option>
@@ -2162,13 +2168,13 @@
               <option value="50x30">50x30mm</option>
               <option value="50x80">50x80mm</option>
               <option value="60x40">60x40mm</option>
-              <option disabled>── Round Labels ──</option>
-              <option value="20mm Round">20mm Round</option>
-              <option value="30mm Round">30mm Round</option>
-              <option value="40mm Round">40mm Round</option>
-              <option value="50mm Round">50mm Round</option>
-              <option value="custom">Custom...</option>
-              <option value="multi-label">Multi-Label Roll...</option>
+              <option disabled data-i18n="round_labels">── 丸ラベル ──</option>
+              <option value="20mm Round" data-i18n="20mm_round">丸 20mm</option>
+              <option value="30mm Round" data-i18n="30mm_round">丸 30mm</option>
+              <option value="40mm Round" data-i18n="40mm_round">丸 40mm</option>
+              <option value="50mm Round" data-i18n="50mm_round">丸 50mm</option>
+              <option value="custom" data-i18n="custom">サイズを指定...</option>
+              <option value="multi-label" data-i18n="multi_label_roll">多面ラベル...</option>
             </select>
             <!-- P12/A30 length adjust buttons (hidden by default, shown for tape printers) -->
             <div id="mobile-label-length-adjust" class="hidden flex items-center gap-2">
@@ -2178,7 +2184,7 @@
           </div>
           <!-- Tape width selector (hidden by default, shown for tape printers like P12/A30) -->
           <div id="mobile-tape-width-selector" class="hidden mt-2">
-            <label class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Tape Width</label>
+            <label class="text-xs font-semibold text-gray-500 uppercase tracking-wide" data-i18n="tape_width">テープ幅</label>
             <select id="mobile-tape-width" class="w-full mt-1 px-3 py-2 border border-gray-200 rounded-lg text-sm">
               <option value="12">12mm</option>
               <option value="14">14mm</option>
@@ -2188,31 +2194,31 @@
           <!-- Custom size inputs (hidden by default) -->
           <div id="mobile-custom-size" class="hidden mt-2">
             <div class="flex items-center gap-2">
-              <input type="number" id="mobile-custom-width" class="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-base" placeholder="Width" min="10" max="100">
+              <input type="number" id="mobile-custom-width" class="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-base" placeholder="幅" min="10" max="100" data-i18n-placeholder="width">
               <span class="text-gray-400 text-base">x</span>
-              <input type="number" id="mobile-custom-height" class="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-base" placeholder="Height" min="10" max="200">
+              <input type="number" id="mobile-custom-height" class="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-base" placeholder="高さ" min="10" max="200" data-i18n-placeholder="height">
               <span class="text-base text-gray-400">mm</span>
             </div>
             <label class="flex items-center gap-2 mt-2 cursor-pointer">
               <input type="checkbox" id="mobile-custom-round" class="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
-              <span class="text-base text-gray-600">Round/Circle label</span>
+              <span class="text-base text-gray-600" data-i18n="round_circle_label">丸ラベル</span>
             </label>
             <label id="mobile-custom-continuous-wrap" class="hidden flex items-center gap-2 mt-2 cursor-pointer">
               <input type="checkbox" id="mobile-custom-continuous" class="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
-              <span class="text-base text-gray-600">Continuous tape</span>
+              <span class="text-base text-gray-600" data-i18n="continuous_tape">連続テープ</span>
             </label>
           </div>
         </div>
 
         <!-- Connection -->
         <div class="mb-6">
-          <label class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Connection</label>
+          <label class="text-xs font-semibold text-gray-500 uppercase tracking-wide" data-i18n="connection">接続</label>
           <div class="mt-2 flex gap-2">
-            <button id="mobile-connect-btn" class="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm active:bg-gray-100">
-              Connect
+            <button id="mobile-connect-btn" class="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm active:bg-gray-100" data-i18n="connect">
+              接続
             </button>
-            <button id="mobile-disconnect-btn" class="hidden flex-1 px-3 py-2 border border-red-200 bg-red-50 text-red-700 rounded-lg text-sm active:bg-red-100">
-              Disconnect
+            <button id="mobile-disconnect-btn" class="hidden flex-1 px-3 py-2 border border-red-200 bg-red-50 text-red-700 rounded-lg text-sm active:bg-red-100" data-i18n="disconnect">
+              切断
             </button>
             <select id="mobile-conn-type" class="px-3 py-2 border border-gray-200 rounded-lg text-sm">
               <option value="ble">BT</option>
@@ -2224,20 +2230,20 @@
         <!-- Templates -->
         <div class="mb-6">
           <div class="flex items-center justify-between">
-            <label class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Templates</label>
-            <span id="mobile-template-status" class="text-xs text-purple-600 font-medium bg-purple-100 px-2 py-0.5 rounded-full hidden">0 fields</span>
+            <label class="text-xs font-semibold text-gray-500 uppercase tracking-wide" data-i18n="templates">差し込み印刷</label>
+            <span id="mobile-template-status" class="text-xs text-purple-600 font-medium bg-purple-100 px-2 py-0.5 rounded-full hidden">0 項目</span>
           </div>
-          <p class="text-xs text-gray-400 mt-1 mb-2">Use {{Field}} in text for variable data</p>
+          <p class="text-xs text-gray-400 mt-1 mb-2" data-i18n="use_field_in_text_for_variable">文字の中に {{項目名}} と書くと、データを差し込めます</p>
 
           <!-- Fields detected -->
           <div id="mobile-template-fields" class="hidden mb-3">
-            <div class="text-xs text-gray-500 mb-1">Fields detected:</div>
+            <div class="text-xs text-gray-500 mb-1" data-i18n="fields_detected_2">見つかった項目:</div>
             <div id="mobile-template-field-tags" class="flex flex-wrap gap-1"></div>
           </div>
 
           <!-- Data info -->
           <div class="flex items-center justify-between text-sm text-gray-600 mb-2">
-            <span>Data records:</span>
+            <span data-i18n="data_records_2">データ件数:</span>
             <span id="mobile-template-data-count" class="font-medium">0</span>
           </div>
 
@@ -2245,16 +2251,16 @@
           <div class="space-y-2">
             <button id="mobile-template-manage" class="w-full px-3 py-2 bg-purple-50 hover:bg-purple-100 active:bg-purple-200 text-purple-700 border border-purple-200 rounded-lg text-sm font-medium flex items-center justify-center gap-2">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2 1 3 3 3h10c2 0 3-1 3-3V7M4 7c0-2 1-3 3-3h10c2 0 3 1 3 3M4 7h16M9 11h6"/></svg>
-              Manage Data
+              <span data-i18n="manage_data">データを管理</span>
             </button>
             <div class="flex gap-2">
               <button id="mobile-template-preview" class="flex-1 px-3 py-2 bg-white hover:bg-gray-50 active:bg-gray-100 text-gray-700 border border-gray-200 rounded-lg text-sm font-medium flex items-center justify-center gap-2">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-                Preview
+                <span data-i18n="preview">プレビュー</span>
               </button>
               <button id="mobile-template-print" class="flex-1 px-3 py-2 bg-purple-600 hover:bg-purple-700 active:bg-purple-800 text-white rounded-lg text-sm font-medium flex items-center justify-center gap-2">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
-                Print (<span id="mobile-template-print-count">0</span>)
+                <span data-i18n="print_2">印刷 (</span><span id="mobile-template-print-count">0</span>)
               </button>
             </div>
           </div>
@@ -2272,31 +2278,31 @@
             <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/>
             </svg>
-            Save Design
+            <span data-i18n="save_design">デザインを保存</span>
           </button>
           <button id="mobile-load-btn" class="w-full px-3 py-2.5 text-left text-sm hover:bg-gray-100 active:bg-gray-200 rounded-lg flex items-center gap-3">
             <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
             </svg>
-            Load Design
+            <span data-i18n="load_design">デザインを開く</span>
           </button>
           <button id="mobile-export-json-btn" class="w-full px-3 py-2.5 text-left text-sm hover:bg-gray-100 active:bg-gray-200 rounded-lg flex items-center gap-3">
             <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
             </svg>
-            Export as JSON
+            <span data-i18n="export_as_json">JSONで書き出し</span>
           </button>
           <button id="mobile-export-pdf-btn" class="w-full px-3 py-2.5 text-left text-sm hover:bg-gray-100 active:bg-gray-200 rounded-lg flex items-center gap-3">
             <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
             </svg>
-            Export as PDF
+            <span data-i18n="export_as_pdf">PDFで書き出し</span>
           </button>
           <button id="mobile-export-png-btn" class="w-full px-3 py-2.5 text-left text-sm hover:bg-gray-100 active:bg-gray-200 rounded-lg flex items-center gap-3">
             <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
             </svg>
-            Export as PNG
+            <span data-i18n="export_as_png">PNGで書き出し</span>
           </button>
 
           <hr class="my-3 border-gray-200">
@@ -2305,13 +2311,13 @@
             <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/>
             </svg>
-            Undo
+            <span data-i18n="undo">元に戻す</span>
           </button>
           <button id="mobile-redo-btn" class="w-full px-3 py-2.5 text-left text-sm hover:bg-gray-100 active:bg-gray-200 rounded-lg flex items-center gap-3 disabled:opacity-50" disabled>
             <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 10h-10a8 8 0 00-8 8v2M21 10l-6 6m6-6l-6-6"/>
             </svg>
-            Redo
+            <span data-i18n="redo">やり直す</span>
           </button>
 
           <hr class="my-3 border-gray-200">
@@ -2321,14 +2327,24 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
             </svg>
-            Print Settings
+            <span data-i18n="print_settings">印刷設定</span>
           </button>
           <button id="mobile-info-btn" class="w-full px-3 py-2.5 text-left text-sm hover:bg-gray-100 active:bg-gray-200 rounded-lg flex items-center gap-3">
             <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
             </svg>
-            About
+            <span data-i18n="about">このアプリについて</span>
           </button>
+
+          <hr class="my-3 border-gray-200">
+
+          <label class="w-full px-3 py-2 text-sm flex items-center gap-3">
+            <span class="text-gray-500">表示言語 / Language</span>
+            <select id="mobile-lang-select" class="lang-select ml-auto px-2 py-1 border border-gray-300 rounded-lg bg-white">
+              <option value="ja">日本語</option>
+              <option value="en">English</option>
+            </select>
+          </label>
         </div>
       </div>
     </aside>
@@ -2342,31 +2358,31 @@
         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
         </svg>
-        <span>Edit</span>
+        <span data-i18n="edit">編集</span>
       </button>
       <button id="mobile-duplicate-btn" class="mobile-tool-btn">
         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
         </svg>
-        <span>Copy</span>
+        <span data-i18n="copy">コピー</span>
       </button>
       <button id="mobile-raise-btn" class="mobile-tool-btn">
         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"/>
         </svg>
-        <span>Forward</span>
+        <span data-i18n="forward">前面へ</span>
       </button>
       <button id="mobile-lower-btn" class="mobile-tool-btn">
         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
         </svg>
-        <span>Back</span>
+        <span data-i18n="back">背面へ</span>
       </button>
       <button id="mobile-delete-btn" class="mobile-tool-btn danger">
         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
         </svg>
-        <span>Delete</span>
+        <span data-i18n="delete">削除</span>
       </button>
     </div>
 
@@ -2376,51 +2392,51 @@
         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h8m-8 6h16"/>
         </svg>
-        <span>Text</span>
+        <span data-i18n="text">テキスト</span>
       </button>
       <button id="mobile-add-image" class="mobile-tool-btn">
         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
         </svg>
-        <span>Image</span>
+        <span data-i18n="image">画像</span>
       </button>
       <div class="mobile-divider"></div>
       <button id="mobile-add-rect" class="mobile-tool-btn">
         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <rect x="4" y="6" width="16" height="12" rx="1" stroke-width="2"/>
         </svg>
-        <span>Rect</span>
+        <span data-i18n="rect">四角</span>
       </button>
       <button id="mobile-add-ellipse" class="mobile-tool-btn">
         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <ellipse cx="12" cy="12" rx="8" ry="6" stroke-width="2"/>
         </svg>
-        <span>Circle</span>
+        <span data-i18n="circle">円</span>
       </button>
       <button id="mobile-add-line" class="mobile-tool-btn">
         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <line x1="4" y1="12" x2="20" y2="12" stroke-width="2"/>
         </svg>
-        <span>Line</span>
+        <span data-i18n="line">線</span>
       </button>
       <button id="mobile-add-asset" class="mobile-tool-btn" data-open-assets="">
         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3l2.6 5.6 6.1.7-4.5 4.2 1.2 6L12 16.6 6.6 19.5l1.2-6L3.3 9.3l6.1-.7z"/>
         </svg>
-        <span>素材</span>
+        <span data-i18n="assets">素材</span>
       </button>
       <button id="mobile-add-frame" class="mobile-tool-btn" data-open-assets="frames">
         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <rect x="3" y="4" width="18" height="16" rx="2" stroke-width="2"/><rect x="6.5" y="7.5" width="11" height="9" rx="1" stroke-width="1.5" stroke-dasharray="2 2"/>
         </svg>
-        <span>枠</span>
+        <span data-i18n="frame">枠</span>
       </button>
       <div class="mobile-divider"></div>
       <button id="mobile-add-barcode" class="mobile-tool-btn">
         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-width="2" d="M4 4h2v16H4V4zm4 0h1v16H8V4zm3 0h2v16h-2V4zm4 0h1v16h-1V4zm3 0h2v16h-2V4z"/>
         </svg>
-        <span>Barcode</span>
+        <span data-i18n="barcode">バーコード</span>
       </button>
       <button id="mobile-add-qr" class="mobile-tool-btn">
         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -2434,7 +2450,7 @@
   <!-- Mobile Properties Panel (slides up when editing) -->
   <div id="mobile-props-panel" class="mobile-only mobile-props-panel flex-col">
     <div class="mobile-props-header">
-      <span id="mobile-props-title" class="font-medium text-gray-900">Properties</span>
+      <span id="mobile-props-title" class="font-medium text-gray-900">プロパティ</span>
       <button id="mobile-props-close" class="p-1 -mr-1 rounded hover:bg-gray-100">
         <svg class="w-6 h-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
@@ -2455,7 +2471,7 @@
     pdfjsModule.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.379/pdf.worker.min.mjs';
     window.pdfjsLib = pdfjsModule;
   </script>
-  <script type="module" src="app.js?v=158"></script>
+  <script type="module" src="app.js?v=159"></script>
   <script>
     // Show body once styles are ready
     requestAnimationFrame(() => {

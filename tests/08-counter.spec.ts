@@ -80,7 +80,7 @@ test.describe('連番での印刷', () => {
 
     await resetDrawnTexts(page);
     await printAndWait(page);
-    await expect(page.locator('#status-message')).toHaveText('Printed 5 copies!');
+    await expect(page.locator('#status-message')).toHaveText('5 部印刷しました!');
 
     const drawn = await getDrawnTexts(page);
     for (const n of ['001', '002', '003', '004', '005']) {
@@ -172,7 +172,7 @@ test.describe('連番での印刷', () => {
 
     await resetDrawnTexts(page);
     await page.click('#template-print-btn');
-    await expect(page.locator('#status-message')).toHaveText('Printed 3 labels!', { timeout: 90_000 });
+    await expect(page.locator('#status-message')).toHaveText('3 枚印刷しました!', { timeout: 90_000 });
 
     // 折り返しで別々に描かれることがあるので、つなげてから確かめる
     const drawn = (await getDrawnTexts(page)).join(' ');

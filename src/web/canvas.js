@@ -8,6 +8,7 @@ import { logError, ErrorLevel } from './utils/errors.js';
 import { drawFrame } from './frames.js';
 import { getImageSourceRect, normalizeCrop } from './elements.js';
 import { drawLine, measureLine, drawArcText, letterSpacingPx, normalizeArc, isVertical, verticalOptions, layoutVertical, drawVerticalText, verticalBlockWidth } from './text-layout.js';
+import { t } from './i18n.js';
 
 // Pixels per mm (203 DPI ≈ 8 px/mm)
 const PX_PER_MM = 8;
@@ -1425,7 +1426,7 @@ export class CanvasRenderer {
       this.ctx.font = '12px sans-serif';
       this.ctx.textAlign = 'center';
       this.ctx.textBaseline = 'middle';
-      this.ctx.fillText('Loading...', 0, 0);
+      this.ctx.fillText(t('loading'), 0, 0);
     }
   }
 
