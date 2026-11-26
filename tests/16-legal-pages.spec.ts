@@ -51,3 +51,11 @@ test('アプリからプライバシーポリシーと利用規約に行ける',
   await expect(page.locator('#account-privacy-link')).toHaveAttribute('href', 'privacy.html');
   await expect(page.locator('#account-terms-link')).toHaveAttribute('href', 'terms.html');
 });
+
+test('アプリ内の GitHub リンクはこのフォークを指す', async ({ page }) => {
+  await page.goto('/');
+  await waitForAppReady(page);
+  const hrefs = await page.locator('a[href*="github.com"]').evaluateAll((as) => as.map((a) => a.getAttribute('href')!));
+  expect(hrefs.length).toBeGreaterThan(0);
+  for (const h of hrefs) expect(h).toMatch(/^https:\/\/github\.com\/haoling\/phomymo(\/|$)/);
+});
