@@ -94,6 +94,7 @@ export const MESSAGES = {
   mirror_orient_mirror: { ja: "鏡像", en: "Mirrored" },
   mirror_orient_upright: { ja: "反転しない", en: "Not flipped" },
   mirror_orient_rotate180: { ja: "180°回転", en: "Rotated 180°" },
+  mirror_orient_point: { ja: "点対称", en: "Point symmetric" },
   status_mirror_on: { ja: "ミラー配置をオンにしました(点線が折り線です)", en: "Mirror copy on (the dashed line is the fold)" },
   status_mirror_off: { ja: "ミラー配置をオフにしました", en: "Mirror copy off" },
   layer: { ja: "重なり順", en: "Layer" },
