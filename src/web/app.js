@@ -1626,16 +1626,15 @@ function updateTemplateIndicator() {
   const toolbarDivider = $('#template-toolbar-divider');
   const toolbarLabel = $('#template-toolbar-label');
 
-  const hasFields = state.templateFields.length > 0;
-  fieldCount.textContent = state.templateFields.length;
+  // デザインで使っている変数・連番も、差し込み項目として並べる(種類の印つき)
+  const usedVariables = variablesUsedInDesign();
+  const hasFields = state.templateFields.length + usedVariables.length > 0;
+  fieldCount.textContent = state.templateFields.length + usedVariables.length;
 
   if (hasFields) {
-
-    // Show field tags
-    fieldTags.innerHTML = state.templateFields.map(f =>
-      `<span class="px-2 py-1 bg-purple-100 text-purple-700 rounded-full font-medium">{{${escapeHtml(f)}}}</span>`
+    fieldTags.innerHTML = usedVariables.map(variableFieldTag).join('') + state.templateFields.map(f =>
+      `<span class="merge-field-tag px-2 py-1 bg-purple-100 text-purple-700 rounded-full font-medium">{{${escapeHtml(f)}}}</span>`
     ).join('');
-
   } else {
     fieldTags.innerHTML = `<span class="text-purple-400 italic">${t('none')}</span>`;
   }
@@ -1690,11 +1689,11 @@ function updateTemplateIndicator() {
 
   if (mobileStatus) {
     if (hasFields) {
-      mobileStatus.textContent = t('n_fields', { n: state.templateFields.length });
+      mobileStatus.textContent = t('n_fields', { n: state.templateFields.length + usedVariables.length });
       mobileStatus.classList.remove('hidden');
       mobileFields?.classList.remove('hidden');
       if (mobileFieldTags) {
-        mobileFieldTags.innerHTML = state.templateFields.map(f =>
+        mobileFieldTags.innerHTML = usedVariables.map(variableFieldTag).join('') + state.templateFields.map(f =>
           `<span class="px-2 py-0.5 bg-purple-100 text-purple-700 rounded-full text-xs font-medium">{{${escapeHtml(f)}}}</span>`
         ).join('');
       }
@@ -2505,6 +2504,18 @@ function variablePreviewText(v) {
   const base = counterBase();
   const nums = [0, 1, 2].map(i => formatCounter(base + i, opts));
   return t('variable_counter_preview', { values: nums.join(', ') });
+}
+
+/** デザインの中で {{名前}} として使っている変数 */
+function variablesUsedInDesign() {
+  const used = new Set(extractFields(state.elements).map(f => f.trim().toLowerCase()));
+  return definedVariables().filter(v => used.has(v.name.toLowerCase()));
+}
+
+/** 差し込み項目の一覧に出す、変数・連番の札(値の見本を title に) */
+function variableFieldTag(v) {
+  const kind = t(v.type === 'counter' ? 'variable_type_counter' : 'variables_title');
+  return `<span class="variable-field-tag px-2 py-1 bg-white text-purple-700 border border-purple-300 rounded-full font-medium" data-field="${escapeAttr(v.name)}" title="${escapeAttr(variablePreviewText(v))}">{{${escapeHtml(v.name)}}} <span class="text-[10px] text-purple-500">${escapeHtml(kind)}</span></span>`;
 }
 
 /** 使える変数(名前が空でない、重複を除いたもの) */

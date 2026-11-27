@@ -129,6 +129,8 @@ test.describe('連番の変数', () => {
     await row.locator('.variable-counter[data-key="pad"]').fill('3');
     await expect(row.locator('.variable-counter-preview')).toHaveText('→ 001, 002, 003…');
 
+    await expect(page.locator('#template-field-tags .variable-field-tag[data-field="番号"]')).toContainText('連番');
+
     // キャンバスには次に印刷する番号
     await resetDrawnTexts(page);
     await row.locator('.variable-counter[data-key="start"]').fill('1');
@@ -261,8 +263,11 @@ test.describe('変数(画面)', () => {
     // キャンバスには値が入って見える(要素の文字は {{…}} のまま)
     expect((await getDrawnTexts(page)).join(' ')).toContain('りんご 120円');
     await expect(page.locator('#prop-text-content')).toHaveValue('{{品名}} {{価格}}円');
-    // 変数は表の列として探さない
-    await expect(page.locator('#template-field-count')).toHaveText('0');
+    // 変数も「見つかった差し込み項目」に印つきで並ぶ(表に無くても「見つからない項目」にはしない)
+    await expect(page.locator('#template-field-count')).toHaveText('2');
+    await expect(page.locator('#template-field-tags .variable-field-tag')).toHaveCount(2);
+    await expect(page.locator('#template-field-tags .variable-field-tag[data-field="品名"]')).toContainText('変数');
+    await expect(page.locator('#template-field-tags .merge-field-tag')).toHaveCount(0);
 
     // 値を変えるとすぐ反映される
     await page.locator('#variables-list .variable-row').first().locator('.variable-value').fill('みかん');
