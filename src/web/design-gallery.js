@@ -9,7 +9,7 @@
  */
 
 import { CanvasRenderer } from './canvas.js?v=120';
-import { substituteFields, evaluateExpressions, buildFieldValues } from './templates.js?v=105';
+import { substituteFields, evaluateExpressions, buildFieldValues } from './templates.js?v=106';
 import { waitForElementFonts } from './fonts-ja.js?v=1';
 import * as kv from './kv.js';
 import { t } from './i18n.js';

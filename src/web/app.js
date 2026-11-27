@@ -94,7 +94,9 @@ import {
   fieldsWithoutVariables,
   normalizeCounterVariable,
   formatCounter,
-} from './templates.js?v=105';
+  findCounterOptions,
+  COUNTER_DEFAULTS,
+} from './templates.js?v=106';
 import {
   readSpreadsheetFile,
   parseDelimitedTable,
@@ -1474,9 +1476,11 @@ function updateCounterUI() {
   if (!resume || !next || !preview) return;
 
   resume.checked = !!state.counter.resume;
-  next.value = counterBase() + 1;
-  next.disabled = !state.counter.resume;
-  $('#counter-reset').disabled = !state.counter.resume;
+  // 次に印刷する番号(最初の連番の開始・増分で数える)。いつでも書き換えられる
+  const opts = findCounterOptions(elementsWithValues()) || COUNTER_DEFAULTS;
+  if (document.activeElement !== next) next.value = opts.start + counterBase() * opts.step;
+  next.disabled = false;
+  $('#counter-reset').disabled = counterBase() === 0;
 
   const value = previewCounter(elementsWithValues(), counterBase());
   // 変数欄の連番の見本も、続きの番号に合わせる
@@ -1558,7 +1562,13 @@ function initCounterSettings() {
     updateCounterUI();
   });
   $('#counter-next')?.addEventListener('change', (e) => {
-    state.counter.next = Math.max(0, (parseInt(e.target.value, 10) || 1) - 1);
+    // 入れた番号から何枚目かを求める。番号を決めたら、続きから振るようにする
+    const opts = findCounterOptions(elementsWithValues()) || COUNTER_DEFAULTS;
+    const value = parseInt(e.target.value, 10);
+    const index = Number.isFinite(value) && opts.step ? Math.round((value - opts.start) / opts.step) : 0;
+    state.counter.next = Math.max(0, index);
+    state.counter.resume = true;
+    e.target.blur();
     persistCounter();
     updateCounterUI();
   });

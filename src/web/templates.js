@@ -586,6 +586,24 @@ export function hasCounter(elements) {
 }
 
 /**
+ * 最初の連番の設定(開始・増分・桁)。連番が無ければ null
+ * @param {Array} elements
+ * @returns {{start: number, step: number, pad: number}|null}
+ */
+export function findCounterOptions(elements) {
+  for (const el of elements || []) {
+    for (const str of [el.text, el.barcodeData, el.qrData]) {
+      if (!str) continue;
+      COUNTER_PATTERN.lastIndex = 0;
+      const m = COUNTER_PATTERN.exec(str);
+      COUNTER_PATTERN.lastIndex = 0;
+      if (m) return parseCounterOptions(m[1] || null);
+    }
+  }
+  return null;
+}
+
+/**
  * Return the first counter expression's value at a position (for UI preview)
  * @param {Array} elements
  * @param {number} index - 0-based label position

@@ -712,6 +712,7 @@ export const MESSAGES = {
   variable_empty_value: { ja: "(空)", en: "(empty)" },
   variables_add_counter: { ja: "＋ 連番を追加", en: "+ Add counter" },
   counter_settings_title: { ja: "連番の続き", en: "Counter progress" },
+  counter_next_label: { ja: "次に印刷する番号", en: "Next number" },
   variable_type: { ja: "変数の種類", en: "Variable type" },
   variable_type_text: { ja: "文字", en: "Text" },
   variable_type_counter: { ja: "連番", en: "Counter" },

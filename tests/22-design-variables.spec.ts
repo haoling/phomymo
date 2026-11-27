@@ -162,6 +162,47 @@ test.describe('連番の変数', () => {
   });
 });
 
+test.describe('連番の今の番号', () => {
+  test.beforeEach(async ({ page }) => {
+    await installFakePrinter(page);
+    await page.goto('/', { waitUntil: 'networkidle' });
+    await waitForAppReady(page);
+    await dismissInfoDialog(page);
+  });
+
+  test('「次に印刷する番号」はいつでも書き換えられ、書き換えると続きから振る', async ({ page }) => {
+    test.setTimeout(60_000);
+    await addText(page, 'No.{{番号}}');
+    await page.click('#template-toolbar-btn');
+    await page.click('#variables-add-counter');
+    const row = page.locator('#variables-list .variable-row').last();
+    await row.locator('.variable-name').fill('番号');
+    await row.locator('.variable-counter[data-key="start"]').fill('10');
+    await row.locator('.variable-counter[data-key="step"]').fill('5');
+
+    const next = page.locator('#counter-next');
+    await expect(next).toBeEnabled();
+    await expect(next).toHaveValue('10');
+    await expect(page.locator('#counter-resume')).not.toBeChecked();
+    await expect(page.locator('#counter-reset')).toBeDisabled();
+
+    await next.fill('25');
+    await next.dispatchEvent('change');
+    await expect(page.locator('#counter-resume')).toBeChecked();
+    await expect(page.locator('#counter-preview')).toHaveText('次に印刷される番号: 25');
+    await expect(row.locator('.variable-counter-preview')).toHaveText('→ 25, 30, 35…');
+
+    await resetDrawnTexts(page);
+    await printAndWait(page);
+    expect(await getDrawnTexts(page)).toContain('No.25');
+    await expect(next).toHaveValue('30');
+
+    await page.click('#counter-reset');
+    await expect(next).toHaveValue('10');
+    await expect(page.locator('#counter-reset')).toBeDisabled();
+  });
+});
+
 test.describe('変数(画面)', () => {
   test.beforeEach(async ({ page }) => {
     await installFakePrinter(page);
