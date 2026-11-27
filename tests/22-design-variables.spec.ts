@@ -203,6 +203,46 @@ test.describe('連番の今の番号', () => {
   });
 });
 
+test.describe('表が無いときの差し込み印刷パネル', () => {
+  test.beforeEach(async ({ page }) => {
+    await installFakePrinter(page);
+    await page.goto('/', { waitUntil: 'networkidle' });
+    await waitForAppReady(page);
+    await dismissInfoDialog(page);
+  });
+
+  test('表を読み込んでいなければ「印刷 (N部)」で、押すとふつうに部数ぶん印刷する', async ({ page }) => {
+    test.setTimeout(60_000);
+    await addText(page, 'No.{{番号}}');
+    await page.click('#template-toolbar-btn');
+    await page.click('#variables-add-counter');
+    await page.locator('#variables-list .variable-row').last().locator('.variable-name').fill('番号');
+
+    await expect(page.locator('#template-print-label')).toHaveText('印刷 (');
+    await expect(page.locator('#template-print-count')).toHaveText('1部');
+    await expect(page.locator('#template-quick-preview')).toHaveClass(/\bhidden\b/);
+
+    await setCopies(page, 3);
+    await expect(page.locator('#template-print-count')).toHaveText('3部');
+
+    await resetDrawnTexts(page);
+    await page.click('#template-quick-print');
+    await page.waitForFunction(() => {
+      const btn = document.querySelector('#print-btn') as HTMLButtonElement;
+      return btn && !btn.disabled && btn.textContent?.trim() === '印刷';
+    }, null, { timeout: 30_000, polling: 200 });
+    await expect(page.locator('#status-message')).toHaveText('3 部印刷しました!');
+    const drawn = await getDrawnTexts(page);
+    for (const n of ['1', '2', '3']) expect(drawn).toContain(`No.${n}`);
+
+    // 表を読み込むと、いつもの「すべて印刷 (行数)」に戻る
+    await page.locator('#template-csv-input').setInputFiles(path.join(FIXTURES, 'sample.csv'));
+    await expect(page.locator('#template-print-label')).toHaveText('すべて印刷 (');
+    await expect(page.locator('#template-print-count')).toHaveText('3');
+    await expect(page.locator('#template-quick-preview')).not.toHaveClass(/\bhidden\b/);
+  });
+});
+
 test.describe('変数(画面)', () => {
   test.beforeEach(async ({ page }) => {
     await installFakePrinter(page);

@@ -1666,9 +1666,14 @@ function updateTemplateIndicator() {
   dataCount.textContent = state.templateData.length;
   const selectedCount = state.selectedRecords.length;
   const allSelected = selectedCount === state.templateData.length;
-  printCount.textContent = selectedCount;
+  // 表を読み込んでいないときは、ふつうの印刷(部数ぶん)のボタンにする
+  const hasData = state.templateData.length > 0;
+  const copies = state.printSettings?.copies || 1;
+  printCount.textContent = hasData ? selectedCount : t('n_copies_short', { n: copies });
   const printLabel = $('#template-print-label');
-  if (printLabel) printLabel.textContent = t(allSelected ? 'print_all' : 'print_selected_rows');
+  if (printLabel) printLabel.textContent = !hasData ? t('print_plain_open') : t(allSelected ? 'print_all' : 'print_selected_rows');
+  $('#template-quick-preview')?.classList.toggle('hidden', !hasData);
+  $('#mobile-template-preview')?.classList.toggle('hidden', !hasData);
   const dialogPrintLabel = $('#template-print-btn-label');
   if (dialogPrintLabel) {
     dialogPrintLabel.textContent = allSelected
@@ -1699,7 +1704,7 @@ function updateTemplateIndicator() {
     }
   }
   if (mobileDataCount) mobileDataCount.textContent = state.templateData.length;
-  if (mobilePrintCount) mobilePrintCount.textContent = state.selectedRecords.length;
+  if (mobilePrintCount) mobilePrintCount.textContent = hasData ? state.selectedRecords.length : t('n_copies_short', { n: copies });
 
   // Update field dropdowns for insert field buttons
   updateFieldDropdowns();
@@ -2921,6 +2926,11 @@ function navigatePreview(direction) {
 /**
  * Print batch of labels
  */
+/** 差し込み印刷パネルの印刷ボタン: 表があれば連続印刷、無ければふつうの印刷(部数ぶん、連番は1枚ごとに進む) */
+function printFromTemplatePanel() {
+  return state.templateData.length > 0 ? handleBatchPrint() : handlePrint();
+}
+
 async function handleBatchPrint() {
   // 選んだ行(範囲)だけを印刷する。1行も選ばれていなければ印刷しない
   const recordsToPrint = [...state.selectedRecords];
@@ -7370,7 +7380,7 @@ function initMobileUI() {
   });
   $('#mobile-template-print')?.addEventListener('click', () => {
     closeMobileMenu();
-    handleBatchPrint();
+    printFromTemplatePanel();
   });
 
   // Sync mobile label size selector with desktop
@@ -8974,6 +8984,7 @@ function init() {
     state.printSettings.feed = parseInt(feedSelect.value);
     state.printSettings.printerModel = printerModelSelect.value;
     savePrintRotationUI();
+    updateTemplateIndicator(); // 差し込み印刷パネルの「印刷 (N部)」
 
     // Save to localStorage
     safeStorageSet('phomymo_print_settings', safeJsonStringify(state.printSettings));
@@ -9782,7 +9793,7 @@ function init() {
 
   // Template quick actions (properties panel)
   $('#template-quick-preview').addEventListener('click', showPreviewDialog);
-  $('#template-quick-print').addEventListener('click', handleBatchPrint);
+  $('#template-quick-print').addEventListener('click', printFromTemplatePanel);
 
   // Template data actions
   $('#template-import-csv').addEventListener('click', () => $('#template-csv-input').click());
