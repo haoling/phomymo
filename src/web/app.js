@@ -198,6 +198,7 @@ const state = {
   renderer: null,
   canPrint: true,   // Set to false if browser doesn't support Bluetooth/USB
   currentDesignName: null,  // Name of the currently loaded design
+  currentDesignSaved: false, // currentDesignName が保存済みのデザインを指しているか(ファイルからの読み込みは false)
   // 印刷時の回転(デザインごと)。'device' = 接続中の機体の既定に従う、または 0/90/180/270
   printRotation: ROTATION_FOLLOW_DEVICE,
   // Drag state
@@ -5996,10 +5997,47 @@ function showSaveDialog(opts = {}) {
     return;
   }
   $('#save-dialog-title').textContent = opts.title || t('save_design');
+
+  // 保存済みのデザインを開いて編集しているときは「上書き保存」と「別名で保存」を選べるようにする
+  const editingName = getOverwritableDesignName();
+  const overwriteSection = $('#save-overwrite-section');
+  overwriteSection.classList.toggle('hidden', !editingName);
+  overwriteSection.hidden = !editingName;
+  $('#save-confirm').textContent = editingName ? t('save_as_new') : t('save');
+  if (editingName) {
+    $('#save-editing-note').textContent = t('save_editing_note', { name: editingName });
+  }
+  resetSaveNameExists();
+
   $('#save-dialog').classList.remove('hidden');
   $('#save-dialog').hidden = false;
   $('#save-name').value = '';
-  $('#save-name').focus();
+  if (editingName) {
+    $('#save-name').placeholder = t('save_copy_name', { name: editingName });
+    $('#save-overwrite').focus();
+  } else {
+    $('#save-name').placeholder = t('design_name');
+    $('#save-name').focus();
+  }
+}
+
+/**
+ * 上書き保存できるデザイン名(保存済みのデザインを開いて編集中で、そのデザインがまだあるとき)。無ければ null
+ */
+function getOverwritableDesignName() {
+  const name = state.currentDesignName;
+  if (!name || !state.currentDesignSaved) return null;
+  return loadDesign(name) ? name : null;
+}
+
+/** 同名のデザインがあるときの注意を消す */
+function resetSaveNameExists() {
+  const note = $('#save-name-exists');
+  note.classList.add('hidden');
+  note.hidden = true;
+  delete note.dataset.name;
+  const editing = !$('#save-overwrite-section').classList.contains('hidden');
+  $('#save-confirm').textContent = editing ? t('save_as_new') : t('save');
 }
 
 /**
@@ -6021,6 +6059,40 @@ function handleSave() {
   }
   const name = nameValidation.sanitized;
 
+  // 別の(いま編集中ではない)デザインと同じ名前なら、黙って上書きせず一度確かめる
+  const editingName = getOverwritableDesignName();
+  const note = $('#save-name-exists');
+  if (name !== editingName && loadDesign(name) && note.dataset.name !== name) {
+    note.textContent = t('save_name_exists', { name });
+    note.dataset.name = name;
+    note.classList.remove('hidden');
+    note.hidden = false;
+    $('#save-confirm').textContent = t('overwrite_it');
+    return;
+  }
+
+  writeCurrentDesign(name, name === editingName);
+}
+
+/**
+ * いま編集中のデザインを、元の名前のまま上書き保存する
+ */
+function handleOverwriteSave() {
+  const name = getOverwritableDesignName();
+  if (!name) {
+    // 保存のあいだに消えた(別の端末で消して同期された等)ときは名前を付けて保存に戻す
+    showSaveDialog();
+    return;
+  }
+  writeCurrentDesign(name, true);
+}
+
+/**
+ * いまのデザインを name で保存する
+ * @param {string} name
+ * @param {boolean} overwrite - 編集中のデザインへの上書き保存か(メッセージだけが変わる)
+ */
+function writeCurrentDesign(name, overwrite) {
   try {
     const designData = {
       elements: state.elements,
@@ -6057,12 +6129,13 @@ function handleSave() {
 
     // Update current design name and mobile display
     state.currentDesignName = name;
+    state.currentDesignSaved = true;
     updateMobileLabelName();
 
     const templateInfo = state.templateData.length > 0
       ? t('with_n_data_records', { n: state.templateData.length })
       : '';
-    setStatus(t('status_design_saved', { name, info: templateInfo }));
+    setStatus(t(overwrite ? 'status_design_overwritten' : 'status_design_saved', { name, info: templateInfo }));
   } catch (e) {
     showToast(e.message, 'error');
     setStatus(e.message);
@@ -6350,6 +6423,7 @@ function handleImportFile(file) {
 
       const name = data.name || t('imported_design');
       state.currentDesignName = name;
+      state.currentDesignSaved = false;
       updateMobileLabelName();
       setStatus(t('status_imported', { name }));
     } catch (err) {
@@ -6544,6 +6618,7 @@ function handleLoad(name, sampleDesign = null) {
 
   // Set current design name and update mobile display
   state.currentDesignName = name;
+  state.currentDesignSaved = !!name;
   updateMobileLabelName();
 
   render();
@@ -8846,8 +8921,13 @@ function init() {
   $('#save-btn').addEventListener('click', showSaveDialog);
   $('#save-cancel').addEventListener('click', hideSaveDialog);
   $('#save-confirm').addEventListener('click', handleSave);
+  $('#save-overwrite').addEventListener('click', handleOverwriteSave);
   $('#save-name').addEventListener('keydown', (e) => {
     if (e.key === 'Enter') handleSave();
+  });
+  // 名前を変えたら「すでにあります」の確認はやり直し
+  $('#save-name').addEventListener('input', () => {
+    if ($('#save-name-exists').dataset.name) resetSaveNameExists();
   });
 
   $('#load-btn').addEventListener('click', showLoadDialog);
