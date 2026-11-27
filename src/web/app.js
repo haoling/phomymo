@@ -92,7 +92,9 @@ import {
   normalizeVariables,
   cleanVariableName,
   fieldsWithoutVariables,
-} from './templates.js?v=104';
+  normalizeCounterVariable,
+  formatCounter,
+} from './templates.js?v=105';
 import {
   readSpreadsheetFile,
   parseDelimitedTable,
@@ -1392,17 +1394,17 @@ function zoomToFitIfNeeded() {
  * 差し込みに使う値(デザインの変数 + 表の1行。同じ名前なら表の値が優先)
  * @param {Object|null} [record]
  */
-function fieldValues(record = null) {
-  return buildFieldValues(state.variables, record);
+function fieldValues(record = null, opts = {}) {
+  return buildFieldValues(state.variables, record, opts);
 }
 
 /**
  * 変数と表の1行を入れた要素(どちらも無ければ state.elements をそのまま返す)
  * @param {Object|null} [record]
  */
-function elementsWithValues(record = null) {
+function elementsWithValues(record = null, opts = {}) {
   if (!record && state.variables.length === 0) return state.elements;
-  return substituteFields(state.elements, fieldValues(record));
+  return substituteFields(state.elements, fieldValues(record, opts));
 }
 
 /**
@@ -1420,8 +1422,8 @@ function render() {
   } else if (state.ditherPreview) {
     elementsToRender = evaluateExpressions(elementsWithValues(), { counterIndex: counterIndexForLabel(0) });
   } else if (state.variables.length) {
-    // 変数はキャンバスでも値を入れて見せる
-    elementsToRender = elementsWithValues();
+    // 変数はキャンバスでも値を入れて見せる(連番の変数は次に印刷する番号)
+    elementsToRender = elementsWithValues(null, { counterIndex: counterIndexForLabel(0) });
   }
   state.renderer.renderAll(elementsToRender, state.selectedIds, state.alignmentGuides);
 }
@@ -1477,6 +1479,14 @@ function updateCounterUI() {
   $('#counter-reset').disabled = !state.counter.resume;
 
   const value = previewCounter(elementsWithValues(), counterBase());
+  // 変数欄の連番の見本も、続きの番号に合わせる
+  $$('#variables-list .variable-row').forEach(row => {
+    const v = state.variables[parseInt(row.dataset.index, 10)];
+    const el = row.querySelector('.variable-counter-preview');
+    if (v && el) el.textContent = variablePreviewText(v);
+  });
+  // 連番を使っているデザインだけ「連番の続き」欄を出す
+  $('#counter-settings')?.classList.toggle('hidden', value === null);
   if (value === null) {
     preview.textContent = t('counter_none_in_design');
     preview.dataset.hasCounter = 'false';
@@ -1590,6 +1600,7 @@ function detectTemplateFields() {
   }
 
   updateTemplateIndicator();
+  updateCounterUI();
 }
 
 /**
@@ -1722,7 +1733,7 @@ function updateFieldDropdowns() {
     if (choices.length > 0 || variables.length > 0) {
       const sectionLabel = (key) => `<div class="px-3 pt-1.5 pb-0.5 text-[10px] text-gray-400">${t(key)}</div>`;
       const variableHtml = variables.map(v =>
-        `<button class="field-option variable-option w-full text-left px-3 py-1.5 text-sm hover:bg-purple-50 text-gray-700 flex items-baseline gap-2" data-field="${escapeAttr(v.name)}" data-type="${type}"><span>{{${escapeHtml(v.name)}}}</span><span class="text-[10px] text-gray-400 truncate">${escapeHtml(v.value || t('variable_empty_value'))}</span></button>`
+        `<button class="field-option variable-option w-full text-left px-3 py-1.5 text-sm hover:bg-purple-50 text-gray-700 flex items-baseline gap-2" data-field="${escapeAttr(v.name)}" data-type="${type}"><span>{{${escapeHtml(v.name)}}}</span><span class="text-[10px] text-gray-400 truncate">${escapeHtml(variablePreviewText(v))}</span></button>`
       ).join('');
       const fieldHtml = choices.map(f =>
         `<button class="field-option w-full text-left px-3 py-1.5 text-sm hover:bg-purple-50 text-gray-700" data-field="${escapeAttr(f)}" data-type="${type}">{{${escapeHtml(f)}}}</button>`
@@ -2472,6 +2483,15 @@ function escapeAttr(str) {
   }[c]));
 }
 
+/** 変数の値の見本(連番なら次に印刷する番号から3つ) */
+function variablePreviewText(v) {
+  if (v.type !== 'counter') return v.value || t('variable_empty_value');
+  const opts = normalizeCounterVariable(v);
+  const base = counterBase();
+  const nums = [0, 1, 2].map(i => formatCounter(base + i, opts));
+  return t('variable_counter_preview', { values: nums.join(', ') });
+}
+
 /** 使える変数(名前が空でない、重複を除いたもの) */
 function definedVariables() {
   return normalizeVariables(state.variables);
@@ -2481,21 +2501,44 @@ function definedVariables() {
 function renderVariablesPanel() {
   const list = $('#variables-list');
   if (list) {
-    list.innerHTML = state.variables.map((v, i) => `
-      <div class="variable-row flex items-center gap-1" data-index="${i}">
-        <input type="text" class="variable-name w-24 min-w-0 px-1.5 py-1 text-xs border border-purple-200 rounded focus:outline-none focus:ring-1 focus:ring-purple-400 bg-white"
-          value="${escapeAttr(v.name)}" placeholder="${escapeAttr(t('variable_name_placeholder'))}" aria-label="${escapeAttr(t('variable_name'))}">
-        <input type="text" class="variable-value flex-1 min-w-0 px-1.5 py-1 text-xs border border-purple-200 rounded focus:outline-none focus:ring-1 focus:ring-purple-400 bg-white"
-          value="${escapeAttr(v.value)}" placeholder="${escapeAttr(t('variable_value_placeholder'))}" aria-label="${escapeAttr(t('variable_value'))}">
-        <button class="variable-insert p-1 rounded text-purple-600 hover:bg-purple-100" title="${escapeAttr(t('variable_insert'))}" aria-label="${escapeAttr(t('variable_insert'))}">
-          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-        </button>
-        <button class="variable-delete p-1 rounded text-gray-400 hover:text-red-600 hover:bg-red-50" title="${escapeAttr(t('variable_delete'))}" aria-label="${escapeAttr(t('variable_delete'))}">
-          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-        </button>
+    const input = 'min-w-0 px-1.5 py-1 text-xs border border-purple-200 rounded focus:outline-none focus:ring-1 focus:ring-purple-400 bg-white';
+    list.innerHTML = state.variables.map((v, i) => {
+      const isCounter = v.type === 'counter';
+      const c = normalizeCounterVariable(v);
+      const counterInput = (key, labelKey, min) => `
+        <label class="flex items-center gap-0.5 text-[11px] text-purple-700">${t(labelKey)}
+          <input type="number" class="variable-counter w-12 ${input}" data-key="${key}" value="${escapeAttr(v[key] ?? c[key])}"${min != null ? ` min="${min}"` : ''}>
+        </label>`;
+      const second = isCounter
+        ? `<div class="flex flex-wrap items-center gap-x-1.5 gap-y-1 pl-0.5">
+            ${counterInput('start', 'variable_counter_start')}
+            ${counterInput('step', 'variable_counter_step')}
+            ${counterInput('pad', 'variable_counter_pad', 0)}
+            <span class="variable-counter-preview text-[11px] text-gray-500 truncate">${escapeHtml(variablePreviewText(v))}</span>
+          </div>`
+        : `<input type="text" class="variable-value w-full ${input}"
+            value="${escapeAttr(v.value)}" placeholder="${escapeAttr(t('variable_value_placeholder'))}" aria-label="${escapeAttr(t('variable_value'))}">`;
+      return `
+      <div class="variable-row space-y-1 p-1.5 rounded-lg bg-white/60 border border-purple-100" data-index="${i}">
+        <div class="flex items-center gap-1">
+          <input type="text" class="variable-name flex-1 ${input}"
+            value="${escapeAttr(v.name)}" placeholder="${escapeAttr(t('variable_name_placeholder'))}" aria-label="${escapeAttr(t('variable_name'))}">
+          <select class="variable-type ${input}" aria-label="${escapeAttr(t('variable_type'))}">
+            <option value="text"${isCounter ? '' : ' selected'}>${t('variable_type_text')}</option>
+            <option value="counter"${isCounter ? ' selected' : ''}>${t('variable_type_counter')}</option>
+          </select>
+          <button class="variable-insert p-1 rounded text-purple-600 hover:bg-purple-100" title="${escapeAttr(t('variable_insert'))}" aria-label="${escapeAttr(t('variable_insert'))}">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+          </button>
+          <button class="variable-delete p-1 rounded text-gray-400 hover:text-red-600 hover:bg-red-50" title="${escapeAttr(t('variable_delete'))}" aria-label="${escapeAttr(t('variable_delete'))}">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+          </button>
+        </div>
+        ${second}
       </div>
       <div class="variable-error hidden text-[11px] text-red-600 pl-1" data-index="${i}"></div>
-    `).join('');
+    `;
+    }).join('');
   }
   updateVariableRowStates();
 }
@@ -2512,7 +2555,7 @@ function updateVariableRowStates() {
       const key = name.toLowerCase();
       if (seen.has(key)) error = t('variable_duplicate', { name });
       else seen.add(key);
-    } else if (v.value) {
+    } else if (v.value || v.type === 'counter') {
       error = t('variable_name_required');
     }
     if (errorEl) {
@@ -2534,8 +2577,10 @@ function onVariablesChanged() {
   render();
 }
 
-function addVariable() {
-  state.variables.push({ name: '', value: '' });
+function addVariable(type = 'text') {
+  state.variables.push(type === 'counter'
+    ? { name: '', value: '', type: 'counter', ...normalizeCounterVariable() }
+    : { name: '', value: '' });
   renderVariablesPanel();
   const rows = $$('#variables-list .variable-name');
   rows[rows.length - 1]?.focus();
@@ -2543,7 +2588,8 @@ function addVariable() {
 
 function initVariables() {
   renderVariablesPanel();
-  $('#variables-add')?.addEventListener('click', addVariable);
+  $('#variables-add')?.addEventListener('click', () => addVariable());
+  $('#variables-add-counter')?.addEventListener('click', () => addVariable('counter'));
   const list = $('#variables-list');
   list?.addEventListener('input', (e) => {
     const row = e.target.closest('.variable-row');
@@ -2552,7 +2598,21 @@ function initVariables() {
     if (!v) return;
     if (e.target.classList.contains('variable-name')) v.name = e.target.value;
     else if (e.target.classList.contains('variable-value')) v.value = e.target.value;
-    else return;
+    else if (e.target.classList.contains('variable-counter')) {
+      v[e.target.dataset.key] = e.target.value;
+      const preview = row.querySelector('.variable-counter-preview');
+      if (preview) preview.textContent = variablePreviewText(v);
+    } else return;
+    onVariablesChanged();
+  });
+  list?.addEventListener('change', (e) => {
+    if (!e.target.classList.contains('variable-type')) return;
+    const row = e.target.closest('.variable-row');
+    const v = state.variables[parseInt(row?.dataset.index, 10)];
+    if (!v) return;
+    if (e.target.value === 'counter') Object.assign(v, { type: 'counter', ...normalizeCounterVariable(v) });
+    else delete v.type;
+    renderVariablesPanel();
     onVariablesChanged();
   });
   list?.addEventListener('keydown', (e) => {
@@ -2562,7 +2622,7 @@ function initVariables() {
     if (!row) return;
     e.preventDefault();
     if (e.target.classList.contains('variable-name')) {
-      row.querySelector('.variable-value')?.focus();
+      (row.querySelector('.variable-value') || row.querySelector('.variable-counter'))?.focus();
     } else if (parseInt(row.dataset.index, 10) === state.variables.length - 1) {
       addVariable();
     }

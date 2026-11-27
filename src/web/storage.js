@@ -342,7 +342,16 @@ export function importDesign(jsonString, overrideName = null) {
     if (Array.isArray(data.variables)) {
       designData.variables = data.variables
         .filter(v => v && typeof v.name === 'string')
-        .map(v => ({ name: v.name, value: v.value == null ? '' : String(v.value) }));
+        .map(v => {
+          const out = { name: v.name, value: v.value == null ? '' : String(v.value) };
+          if (v.type === 'counter') {
+            out.type = 'counter';
+            for (const k of ['start', 'step', 'pad']) {
+              if (Number.isFinite(Number(v[k]))) out[k] = Number(v[k]);
+            }
+          }
+          return out;
+        });
     }
 
     // Import multi-label configuration if present

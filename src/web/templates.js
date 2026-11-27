@@ -106,11 +106,40 @@ function substituteString(str, record) {
 /** 変数の値の中で別の変数を使えるようにするときの、たどる深さの上限(循環を止める) */
 const VARIABLE_MAX_DEPTH = 5;
 
+/** 変数の種類: 'text'(決まった文字)と 'counter'(印刷するたびに進む連番) */
+export const VARIABLE_TYPES = ['text', 'counter'];
+
+/** 連番の変数の設定を整える(開始・増分・桁。既定は [[連番]] と同じ) */
+export function normalizeCounterVariable(v = {}) {
+  const int = (x, d) => {
+    const n = parseInt(x, 10);
+    return Number.isFinite(n) ? n : d;
+  };
+  return {
+    start: int(v.start, COUNTER_DEFAULTS.start),
+    step: int(v.step, COUNTER_DEFAULTS.step),
+    pad: Math.max(0, Math.min(20, int(v.pad, COUNTER_DEFAULTS.pad))),
+  };
+}
+
+/** 連番の変数を [[連番|…]] の式にする(連番の数え方・「前回の続きから」は今の仕組みをそのまま使う) */
+export function counterVariableExpression(v) {
+  const { start, step, pad } = normalizeCounterVariable(v);
+  return `[[counter|start=${start},step=${step},pad=${pad}]]`;
+}
+
+/** 変数の値(連番なら式、counterIndex があればその位置の番号) */
+function variableValue(v, counterIndex) {
+  if (v.type !== 'counter') return v.value;
+  if (Number.isFinite(counterIndex)) return formatCounter(counterIndex, normalizeCounterVariable(v));
+  return counterVariableExpression(v);
+}
+
 /**
  * 変数の一覧を整える(名前の前後の空白と { } を取り、空の名前・同じ名前の重複は捨てる)
- * @param {Array<{name:string,value:string}>} list
+ * @param {Array<{name:string,value:string,type?:string}>} list
  * @param {{keepEmptyNames?: boolean}} [opts] - 編集中の空の行を残すとき true
- * @returns {Array<{name:string,value:string}>}
+ * @returns {Array<{name:string,value:string,type?:string,start?:number,step?:number,pad?:number}>}
  */
 export function normalizeVariables(list, opts = {}) {
   if (!Array.isArray(list)) return [];
@@ -120,14 +149,17 @@ export function normalizeVariables(list, opts = {}) {
     if (!v || typeof v !== 'object') continue;
     const name = cleanVariableName(v.name);
     const value = v.value == null ? '' : String(v.value);
+    const entry = v.type === 'counter'
+      ? { name, value, type: 'counter', ...normalizeCounterVariable(v) }
+      : { name, value };
     if (!name) {
-      if (opts.keepEmptyNames) out.push({ name: '', value });
+      if (opts.keepEmptyNames) out.push(entry);
       continue;
     }
     const key = name.toLowerCase();
     if (seen.has(key)) continue;
     seen.add(key);
-    out.push({ name, value });
+    out.push(entry);
   }
   return out;
 }
@@ -141,16 +173,18 @@ export function cleanVariableName(name) {
  * 差し込みに使う値をまとめる。表の行(record)の値が変数より優先。
  * 変数の値の中の {{名前}} は、表の列やほかの変数で置き換える。
  * @param {Array<{name:string,value:string}>} variables
+ * 連番の変数は [[連番|…]] の式になり、evaluateExpressions で番号に変わる。
  * @param {Object|null} [record] - 表の1行
+ * @param {{counterIndex?: number}} [opts] - counterIndex を渡すと、連番の変数をその位置の番号にする(画面の表示用)
  * @returns {Object} - substituteFields に渡せる { 名前: 値 }
  */
-export function buildFieldValues(variables, record = null) {
+export function buildFieldValues(variables, record = null, opts = {}) {
   const vars = normalizeVariables(variables);
   const base = record ? { ...record } : {};
   if (vars.length === 0) return base;
 
   const lookup = {};
-  for (const v of vars) lookup[v.name] = v.value;
+  for (const v of vars) lookup[v.name] = variableValue(v, opts.counterIndex);
   // 表の列が同じ名前なら表の値を使う(大文字・小文字の違いは同じ扱い)
   for (const key of Object.keys(base)) {
     const lower = key.trim().toLowerCase();
@@ -179,12 +213,13 @@ export function buildFieldValues(variables, record = null) {
  * デザインの変数を要素に入れる(表のデータなし。表の値も使うときは buildFieldValues を使う)
  * @param {Array} elements
  * @param {Array<{name:string,value:string}>} variables
+ * @param {{counterIndex?: number}} [opts]
  * @returns {Array}
  */
-export function applyVariables(elements, variables) {
+export function applyVariables(elements, variables, opts = {}) {
   const vars = normalizeVariables(variables);
   if (vars.length === 0) return elements;
-  return substituteFields(elements, buildFieldValues(vars));
+  return substituteFields(elements, buildFieldValues(vars, null, opts));
 }
 
 /**

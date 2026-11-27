@@ -1,7 +1,7 @@
 import { test, expect, Page } from '@playwright/test';
 import path from 'path';
 import { waitForAppReady, dismissInfoDialog } from './helpers/app';
-import { installFakePrinter, resetDrawnTexts, getDrawnTexts, printAndWait } from './helpers/fake-printer';
+import { installFakePrinter, resetDrawnTexts, getDrawnTexts, printAndWait, setCopies } from './helpers/fake-printer';
 import { FakeDrive, installFakeGoogle, loginViaUI } from './helpers/fake-google';
 
 // デザインの変数: 名前と値を決めておき、文字・バーコード・QRに {{変数名}} で入れる
@@ -85,6 +85,80 @@ test.describe('変数(関数)', () => {
     expect(out.applied[2].barcodeData).toBe('XA1');
     expect(out.fields).toEqual(['価格']);
     expect(out.none[0].text).toBe('{{a}}');
+  });
+});
+
+test.describe('連番の変数', () => {
+  test.beforeEach(async ({ page }) => {
+    await installFakePrinter(page);
+    await page.goto('/', { waitUntil: 'networkidle' });
+    await waitForAppReady(page);
+    await dismissInfoDialog(page);
+  });
+
+  test('関数: 連番の変数は [[連番]] の式になり、位置を渡すと番号になる', async ({ page }) => {
+    const out = await page.evaluate(async () => {
+      const s = await import('/templates.js');
+      const vars = [
+        { name: '番号', type: 'counter', start: 10, step: 5, pad: '3' },
+        { name: 'ラベル', value: 'No.{{番号}}' },
+      ];
+      return {
+        token: s.buildFieldValues(vars)['番号'],
+        nested: s.evaluateExpressions(s.applyVariables([{ type: 'text', text: '{{ラベル}}' }], vars), { counterIndex: 2 })[0].text,
+        preview: s.buildFieldValues(vars, null, { counterIndex: 1 })['ラベル'],
+        normalized: s.normalizeVariables([{ name: 'n', type: 'counter' }])[0],
+      };
+    });
+    expect(out.token).toBe('[[counter|start=10,step=5,pad=3]]');
+    expect(out.nested).toBe('No.020');
+    expect(out.preview).toBe('No.015');
+    expect(out.normalized).toEqual({ name: 'n', value: '', type: 'counter', start: 1, step: 1, pad: 0 });
+  });
+
+  test('「＋ 連番を追加」で作った変数は、1枚ごとに番号が進み、続きの設定も変数欄にある', async ({ page }) => {
+    test.setTimeout(120_000);
+    await addText(page, 'No.{{番号}}');
+    await page.click('#template-toolbar-btn');
+    await expect(page.locator('#counter-settings')).toHaveClass(/\bhidden\b/);
+
+    await page.click('#variables-add-counter');
+    const row = page.locator('#variables-list .variable-row').last();
+    await expect(row.locator('.variable-type')).toHaveValue('counter');
+    await row.locator('.variable-name').fill('番号');
+    await row.locator('.variable-counter[data-key="pad"]').fill('3');
+    await expect(row.locator('.variable-counter-preview')).toHaveText('→ 001, 002, 003…');
+
+    // キャンバスには次に印刷する番号
+    await resetDrawnTexts(page);
+    await row.locator('.variable-counter[data-key="start"]').fill('1');
+    expect((await getDrawnTexts(page)).join(' ')).toContain('No.001');
+
+    // 連番の続きの欄が出る(印刷設定からは無くなった)
+    await expect(page.locator('#counter-settings')).not.toHaveClass(/\bhidden\b/);
+    await expect(page.locator('#counter-preview')).toHaveText('次に印刷される番号: 001');
+    await expect(page.locator('#print-settings-dialog #counter-resume')).toHaveCount(0);
+    await page.locator('#counter-resume').check();
+
+    await setCopies(page, 2);
+    await resetDrawnTexts(page);
+    await printAndWait(page);
+    let drawn = await getDrawnTexts(page);
+    expect(drawn).toContain('No.001');
+    expect(drawn).toContain('No.002');
+
+    await resetDrawnTexts(page);
+    await printAndWait(page);
+    drawn = await getDrawnTexts(page);
+    expect(drawn).toContain('No.003');
+    expect(drawn).toContain('No.004');
+    await expect(page.locator('#counter-preview')).toHaveText('次に印刷される番号: 005');
+    await expect(row.locator('.variable-counter-preview')).toHaveText('→ 005, 006, 007…');
+
+    // 種類を文字に戻すと、ふつうの値の欄になる
+    await row.locator('.variable-type').selectOption('text');
+    await expect(page.locator('#variables-list .variable-row').last().locator('.variable-value')).toHaveCount(1);
+    await expect(page.locator('#counter-settings')).toHaveClass(/\bhidden\b/);
   });
 });
 
@@ -181,6 +255,9 @@ test.describe('変数(保存)', () => {
   test('変数はデザインといっしょに保存され、開き直すと戻る', async ({ page }) => {
     await addText(page, '{{品名}}');
     await addVariable(page, '品名', 'ぶどう');
+    await page.click('#variables-add-counter');
+    await page.locator('#variables-list .variable-row').last().locator('.variable-name').fill('番号');
+    await page.locator('#variables-list .variable-row').last().locator('.variable-counter[data-key="pad"]').fill('2');
     await page.click('#save-btn');
     await page.fill('#save-name', '変数つき');
     await page.click('#save-confirm');
@@ -190,7 +267,10 @@ test.describe('変数(保存)', () => {
       const s = await import('/storage.js');
       return s.loadDesign('変数つき')?.variables;
     });
-    expect(stored).toEqual([{ name: '品名', value: 'ぶどう' }]);
+    expect(stored).toEqual([
+      { name: '品名', value: 'ぶどう' },
+      { name: '番号', value: '', type: 'counter', start: 1, step: 1, pad: 2 },
+    ]);
 
     await page.reload({ waitUntil: 'networkidle' });
     await waitForAppReady(page);
@@ -200,8 +280,10 @@ test.describe('変数(保存)', () => {
     await page.locator('#design-grid .design-card').filter({ hasText: '変数つき' }).click();
     await expect(page.locator('#load-dialog')).toHaveClass(/\bhidden\b/);
 
-    await expect(page.locator('#variables-list .variable-row')).toHaveCount(1);
+    await expect(page.locator('#variables-list .variable-row')).toHaveCount(2);
     await expect(page.locator('#variables-list .variable-value')).toHaveValue('ぶどう');
-    await expect(page.locator('#variables-count')).toHaveText('1');
+    await expect(page.locator('#variables-list .variable-row').last().locator('.variable-type')).toHaveValue('counter');
+    await expect(page.locator('#variables-list .variable-row').last().locator('.variable-counter[data-key="pad"]')).toHaveValue('2');
+    await expect(page.locator('#variables-count')).toHaveText('2');
   });
 });
