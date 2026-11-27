@@ -99,6 +99,106 @@ function substituteString(str, record) {
   });
 }
 
+// =============================================================================
+// DESIGN VARIABLES - デザインごとの変数(名前と値)。書き方は差し込みと同じ {{変数名}}
+// =============================================================================
+
+/** 変数の値の中で別の変数を使えるようにするときの、たどる深さの上限(循環を止める) */
+const VARIABLE_MAX_DEPTH = 5;
+
+/**
+ * 変数の一覧を整える(名前の前後の空白と { } を取り、空の名前・同じ名前の重複は捨てる)
+ * @param {Array<{name:string,value:string}>} list
+ * @param {{keepEmptyNames?: boolean}} [opts] - 編集中の空の行を残すとき true
+ * @returns {Array<{name:string,value:string}>}
+ */
+export function normalizeVariables(list, opts = {}) {
+  if (!Array.isArray(list)) return [];
+  const seen = new Set();
+  const out = [];
+  for (const v of list) {
+    if (!v || typeof v !== 'object') continue;
+    const name = cleanVariableName(v.name);
+    const value = v.value == null ? '' : String(v.value);
+    if (!name) {
+      if (opts.keepEmptyNames) out.push({ name: '', value });
+      continue;
+    }
+    const key = name.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push({ name, value });
+  }
+  return out;
+}
+
+/** 変数名として使えない文字({ } と改行)を取り除く */
+export function cleanVariableName(name) {
+  return String(name ?? '').replace(/[{}\r\n]/g, '').trim();
+}
+
+/**
+ * 差し込みに使う値をまとめる。表の行(record)の値が変数より優先。
+ * 変数の値の中の {{名前}} は、表の列やほかの変数で置き換える。
+ * @param {Array<{name:string,value:string}>} variables
+ * @param {Object|null} [record] - 表の1行
+ * @returns {Object} - substituteFields に渡せる { 名前: 値 }
+ */
+export function buildFieldValues(variables, record = null) {
+  const vars = normalizeVariables(variables);
+  const base = record ? { ...record } : {};
+  if (vars.length === 0) return base;
+
+  const lookup = {};
+  for (const v of vars) lookup[v.name] = v.value;
+  // 表の列が同じ名前なら表の値を使う(大文字・小文字の違いは同じ扱い)
+  for (const key of Object.keys(base)) {
+    const lower = key.trim().toLowerCase();
+    for (const name of Object.keys(lookup)) {
+      if (name.toLowerCase() === lower) delete lookup[name];
+    }
+  }
+  const all = { ...lookup, ...base };
+  const resolved = {};
+  for (const name of Object.keys(lookup)) {
+    let value = lookup[name];
+    for (let i = 0; i < VARIABLE_MAX_DEPTH; i++) {
+      FIELD_PATTERN.lastIndex = 0;
+      if (!FIELD_PATTERN.test(value)) break;
+      const next = substituteString(value, all);
+      if (next === value) break;
+      value = next;
+    }
+    FIELD_PATTERN.lastIndex = 0;
+    resolved[name] = value;
+  }
+  return { ...resolved, ...base };
+}
+
+/**
+ * デザインの変数を要素に入れる(表のデータなし。表の値も使うときは buildFieldValues を使う)
+ * @param {Array} elements
+ * @param {Array<{name:string,value:string}>} variables
+ * @returns {Array}
+ */
+export function applyVariables(elements, variables) {
+  const vars = normalizeVariables(variables);
+  if (vars.length === 0) return elements;
+  return substituteFields(elements, buildFieldValues(vars));
+}
+
+/**
+ * 差し込み項目のうち、変数として値が決まっているものを除く(表の列として要るものだけ残す)
+ * @param {Array<string>} fields
+ * @param {Array<{name:string,value:string}>} variables
+ * @returns {Array<string>}
+ */
+export function fieldsWithoutVariables(fields, variables) {
+  const names = new Set(normalizeVariables(variables).map(v => v.name.toLowerCase()));
+  if (names.size === 0) return fields;
+  return fields.filter(f => !names.has(f.trim().toLowerCase()));
+}
+
 /**
  * Validate that a record has all required fields
  * @param {Array} fields - Array of required field names

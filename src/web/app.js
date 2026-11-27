@@ -62,7 +62,7 @@ import {
   deleteDesign,
   updateDesignCounter,
   updateDesignPrintRotation,
-} from './storage.js?v=103';
+} from './storage.js?v=104';
 import { initAccountUI, showGuestNotice, showAccountDialog, isGuest } from './account-ui.js';
 import { onTokenChange } from './auth.js';
 import { onStatus as onSyncStatus } from './sync.js';
@@ -87,7 +87,12 @@ import {
   evaluateExpressions,
   hasCounter,
   previewCounter,
-} from './templates.js?v=103';
+  buildFieldValues,
+  applyVariables,
+  normalizeVariables,
+  cleanVariableName,
+  fieldsWithoutVariables,
+} from './templates.js?v=104';
 import {
   readSpreadsheetFile,
   parseDelimitedTable,
@@ -226,6 +231,7 @@ const state = {
   // next:   次に印刷するラベルの位置(0 始まり)
   counter: { resume: false, next: 0 },
   // Template state
+  variables: [],         // デザインの変数 [{ name, value }]({{変数名}} で文字・バーコード・QRに入る)
   templateFields: [],     // Detected field names from elements
   templateData: [],       // Array of data records for batch printing
   selectedRecords: [],    // Indices of selected records for printing
@@ -350,6 +356,7 @@ function refreshLanguageTexts() {
 
   updateMobileLabelName();
   updateTemplateIndicator();
+  renderVariablesPanel();
   updateImportInfo();
   updateCounterUI();
   updatePrintSize();
@@ -1382,6 +1389,23 @@ function zoomToFitIfNeeded() {
 }
 
 /**
+ * 差し込みに使う値(デザインの変数 + 表の1行。同じ名前なら表の値が優先)
+ * @param {Object|null} [record]
+ */
+function fieldValues(record = null) {
+  return buildFieldValues(state.variables, record);
+}
+
+/**
+ * 変数と表の1行を入れた要素(どちらも無ければ state.elements をそのまま返す)
+ * @param {Object|null} [record]
+ */
+function elementsWithValues(record = null) {
+  if (!record && state.variables.length === 0) return state.elements;
+  return substituteFields(state.elements, fieldValues(record));
+}
+
+/**
  * Render the canvas
  */
 function render() {
@@ -1390,11 +1414,14 @@ function render() {
   const mergeRecord = mergePreviewRecord();
   if (mergeRecord) {
     // 表の行を差し込んで表示(行を選んでプレビュー)
-    elementsToRender = evaluateExpressions(substituteFields(state.elements, mergeRecord), {
+    elementsToRender = evaluateExpressions(elementsWithValues(mergeRecord), {
       counterIndex: counterIndexForLabel(batchPositionOf(state.mergePreview.row)),
     });
   } else if (state.ditherPreview) {
-    elementsToRender = evaluateExpressions(state.elements, { counterIndex: counterIndexForLabel(0) });
+    elementsToRender = evaluateExpressions(elementsWithValues(), { counterIndex: counterIndexForLabel(0) });
+  } else if (state.variables.length) {
+    // 変数はキャンバスでも値を入れて見せる
+    elementsToRender = elementsWithValues();
   }
   state.renderer.renderAll(elementsToRender, state.selectedIds, state.alignmentGuides);
 }
@@ -1421,7 +1448,7 @@ function batchPositionOf(recordIndex) {
 
 /** 印刷した枚数だけ番号を進める(「前回の続きから」が ON のときだけ) */
 function advanceCounter(count) {
-  if (!state.counter.resume || !(count > 0) || !hasCounter(state.elements)) return;
+  if (!state.counter.resume || !(count > 0) || !hasCounter(elementsWithValues())) return;
   state.counter.next = counterBase() + count;
   persistCounter();
   updateCounterUI();
@@ -1449,7 +1476,7 @@ function updateCounterUI() {
   next.disabled = !state.counter.resume;
   $('#counter-reset').disabled = !state.counter.resume;
 
-  const value = previewCounter(state.elements, counterBase());
+  const value = previewCounter(elementsWithValues(), counterBase());
   if (value === null) {
     preview.textContent = t('counter_none_in_design');
     preview.dataset.hasCounter = 'false';
@@ -1550,7 +1577,8 @@ function initJapaneseFonts() {
  */
 function detectTemplateFields() {
   const previousFields = [...state.templateFields];
-  state.templateFields = extractFields(state.elements);
+  // 変数として値が決まっている名前は、表の列として探さない
+  state.templateFields = fieldsWithoutVariables(extractFields(state.elements), state.variables);
 
   // If fields changed significantly, clear template data
   const fieldsChanged = previousFields.length !== state.templateFields.length ||
@@ -1578,9 +1606,9 @@ function updateTemplateIndicator() {
   const toolbarLabel = $('#template-toolbar-label');
 
   const hasFields = state.templateFields.length > 0;
+  fieldCount.textContent = state.templateFields.length;
 
   if (hasFields) {
-    fieldCount.textContent = state.templateFields.length;
 
     // Show field tags
     fieldTags.innerHTML = state.templateFields.map(f =>
@@ -1684,16 +1712,24 @@ function updateFieldDropdowns() {
     const fieldList = $(`#field-list-${type}`);
     if (!fieldList) continue;
 
-    // デザインの項目 + 読み込んだ表の列(まだ使っていないもの)
-    const lowerFields = state.templateFields.map(f => f.toLowerCase());
+    // デザインの変数 + デザインの項目 + 読み込んだ表の列(まだ使っていないもの)
+    const variables = definedVariables();
+    const lowerFields = [...variables.map(v => v.name), ...state.templateFields].map(f => f.toLowerCase());
     const choices = [
       ...state.templateFields,
       ...state.templateColumns.filter(c => !lowerFields.includes(c.toLowerCase())),
     ];
-    if (choices.length > 0) {
-      fieldList.innerHTML = choices.map(f =>
-        `<button class="field-option w-full text-left px-3 py-1.5 text-sm hover:bg-purple-50 text-gray-700" data-field="${escapeHtml(f)}" data-type="${type}">{{${escapeHtml(f)}}}</button>`
+    if (choices.length > 0 || variables.length > 0) {
+      const sectionLabel = (key) => `<div class="px-3 pt-1.5 pb-0.5 text-[10px] text-gray-400">${t(key)}</div>`;
+      const variableHtml = variables.map(v =>
+        `<button class="field-option variable-option w-full text-left px-3 py-1.5 text-sm hover:bg-purple-50 text-gray-700 flex items-baseline gap-2" data-field="${escapeAttr(v.name)}" data-type="${type}"><span>{{${escapeHtml(v.name)}}}</span><span class="text-[10px] text-gray-400 truncate">${escapeHtml(v.value || t('variable_empty_value'))}</span></button>`
       ).join('');
+      const fieldHtml = choices.map(f =>
+        `<button class="field-option w-full text-left px-3 py-1.5 text-sm hover:bg-purple-50 text-gray-700" data-field="${escapeAttr(f)}" data-type="${type}">{{${escapeHtml(f)}}}</button>`
+      ).join('');
+      fieldList.innerHTML = variables.length
+        ? sectionLabel('variables_title') + variableHtml + (choices.length ? sectionLabel('field_section_merge') + fieldHtml : '')
+        : fieldHtml;
     } else {
       fieldList.innerHTML = `<div class="px-3 py-2 text-xs text-gray-400 italic">${t('no_fields_yet')}</div>`;
     }
@@ -2391,7 +2427,7 @@ function updateMergeControls() {
 /**
  * Put {{column}} into the design: into the selected text/barcode/QR, or as a new text
  */
-function insertColumnIntoDesign(column) {
+function insertColumnIntoDesign(column, statusKey = 'status_column_inserted') {
   const placeholder = `{{${column}}}`;
   const el = getSelected();
   const key = el?.type === 'text' ? 'text'
@@ -2422,7 +2458,136 @@ function insertColumnIntoDesign(column) {
     render();
     updateMergeControls();
   }
-  setStatus(t('status_column_inserted', { field: column }));
+  setStatus(t(statusKey, { field: column }));
+}
+
+// =============================================================================
+// DESIGN VARIABLES - デザインごとの変数({{変数名}} で文字・バーコード・QRに入る)
+// =============================================================================
+
+/** 属性値に入れる文字のエスケープ */
+function escapeAttr(str) {
+  return String(str ?? '').replace(/[&<>"']/g, c => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+  }[c]));
+}
+
+/** 使える変数(名前が空でない、重複を除いたもの) */
+function definedVariables() {
+  return normalizeVariables(state.variables);
+}
+
+/** 変数の欄を描き直す */
+function renderVariablesPanel() {
+  const list = $('#variables-list');
+  if (list) {
+    list.innerHTML = state.variables.map((v, i) => `
+      <div class="variable-row flex items-center gap-1" data-index="${i}">
+        <input type="text" class="variable-name w-24 min-w-0 px-1.5 py-1 text-xs border border-purple-200 rounded focus:outline-none focus:ring-1 focus:ring-purple-400 bg-white"
+          value="${escapeAttr(v.name)}" placeholder="${escapeAttr(t('variable_name_placeholder'))}" aria-label="${escapeAttr(t('variable_name'))}">
+        <input type="text" class="variable-value flex-1 min-w-0 px-1.5 py-1 text-xs border border-purple-200 rounded focus:outline-none focus:ring-1 focus:ring-purple-400 bg-white"
+          value="${escapeAttr(v.value)}" placeholder="${escapeAttr(t('variable_value_placeholder'))}" aria-label="${escapeAttr(t('variable_value'))}">
+        <button class="variable-insert p-1 rounded text-purple-600 hover:bg-purple-100" title="${escapeAttr(t('variable_insert'))}" aria-label="${escapeAttr(t('variable_insert'))}">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+        </button>
+        <button class="variable-delete p-1 rounded text-gray-400 hover:text-red-600 hover:bg-red-50" title="${escapeAttr(t('variable_delete'))}" aria-label="${escapeAttr(t('variable_delete'))}">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div class="variable-error hidden text-[11px] text-red-600 pl-1" data-index="${i}"></div>
+    `).join('');
+  }
+  updateVariableRowStates();
+}
+
+/** 名前の重複などを行ごとに知らせ、件数を更新する */
+function updateVariableRowStates() {
+  const seen = new Set();
+  state.variables.forEach((v, i) => {
+    const name = cleanVariableName(v.name);
+    const errorEl = $(`.variable-error[data-index="${i}"]`);
+    const nameEl = $(`.variable-row[data-index="${i}"] .variable-name`);
+    let error = '';
+    if (name) {
+      const key = name.toLowerCase();
+      if (seen.has(key)) error = t('variable_duplicate', { name });
+      else seen.add(key);
+    } else if (v.value) {
+      error = t('variable_name_required');
+    }
+    if (errorEl) {
+      errorEl.textContent = error;
+      errorEl.classList.toggle('hidden', !error);
+    }
+    nameEl?.classList.toggle('border-red-400', !!error);
+  });
+  const n = definedVariables().length;
+  if ($('#variables-count')) $('#variables-count').textContent = n;
+  if ($('#mobile-variables-count')) $('#mobile-variables-count').textContent = n;
+}
+
+/** 変数が変わったら、差し込み項目の検出と表示をやり直す */
+function onVariablesChanged() {
+  updateVariableRowStates();
+  detectTemplateFields();
+  updateCounterUI();
+  render();
+}
+
+function addVariable() {
+  state.variables.push({ name: '', value: '' });
+  renderVariablesPanel();
+  const rows = $$('#variables-list .variable-name');
+  rows[rows.length - 1]?.focus();
+}
+
+function initVariables() {
+  renderVariablesPanel();
+  $('#variables-add')?.addEventListener('click', addVariable);
+  const list = $('#variables-list');
+  list?.addEventListener('input', (e) => {
+    const row = e.target.closest('.variable-row');
+    if (!row) return;
+    const v = state.variables[parseInt(row.dataset.index, 10)];
+    if (!v) return;
+    if (e.target.classList.contains('variable-name')) v.name = e.target.value;
+    else if (e.target.classList.contains('variable-value')) v.value = e.target.value;
+    else return;
+    onVariablesChanged();
+  });
+  list?.addEventListener('keydown', (e) => {
+    // 名前の欄で Enter → 値の欄へ。最後の行の値で Enter → 次の変数を足す
+    if (e.key !== 'Enter' || e.isComposing) return;
+    const row = e.target.closest('.variable-row');
+    if (!row) return;
+    e.preventDefault();
+    if (e.target.classList.contains('variable-name')) {
+      row.querySelector('.variable-value')?.focus();
+    } else if (parseInt(row.dataset.index, 10) === state.variables.length - 1) {
+      addVariable();
+    }
+  });
+  list?.addEventListener('click', (e) => {
+    const row = e.target.closest('.variable-row');
+    if (!row) return;
+    const i = parseInt(row.dataset.index, 10);
+    if (e.target.closest('.variable-delete')) {
+      state.variables.splice(i, 1);
+      renderVariablesPanel();
+      onVariablesChanged();
+    } else if (e.target.closest('.variable-insert')) {
+      const name = cleanVariableName(state.variables[i]?.name);
+      if (!name) {
+        row.querySelector('.variable-name')?.focus();
+        return;
+      }
+      insertColumnIntoDesign(name, 'status_variable_inserted');
+    }
+  });
+  $('#mobile-variables-btn')?.addEventListener('click', () => {
+    closeMobileMenu();
+    $('#template-panel')?.classList.remove('hidden');
+  });
 }
 
 function initSpreadsheetMerge() {
@@ -2609,7 +2774,7 @@ function renderPreviewThumbnail(canvas, recordIndex) {
   if (!record) return;
 
   // Substitute fields and evaluate expressions
-  const substitutedElements = substituteFields(state.elements, record);
+  const substitutedElements = elementsWithValues(record);
   const mergedElements = evaluateExpressions(substitutedElements, { counterIndex: counterIndexForLabel(batchPositionOf(recordIndex)) });
 
   // Create a temporary renderer at smaller scale
@@ -2634,7 +2799,7 @@ function showFullPreview(recordIndex) {
   state.currentPreviewIndex = recordIndex;
 
   const record = state.templateData[recordIndex];
-  const substitutedElements = substituteFields(state.elements, record);
+  const substitutedElements = elementsWithValues(record);
   const mergedElements = evaluateExpressions(substitutedElements, { counterIndex: counterIndexForLabel(batchPositionOf(recordIndex)) });
 
   // Render to full preview canvas
@@ -2756,7 +2921,9 @@ async function handleBatchPrint() {
           }
           // If no more records, zone will be empty (no substitution)
         }
-        substitutedElements = substituteFieldsByZone(state.elements, rowRecords, labelsAcross);
+        // 変数は表の値の後に入れる(同じ名前なら表の値が優先、データのないゾーンにも変数は入る)
+        const zoneRecords = rowRecords.map(r => fieldValues(r));
+        substitutedElements = applyVariables(substituteFieldsByZone(state.elements, zoneRecords, labelsAcross), state.variables);
         // 連番: ゾーンごとに1つずつ進める
         counterIndex = (el) => counterIndexForLabel(startIdx + (el.zone || 0));
 
@@ -2766,7 +2933,7 @@ async function handleBatchPrint() {
         // Clone mode ON or single-label: Same data for all zones
         const recordIndex = recordsToPrint[rowIndex];
         const record = state.templateData[recordIndex];
-        substitutedElements = substituteFields(state.elements, record);
+        substitutedElements = elementsWithValues(record);
         // 連番: CSV の印刷順に番号を振る
         counterIndex = counterIndexForLabel(rowIndex);
 
@@ -2869,7 +3036,7 @@ async function handlePrintSinglePreview() {
     }
 
     // Substitute fields and evaluate expressions
-    const substitutedElements = substituteFields(state.elements, record);
+    const substitutedElements = elementsWithValues(record);
     const mergedElements = evaluateExpressions(substitutedElements, { counterIndex: counterIndexForLabel(batchPositionOf(recordIndex)) });
     await waitForElementFonts(mergedElements);
 
@@ -5883,9 +6050,9 @@ async function handlePrint() {
 
     // Substitute template fields if template data is loaded
     // (キャンバスで行をプレビュー中なら、その行を印刷する)
-    const elements = state.templateData.length > 0
-      ? substituteFields(state.elements, mergePreviewRecord() || state.templateData[0])
-      : state.elements;
+    const elements = elementsWithValues(state.templateData.length > 0
+      ? (mergePreviewRecord() || state.templateData[0])
+      : null);
 
     // Render to raster (use raw format for rotated printers like D-series and P12)
     const deviceName = state.transport.getDeviceName?.() || '';
@@ -6107,6 +6274,10 @@ function writeCurrentDesign(name, overwrite) {
     if (state.templateData.length > 0) {
       designData.templateData = state.templateData;
     }
+    // デザインの変数
+    const variables = normalizeVariables(state.variables);
+    if (variables.length > 0) designData.variables = variables;
+
     // 連携した Googleスプレッドシート(次に開いたとき、同じシートから読み直す)
     const mergeSource = currentMergeSourceForSave();
     if (mergeSource) designData.mergeSource = mergeSource;
@@ -6231,6 +6402,8 @@ function handleExport() {
   if (state.templateData.length > 0) {
     exportData.templateData = state.templateData;
   }
+  const exportVariables = normalizeVariables(state.variables);
+  if (exportVariables.length > 0) exportData.variables = exportVariables;
   const exportSource = currentMergeSourceForSave();
   if (exportSource) exportData.mergeSource = exportSource;
 
@@ -6270,7 +6443,7 @@ async function handleExportPDF() {
   }
 
   // Evaluate expressions (date/time substitutions)
-  const elementsToRender = evaluateExpressions(state.elements, { counterIndex: counterIndexForLabel(0) });
+  const elementsToRender = evaluateExpressions(elementsWithValues(), { counterIndex: counterIndexForLabel(0) });
   await waitForElementFonts(elementsToRender);
 
   // Render to temporary canvas at high DPI for quality
@@ -6322,7 +6495,7 @@ async function handleExportPNG() {
     return;
   }
 
-  const elementsToRender = evaluateExpressions(state.elements, { counterIndex: counterIndexForLabel(0) });
+  const elementsToRender = evaluateExpressions(elementsWithValues(), { counterIndex: counterIndexForLabel(0) });
   await waitForElementFonts(elementsToRender);
 
   // Render at 4x scale for quality
@@ -6405,6 +6578,8 @@ function handleImportFile(file) {
         state.mergePreview = { enabled: false, row: 0 };
       }
       restoreTemplateSource(data.mergeSource);
+      state.variables = normalizeVariables(data.variables);
+      renderVariablesPanel();
 
       // Clear selection and update renderer
       state.selectedIds = [];
@@ -6546,6 +6721,8 @@ function handleLoad(name, sampleDesign = null) {
   state.templateSheets = null;
   state.mergePreview = { enabled: false, row: 0 };
   restoreTemplateSource(design.mergeSource);
+  state.variables = normalizeVariables(design.variables);
+  renderVariablesPanel();
 
   // 印刷時の回転を復元(無ければ機体の既定に従う)
   state.printRotation = normalizeDesignRotation(design.printRotation);
@@ -7391,9 +7568,9 @@ function populateMobileProps() {
 
   // Helper to generate field dropdown HTML
   const fieldDropdownHtml = (inputId) => {
-    const existingFields = state.templateFields || [];
+    const existingFields = [...definedVariables().map(v => v.name), ...(state.templateFields || [])];
     const fieldOptions = existingFields.map(f =>
-      `<button class="w-full px-3 py-2 text-left text-sm hover:bg-purple-50 active:bg-purple-100" data-insert-field="${f}" data-target="${inputId}">{{${escapeHtml(f)}}}</button>`
+      `<button class="w-full px-3 py-2 text-left text-sm hover:bg-purple-50 active:bg-purple-100" data-insert-field="${escapeAttr(f)}" data-target="${inputId}">{{${escapeHtml(f)}}}</button>`
     ).join('');
     return `
       <div class="mobile-field-dropdown hidden absolute right-0 top-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-[80] min-w-[160px] overflow-hidden">
@@ -8445,6 +8622,7 @@ function init() {
   // Counter settings (#31)
   initCounterSettings();
   initSpreadsheetMerge();
+  initVariables();
 
   // 印刷の横位置の補正(プリンターごと)
   initPrintOffsetUI({
