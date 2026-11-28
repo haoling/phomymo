@@ -174,6 +174,7 @@ test.describe('印刷モード', () => {
     await page.locator('#mobile-print-mode-btn').dispatchEvent('click');
     await page.goto('http://localhost:8081/', { waitUntil: 'networkidle' });
     await waitForAppReady(page);
+    await dismissInfoDialog(page); // 開き直すと Web Bluetooth の警告がまた出る(CI)
     await expect(page.locator('#print-mode-view')).toBeVisible();
 
     // 「デザインを選ぶ」で読み込みダイアログが前に出る
