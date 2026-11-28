@@ -189,7 +189,10 @@ test.describe('連番の今の番号', () => {
     await expect(page.locator('#counter-reset')).toBeDisabled();
 
     await next.fill('25');
+    await resetDrawnTexts(page);
     await next.dispatchEvent('change');
+    // キャンバスもすぐ次に印刷する番号になる
+    expect(await getDrawnTexts(page)).toContain('No.25');
     await expect(page.locator('#counter-resume')).toBeChecked();
     await expect(page.locator('#counter-preview')).toHaveText('次に印刷される番号: 25');
     await expect(row.locator('.variable-counter-preview')).toHaveText('→ 25, 30, 35…');
@@ -198,9 +201,13 @@ test.describe('連番の今の番号', () => {
     await printAndWait(page);
     expect(await getDrawnTexts(page)).toContain('No.25');
     await expect(next).toHaveValue('30');
+    // 印刷したあと、キャンバスは進んだ番号を見せる
+    await expect.poll(async () => (await getDrawnTexts(page)).slice(-5)).toContain('No.30');
 
+    await resetDrawnTexts(page);
     await page.click('#counter-reset');
     await expect(next).toHaveValue('10');
+    expect(await getDrawnTexts(page)).toContain('No.10');
     await expect(page.locator('#counter-reset')).toBeDisabled();
   });
 });
