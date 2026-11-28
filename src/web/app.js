@@ -1456,6 +1456,7 @@ function advanceCounter(count) {
   state.counter.next = counterBase() + count;
   persistCounter();
   updateCounterUI();
+  render(); // キャンバスの連番も次に印刷する番号に
 }
 
 /** 保存済みのデザインなら、連番の状態をデザインに書き込む */
@@ -1560,6 +1561,7 @@ function initCounterSettings() {
     state.counter.resume = e.target.checked;
     persistCounter();
     updateCounterUI();
+    render(); // キャンバスの連番も次に印刷する番号に
   });
   $('#counter-next')?.addEventListener('change', (e) => {
     // 入れた番号から何枚目かを求める。番号を決めたら、続きから振るようにする
@@ -1571,11 +1573,13 @@ function initCounterSettings() {
     e.target.blur();
     persistCounter();
     updateCounterUI();
+    render(); // キャンバスの連番も次に印刷する番号に
   });
   $('#counter-reset')?.addEventListener('click', () => {
     state.counter.next = 0;
     persistCounter();
     updateCounterUI();
+    render(); // キャンバスの連番も次に印刷する番号に
   });
 }
 
