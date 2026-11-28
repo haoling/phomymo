@@ -852,5 +852,12 @@ export const MESSAGES = {
   print_mode_connected: { ja: "接続中: {name}", en: "Connected: {name}" },
   print_mode_connected_unknown: { ja: "プリンターに接続中", en: "Printer connected" },
   print_mode_print_n: { ja: "印刷 ({n}部)", en: (p) => `Print (${p.n} cop${p.n === 1 ? 'y' : 'ies'})` },
-  print_mode_rows_note: { ja: "表のデータがあるデザインです。この画面では {row} 行目だけを印刷します。", en: "This design has table data. This screen prints only one row (row {row})." },
+  print_mode_rows: { ja: "印刷する行", en: "Rows to print" },
+  print_mode_rows_all: { ja: "すべて", en: "All" },
+  print_mode_rows_none: { ja: "選ばない", en: "None" },
+  print_mode_rows_more: { ja: "ほか {n} 行は一覧に出していません(上の欄で行を指定できます)", en: (p) => `${p.n} more row${p.n === 1 ? '' : 's'} not listed (use the box above to pick rows)` },
+  print_mode_row_label: { ja: "{n}行目", en: "Row {n}" },
+  print_mode_row_preview: { ja: "プレビュー中", en: "Previewing" },
+  print_mode_row_show: { ja: "{n}行目をプレビュー", en: "Preview row {n}" },
+  print_mode_print_rows: { ja: "印刷 ({n}枚)", en: (p) => `Print (${p.n} label${p.n === 1 ? '' : 's'})` },
 };

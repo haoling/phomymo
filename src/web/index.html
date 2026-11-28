@@ -1532,6 +1532,19 @@
         </button>
       </section>
 
+      <!-- 表のデータ(差し込み印刷)の行: 印刷する行を選び、押した行をプレビューに出す -->
+      <section id="print-mode-rows-card" hidden class="hidden bg-white rounded-xl border border-gray-200 p-3">
+        <div class="flex items-center gap-2 mb-2">
+          <h2 class="text-xs font-semibold text-gray-500 flex-1" data-i18n="print_mode_rows">印刷する行</h2>
+          <button id="print-mode-rows-all" class="px-2.5 py-1 text-xs border border-gray-300 rounded-lg active:bg-gray-100" data-i18n="print_mode_rows_all">すべて</button>
+          <button id="print-mode-rows-none" class="px-2.5 py-1 text-xs border border-gray-300 rounded-lg active:bg-gray-100" data-i18n="print_mode_rows_none">選ばない</button>
+        </div>
+        <input id="print-mode-rows-range" type="text" inputmode="text" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-base" placeholder="例: 1-10, 15" data-i18n-placeholder="merge_range_placeholder" aria-label="印刷する行" data-i18n-aria-label="merge_print_rows">
+        <p id="print-mode-rows-status" class="text-xs text-gray-500 mt-1"></p>
+        <ul id="print-mode-rows" class="mt-2 max-h-72 overflow-y-auto divide-y divide-gray-100 border border-gray-100 rounded-lg"></ul>
+        <p id="print-mode-rows-more" hidden class="hidden text-xs text-gray-400 mt-1"></p>
+      </section>
+
       <!-- 変数・連番 -->
       <section id="print-mode-variables-card" hidden class="hidden bg-white rounded-xl border border-gray-200 p-3">
         <h2 class="text-xs font-semibold text-gray-500 mb-2" data-i18n="print_mode_variables">差し込む値</h2>
@@ -1555,7 +1568,7 @@
     <!-- 部数と印刷ボタンは、いつも画面の下に出しておく -->
     <div class="sticky bottom-0 mt-auto bg-white border-t border-gray-200" style="padding-bottom: env(safe-area-inset-bottom, 0px);">
       <div class="w-full max-w-md mx-auto px-3 pt-2 pb-3 space-y-2">
-        <div class="flex items-center gap-2">
+        <div id="print-mode-copies-row" class="flex items-center gap-2">
           <span class="text-sm text-gray-700 flex-1" data-i18n="print_mode_copies">部数</span>
           <button id="print-mode-copies-minus" class="w-10 h-10 flex items-center justify-center border border-gray-300 rounded-lg text-xl active:bg-gray-100" aria-label="部数を減らす" data-i18n-aria-label="print_mode_copies_minus">−</button>
           <input id="print-mode-copies" type="number" inputmode="numeric" min="1" max="99" value="1" class="w-16 px-2 py-2 border border-gray-300 rounded-lg text-base text-center" aria-label="部数" data-i18n-aria-label="print_mode_copies">
@@ -2734,7 +2747,7 @@
     pdfjsModule.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.379/pdf.worker.min.mjs';
     window.pdfjsLib = pdfjsModule;
   </script>
-  <script type="module" src="app.js?v=172"></script>
+  <script type="module" src="app.js?v=173"></script>
   <script>
     // Show body once styles are ready
     requestAnimationFrame(() => {
