@@ -819,6 +819,38 @@
 
       <!-- Content -->
       <div class="flex-1 overflow-y-auto p-4">
+        <!-- Design variables: {{変数名}} に入る値(デザインに保存) -->
+        <div id="variables-section" class="mb-4 pb-4 border-b border-purple-200">
+          <div class="flex items-center justify-between mb-1">
+            <span class="text-xs font-semibold text-purple-700 uppercase tracking-wide" data-i18n="variables_title">変数</span>
+            <span id="variables-count" class="text-xs text-purple-600 font-medium bg-purple-100 px-2 py-0.5 rounded-full">0</span>
+          </div>
+          <p class="text-xs text-purple-500 mb-2" data-i18n="variables_hint">文字・バーコード・QRに {{変数名}} と書くと値が入ります。値はこのデザインに保存されます。</p>
+          <div id="variables-list" class="space-y-1.5 mb-2"></div>
+          <div class="flex gap-1.5">
+            <button id="variables-add" class="flex-1 px-2 py-1.5 bg-white hover:bg-purple-100 text-purple-700 border border-dashed border-purple-300 rounded-lg text-xs font-medium" data-i18n="variables_add">＋ 変数を追加</button>
+            <button id="variables-add-counter" class="flex-1 px-2 py-1.5 bg-white hover:bg-purple-100 text-purple-700 border border-dashed border-purple-300 rounded-lg text-xs font-medium" data-i18n="variables_add_counter">＋ 連番を追加</button>
+          </div>
+
+          <!-- 連番の続き(印刷設定から移した。連番の変数と [[連番]] の式の両方に効く) -->
+          <div id="counter-settings" class="hidden mt-3 rounded-lg border border-purple-200 bg-white/60 p-2 space-y-1.5">
+            <div class="flex items-center justify-between gap-2">
+              <div class="text-xs font-semibold text-purple-700" data-i18n="counter_settings_title">連番の続き</div>
+              <span id="counter-preview" class="text-[11px] font-medium text-gray-700 truncate" data-has-counter="false"></span>
+            </div>
+            <label class="flex items-center gap-2 text-xs text-gray-700">
+              <input type="checkbox" id="counter-resume" class="rounded">
+              <span data-i18n="continue_numbering_from_last_time">前回の続きから番号を振る</span>
+            </label>
+            <div class="flex items-center gap-1.5 text-xs text-gray-700">
+              <span data-i18n="counter_next_label">次に印刷する番号</span>
+              <input type="number" id="counter-next" value="1" class="w-16 px-1.5 py-1 text-xs border border-purple-200 rounded bg-white">
+              <button id="counter-reset" type="button" class="ml-auto text-xs text-purple-600 hover:text-purple-800 hover:underline disabled:text-gray-300 disabled:no-underline" disabled data-i18n="reset_2">最初に戻す</button>
+            </div>
+            <p id="counter-unsaved-note" class="hidden text-[11px] text-amber-600" data-i18n="saving_the_design_also_saves_where">デザインを保存すると、続きの番号もデザインごとに記憶されます。</p>
+          </div>
+        </div>
+
         <!-- Fields Section -->
         <div class="mb-4">
           <div class="flex items-center justify-between mb-2">
@@ -1685,28 +1717,6 @@
           <p id="print-rotation-result" class="text-xs font-medium text-gray-700"></p>
         </div>
 
-        <!-- Counter / 連番 (#31) -->
-        <div id="counter-settings" class="rounded-lg border border-gray-200 p-3 space-y-2">
-          <div class="flex items-center justify-between">
-            <div class="prop-label mb-0" data-i18n="counter">連番</div>
-            <span id="counter-preview" class="text-xs font-medium text-gray-700" data-has-counter="false"></span>
-          </div>
-          <p class="text-xs text-gray-500 leading-relaxed" data-i18n-html="counter_help">
-            テキスト・バーコード・QRに <code class="px-1 bg-gray-100 rounded">[[counter]]</code> と書くと、1枚ごとに番号が進みます。<br>
-            例: <code class="px-1 bg-gray-100 rounded">No.[[counter|start=1,pad=3]]</code> → No.001, No.002, …
-          </p>
-          <label class="flex items-center gap-2 text-sm text-gray-700">
-            <input type="checkbox" id="counter-resume" class="rounded">
-            <span data-i18n="continue_numbering_from_last_time">前回の続きから番号を振る</span>
-          </label>
-          <div class="flex items-center gap-2 text-sm text-gray-700">
-            <input type="number" id="counter-next" min="1" value="1" class="prop-input w-24" disabled>
-            <span data-i18n="start_from">枚目から</span>
-            <button id="counter-reset" type="button" class="ml-auto text-xs text-blue-600 hover:text-blue-800 hover:underline disabled:text-gray-300 disabled:no-underline" disabled data-i18n="reset_2">最初に戻す</button>
-          </div>
-          <p id="counter-unsaved-note" class="hidden text-xs text-amber-600" data-i18n="saving_the_design_also_saves_where">デザインを保存すると、続きの番号もデザインごとに記憶されます。</p>
-        </div>
-
         <!-- Feed After Print -->
         <div>
           <div class="prop-label" data-i18n="feed_after_print">印刷後の紙送り</div>
@@ -2398,6 +2408,12 @@
           </div>
           <p class="text-xs text-gray-400 mt-1 mb-2" data-i18n="use_field_in_text_for_variable">文字の中に {{項目名}} と書くと、データを差し込めます</p>
 
+          <button id="mobile-variables-btn" class="w-full mb-3 px-3 py-2 bg-white hover:bg-purple-50 active:bg-purple-100 text-purple-700 border border-purple-200 rounded-lg text-sm font-medium flex items-center justify-center gap-2">
+            <span class="font-mono text-xs">{x}</span>
+            <span data-i18n="variables_edit">変数を編集</span>
+            <span id="mobile-variables-count" class="text-xs bg-purple-100 px-2 py-0.5 rounded-full">0</span>
+          </button>
+
           <!-- Fields detected -->
           <div id="mobile-template-fields" class="hidden mb-3">
             <div class="text-xs text-gray-500 mb-1" data-i18n="fields_detected_2">見つかった項目:</div>
@@ -2634,7 +2650,7 @@
     pdfjsModule.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.379/pdf.worker.min.mjs';
     window.pdfjsLib = pdfjsModule;
   </script>
-  <script type="module" src="app.js?v=165"></script>
+  <script type="module" src="app.js?v=170"></script>
   <script>
     // Show body once styles are ready
     requestAnimationFrame(() => {

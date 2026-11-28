@@ -62,7 +62,7 @@ import {
   deleteDesign,
   updateDesignCounter,
   updateDesignPrintRotation,
-} from './storage.js?v=103';
+} from './storage.js?v=104';
 import { initAccountUI, showGuestNotice, showAccountDialog, isGuest } from './account-ui.js';
 import { onTokenChange } from './auth.js';
 import { onStatus as onSyncStatus } from './sync.js';
@@ -87,7 +87,16 @@ import {
   evaluateExpressions,
   hasCounter,
   previewCounter,
-} from './templates.js?v=103';
+  buildFieldValues,
+  applyVariables,
+  normalizeVariables,
+  cleanVariableName,
+  fieldsWithoutVariables,
+  normalizeCounterVariable,
+  formatCounter,
+  findCounterOptions,
+  COUNTER_DEFAULTS,
+} from './templates.js?v=106';
 import {
   readSpreadsheetFile,
   parseDelimitedTable,
@@ -226,6 +235,7 @@ const state = {
   // next:   次に印刷するラベルの位置(0 始まり)
   counter: { resume: false, next: 0 },
   // Template state
+  variables: [],         // デザインの変数 [{ name, value }]({{変数名}} で文字・バーコード・QRに入る)
   templateFields: [],     // Detected field names from elements
   templateData: [],       // Array of data records for batch printing
   selectedRecords: [],    // Indices of selected records for printing
@@ -350,6 +360,7 @@ function refreshLanguageTexts() {
 
   updateMobileLabelName();
   updateTemplateIndicator();
+  renderVariablesPanel();
   updateImportInfo();
   updateCounterUI();
   updatePrintSize();
@@ -1382,6 +1393,23 @@ function zoomToFitIfNeeded() {
 }
 
 /**
+ * 差し込みに使う値(デザインの変数 + 表の1行。同じ名前なら表の値が優先)
+ * @param {Object|null} [record]
+ */
+function fieldValues(record = null, opts = {}) {
+  return buildFieldValues(state.variables, record, opts);
+}
+
+/**
+ * 変数と表の1行を入れた要素(どちらも無ければ state.elements をそのまま返す)
+ * @param {Object|null} [record]
+ */
+function elementsWithValues(record = null, opts = {}) {
+  if (!record && state.variables.length === 0) return state.elements;
+  return substituteFields(state.elements, fieldValues(record, opts));
+}
+
+/**
  * Render the canvas
  */
 function render() {
@@ -1390,11 +1418,14 @@ function render() {
   const mergeRecord = mergePreviewRecord();
   if (mergeRecord) {
     // 表の行を差し込んで表示(行を選んでプレビュー)
-    elementsToRender = evaluateExpressions(substituteFields(state.elements, mergeRecord), {
+    elementsToRender = evaluateExpressions(elementsWithValues(mergeRecord), {
       counterIndex: counterIndexForLabel(batchPositionOf(state.mergePreview.row)),
     });
   } else if (state.ditherPreview) {
-    elementsToRender = evaluateExpressions(state.elements, { counterIndex: counterIndexForLabel(0) });
+    elementsToRender = evaluateExpressions(elementsWithValues(), { counterIndex: counterIndexForLabel(0) });
+  } else if (state.variables.length) {
+    // 変数はキャンバスでも値を入れて見せる(連番の変数は次に印刷する番号)
+    elementsToRender = elementsWithValues(null, { counterIndex: counterIndexForLabel(0) });
   }
   state.renderer.renderAll(elementsToRender, state.selectedIds, state.alignmentGuides);
 }
@@ -1421,7 +1452,7 @@ function batchPositionOf(recordIndex) {
 
 /** 印刷した枚数だけ番号を進める(「前回の続きから」が ON のときだけ) */
 function advanceCounter(count) {
-  if (!state.counter.resume || !(count > 0) || !hasCounter(state.elements)) return;
+  if (!state.counter.resume || !(count > 0) || !hasCounter(elementsWithValues())) return;
   state.counter.next = counterBase() + count;
   persistCounter();
   updateCounterUI();
@@ -1445,11 +1476,21 @@ function updateCounterUI() {
   if (!resume || !next || !preview) return;
 
   resume.checked = !!state.counter.resume;
-  next.value = counterBase() + 1;
-  next.disabled = !state.counter.resume;
-  $('#counter-reset').disabled = !state.counter.resume;
+  // 次に印刷する番号(最初の連番の開始・増分で数える)。いつでも書き換えられる
+  const opts = findCounterOptions(elementsWithValues()) || COUNTER_DEFAULTS;
+  if (document.activeElement !== next) next.value = opts.start + counterBase() * opts.step;
+  next.disabled = false;
+  $('#counter-reset').disabled = counterBase() === 0;
 
-  const value = previewCounter(state.elements, counterBase());
+  const value = previewCounter(elementsWithValues(), counterBase());
+  // 変数欄の連番の見本も、続きの番号に合わせる
+  $$('#variables-list .variable-row').forEach(row => {
+    const v = state.variables[parseInt(row.dataset.index, 10)];
+    const el = row.querySelector('.variable-counter-preview');
+    if (v && el) el.textContent = variablePreviewText(v);
+  });
+  // 連番を使っているデザインだけ「連番の続き」欄を出す
+  $('#counter-settings')?.classList.toggle('hidden', value === null);
   if (value === null) {
     preview.textContent = t('counter_none_in_design');
     preview.dataset.hasCounter = 'false';
@@ -1521,7 +1562,13 @@ function initCounterSettings() {
     updateCounterUI();
   });
   $('#counter-next')?.addEventListener('change', (e) => {
-    state.counter.next = Math.max(0, (parseInt(e.target.value, 10) || 1) - 1);
+    // 入れた番号から何枚目かを求める。番号を決めたら、続きから振るようにする
+    const opts = findCounterOptions(elementsWithValues()) || COUNTER_DEFAULTS;
+    const value = parseInt(e.target.value, 10);
+    const index = Number.isFinite(value) && opts.step ? Math.round((value - opts.start) / opts.step) : 0;
+    state.counter.next = Math.max(0, index);
+    state.counter.resume = true;
+    e.target.blur();
     persistCounter();
     updateCounterUI();
   });
@@ -1550,7 +1597,8 @@ function initJapaneseFonts() {
  */
 function detectTemplateFields() {
   const previousFields = [...state.templateFields];
-  state.templateFields = extractFields(state.elements);
+  // 変数として値が決まっている名前は、表の列として探さない
+  state.templateFields = fieldsWithoutVariables(extractFields(state.elements), state.variables);
 
   // If fields changed significantly, clear template data
   const fieldsChanged = previousFields.length !== state.templateFields.length ||
@@ -1562,6 +1610,7 @@ function detectTemplateFields() {
   }
 
   updateTemplateIndicator();
+  updateCounterUI();
 }
 
 /**
@@ -1577,16 +1626,15 @@ function updateTemplateIndicator() {
   const toolbarDivider = $('#template-toolbar-divider');
   const toolbarLabel = $('#template-toolbar-label');
 
-  const hasFields = state.templateFields.length > 0;
+  // デザインで使っている変数・連番も、差し込み項目として並べる(種類の印つき)
+  const usedVariables = variablesUsedInDesign();
+  const hasFields = state.templateFields.length + usedVariables.length > 0;
+  fieldCount.textContent = state.templateFields.length + usedVariables.length;
 
   if (hasFields) {
-    fieldCount.textContent = state.templateFields.length;
-
-    // Show field tags
-    fieldTags.innerHTML = state.templateFields.map(f =>
-      `<span class="px-2 py-1 bg-purple-100 text-purple-700 rounded-full font-medium">{{${escapeHtml(f)}}}</span>`
+    fieldTags.innerHTML = usedVariables.map(variableFieldTag).join('') + state.templateFields.map(f =>
+      `<span class="merge-field-tag px-2 py-1 bg-purple-100 text-purple-700 rounded-full font-medium">{{${escapeHtml(f)}}}</span>`
     ).join('');
-
   } else {
     fieldTags.innerHTML = `<span class="text-purple-400 italic">${t('none')}</span>`;
   }
@@ -1617,9 +1665,14 @@ function updateTemplateIndicator() {
   dataCount.textContent = state.templateData.length;
   const selectedCount = state.selectedRecords.length;
   const allSelected = selectedCount === state.templateData.length;
-  printCount.textContent = selectedCount;
+  // 表を読み込んでいないときは、ふつうの印刷(部数ぶん)のボタンにする
+  const hasData = state.templateData.length > 0;
+  const copies = state.printSettings?.copies || 1;
+  printCount.textContent = hasData ? selectedCount : t('n_copies_short', { n: copies });
   const printLabel = $('#template-print-label');
-  if (printLabel) printLabel.textContent = t(allSelected ? 'print_all' : 'print_selected_rows');
+  if (printLabel) printLabel.textContent = !hasData ? t('print_plain_open') : t(allSelected ? 'print_all' : 'print_selected_rows');
+  $('#template-quick-preview')?.classList.toggle('hidden', !hasData);
+  $('#mobile-template-preview')?.classList.toggle('hidden', !hasData);
   const dialogPrintLabel = $('#template-print-btn-label');
   if (dialogPrintLabel) {
     dialogPrintLabel.textContent = allSelected
@@ -1636,11 +1689,11 @@ function updateTemplateIndicator() {
 
   if (mobileStatus) {
     if (hasFields) {
-      mobileStatus.textContent = t('n_fields', { n: state.templateFields.length });
+      mobileStatus.textContent = t('n_fields', { n: state.templateFields.length + usedVariables.length });
       mobileStatus.classList.remove('hidden');
       mobileFields?.classList.remove('hidden');
       if (mobileFieldTags) {
-        mobileFieldTags.innerHTML = state.templateFields.map(f =>
+        mobileFieldTags.innerHTML = usedVariables.map(variableFieldTag).join('') + state.templateFields.map(f =>
           `<span class="px-2 py-0.5 bg-purple-100 text-purple-700 rounded-full text-xs font-medium">{{${escapeHtml(f)}}}</span>`
         ).join('');
       }
@@ -1650,7 +1703,7 @@ function updateTemplateIndicator() {
     }
   }
   if (mobileDataCount) mobileDataCount.textContent = state.templateData.length;
-  if (mobilePrintCount) mobilePrintCount.textContent = state.selectedRecords.length;
+  if (mobilePrintCount) mobilePrintCount.textContent = hasData ? state.selectedRecords.length : t('n_copies_short', { n: copies });
 
   // Update field dropdowns for insert field buttons
   updateFieldDropdowns();
@@ -1684,16 +1737,24 @@ function updateFieldDropdowns() {
     const fieldList = $(`#field-list-${type}`);
     if (!fieldList) continue;
 
-    // デザインの項目 + 読み込んだ表の列(まだ使っていないもの)
-    const lowerFields = state.templateFields.map(f => f.toLowerCase());
+    // デザインの変数 + デザインの項目 + 読み込んだ表の列(まだ使っていないもの)
+    const variables = definedVariables();
+    const lowerFields = [...variables.map(v => v.name), ...state.templateFields].map(f => f.toLowerCase());
     const choices = [
       ...state.templateFields,
       ...state.templateColumns.filter(c => !lowerFields.includes(c.toLowerCase())),
     ];
-    if (choices.length > 0) {
-      fieldList.innerHTML = choices.map(f =>
-        `<button class="field-option w-full text-left px-3 py-1.5 text-sm hover:bg-purple-50 text-gray-700" data-field="${escapeHtml(f)}" data-type="${type}">{{${escapeHtml(f)}}}</button>`
+    if (choices.length > 0 || variables.length > 0) {
+      const sectionLabel = (key) => `<div class="px-3 pt-1.5 pb-0.5 text-[10px] text-gray-400">${t(key)}</div>`;
+      const variableHtml = variables.map(v =>
+        `<button class="field-option variable-option w-full text-left px-3 py-1.5 text-sm hover:bg-purple-50 text-gray-700 flex items-baseline gap-2" data-field="${escapeAttr(v.name)}" data-type="${type}"><span>{{${escapeHtml(v.name)}}}</span><span class="text-[10px] text-gray-400 truncate">${escapeHtml(variablePreviewText(v))}</span></button>`
       ).join('');
+      const fieldHtml = choices.map(f =>
+        `<button class="field-option w-full text-left px-3 py-1.5 text-sm hover:bg-purple-50 text-gray-700" data-field="${escapeAttr(f)}" data-type="${type}">{{${escapeHtml(f)}}}</button>`
+      ).join('');
+      fieldList.innerHTML = variables.length
+        ? sectionLabel('variables_title') + variableHtml + (choices.length ? sectionLabel('field_section_merge') + fieldHtml : '')
+        : fieldHtml;
     } else {
       fieldList.innerHTML = `<div class="px-3 py-2 text-xs text-gray-400 italic">${t('no_fields_yet')}</div>`;
     }
@@ -2391,7 +2452,7 @@ function updateMergeControls() {
 /**
  * Put {{column}} into the design: into the selected text/barcode/QR, or as a new text
  */
-function insertColumnIntoDesign(column) {
+function insertColumnIntoDesign(column, statusKey = 'status_column_inserted') {
   const placeholder = `{{${column}}}`;
   const el = getSelected();
   const key = el?.type === 'text' ? 'text'
@@ -2422,7 +2483,197 @@ function insertColumnIntoDesign(column) {
     render();
     updateMergeControls();
   }
-  setStatus(t('status_column_inserted', { field: column }));
+  setStatus(t(statusKey, { field: column }));
+}
+
+// =============================================================================
+// DESIGN VARIABLES - デザインごとの変数({{変数名}} で文字・バーコード・QRに入る)
+// =============================================================================
+
+/** 属性値に入れる文字のエスケープ */
+function escapeAttr(str) {
+  return String(str ?? '').replace(/[&<>"']/g, c => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+  }[c]));
+}
+
+/** 変数の値の見本(連番なら次に印刷する番号から3つ) */
+function variablePreviewText(v) {
+  if (v.type !== 'counter') return v.value || t('variable_empty_value');
+  const opts = normalizeCounterVariable(v);
+  const base = counterBase();
+  const nums = [0, 1, 2].map(i => formatCounter(base + i, opts));
+  return t('variable_counter_preview', { values: nums.join(', ') });
+}
+
+/** デザインの中で {{名前}} として使っている変数 */
+function variablesUsedInDesign() {
+  const used = new Set(extractFields(state.elements).map(f => f.trim().toLowerCase()));
+  return definedVariables().filter(v => used.has(v.name.toLowerCase()));
+}
+
+/** 差し込み項目の一覧に出す、変数・連番の札(値の見本を title に) */
+function variableFieldTag(v) {
+  const kind = t(v.type === 'counter' ? 'variable_type_counter' : 'variables_title');
+  return `<span class="variable-field-tag px-2 py-1 bg-white text-purple-700 border border-purple-300 rounded-full font-medium" data-field="${escapeAttr(v.name)}" title="${escapeAttr(variablePreviewText(v))}">{{${escapeHtml(v.name)}}} <span class="text-[10px] text-purple-500">${escapeHtml(kind)}</span></span>`;
+}
+
+/** 使える変数(名前が空でない、重複を除いたもの) */
+function definedVariables() {
+  return normalizeVariables(state.variables);
+}
+
+/** 変数の欄を描き直す */
+function renderVariablesPanel() {
+  const list = $('#variables-list');
+  if (list) {
+    const input = 'min-w-0 px-1.5 py-1 text-xs border border-purple-200 rounded focus:outline-none focus:ring-1 focus:ring-purple-400 bg-white';
+    list.innerHTML = state.variables.map((v, i) => {
+      const isCounter = v.type === 'counter';
+      const c = normalizeCounterVariable(v);
+      const counterInput = (key, labelKey, min) => `
+        <label class="flex items-center gap-0.5 text-[11px] text-purple-700">${t(labelKey)}
+          <input type="number" class="variable-counter w-12 ${input}" data-key="${key}" value="${escapeAttr(v[key] ?? c[key])}"${min != null ? ` min="${min}"` : ''}>
+        </label>`;
+      const second = isCounter
+        ? `<div class="flex flex-wrap items-center gap-x-1.5 gap-y-1 pl-0.5">
+            ${counterInput('start', 'variable_counter_start')}
+            ${counterInput('step', 'variable_counter_step')}
+            ${counterInput('pad', 'variable_counter_pad', 0)}
+            <span class="variable-counter-preview text-[11px] text-gray-500 truncate">${escapeHtml(variablePreviewText(v))}</span>
+          </div>`
+        : `<input type="text" class="variable-value w-full ${input}"
+            value="${escapeAttr(v.value)}" placeholder="${escapeAttr(t('variable_value_placeholder'))}" aria-label="${escapeAttr(t('variable_value'))}">`;
+      return `
+      <div class="variable-row space-y-1 p-1.5 rounded-lg bg-white/60 border border-purple-100" data-index="${i}">
+        <div class="flex items-center gap-1">
+          <input type="text" class="variable-name flex-1 ${input}"
+            value="${escapeAttr(v.name)}" placeholder="${escapeAttr(t('variable_name_placeholder'))}" aria-label="${escapeAttr(t('variable_name'))}">
+          <select class="variable-type ${input}" aria-label="${escapeAttr(t('variable_type'))}">
+            <option value="text"${isCounter ? '' : ' selected'}>${t('variable_type_text')}</option>
+            <option value="counter"${isCounter ? ' selected' : ''}>${t('variable_type_counter')}</option>
+          </select>
+          <button class="variable-insert p-1 rounded text-purple-600 hover:bg-purple-100" title="${escapeAttr(t('variable_insert'))}" aria-label="${escapeAttr(t('variable_insert'))}">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+          </button>
+          <button class="variable-delete p-1 rounded text-gray-400 hover:text-red-600 hover:bg-red-50" title="${escapeAttr(t('variable_delete'))}" aria-label="${escapeAttr(t('variable_delete'))}">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+          </button>
+        </div>
+        ${second}
+      </div>
+      <div class="variable-error hidden text-[11px] text-red-600 pl-1" data-index="${i}"></div>
+    `;
+    }).join('');
+  }
+  updateVariableRowStates();
+}
+
+/** 名前の重複などを行ごとに知らせ、件数を更新する */
+function updateVariableRowStates() {
+  const seen = new Set();
+  state.variables.forEach((v, i) => {
+    const name = cleanVariableName(v.name);
+    const errorEl = $(`.variable-error[data-index="${i}"]`);
+    const nameEl = $(`.variable-row[data-index="${i}"] .variable-name`);
+    let error = '';
+    if (name) {
+      const key = name.toLowerCase();
+      if (seen.has(key)) error = t('variable_duplicate', { name });
+      else seen.add(key);
+    } else if (v.value || v.type === 'counter') {
+      error = t('variable_name_required');
+    }
+    if (errorEl) {
+      errorEl.textContent = error;
+      errorEl.classList.toggle('hidden', !error);
+    }
+    nameEl?.classList.toggle('border-red-400', !!error);
+  });
+  const n = definedVariables().length;
+  if ($('#variables-count')) $('#variables-count').textContent = n;
+  if ($('#mobile-variables-count')) $('#mobile-variables-count').textContent = n;
+}
+
+/** 変数が変わったら、差し込み項目の検出と表示をやり直す */
+function onVariablesChanged() {
+  updateVariableRowStates();
+  detectTemplateFields();
+  updateCounterUI();
+  render();
+}
+
+function addVariable(type = 'text') {
+  state.variables.push(type === 'counter'
+    ? { name: '', value: '', type: 'counter', ...normalizeCounterVariable() }
+    : { name: '', value: '' });
+  renderVariablesPanel();
+  const rows = $$('#variables-list .variable-name');
+  rows[rows.length - 1]?.focus();
+}
+
+function initVariables() {
+  renderVariablesPanel();
+  $('#variables-add')?.addEventListener('click', () => addVariable());
+  $('#variables-add-counter')?.addEventListener('click', () => addVariable('counter'));
+  const list = $('#variables-list');
+  list?.addEventListener('input', (e) => {
+    const row = e.target.closest('.variable-row');
+    if (!row) return;
+    const v = state.variables[parseInt(row.dataset.index, 10)];
+    if (!v) return;
+    if (e.target.classList.contains('variable-name')) v.name = e.target.value;
+    else if (e.target.classList.contains('variable-value')) v.value = e.target.value;
+    else if (e.target.classList.contains('variable-counter')) {
+      v[e.target.dataset.key] = e.target.value;
+      const preview = row.querySelector('.variable-counter-preview');
+      if (preview) preview.textContent = variablePreviewText(v);
+    } else return;
+    onVariablesChanged();
+  });
+  list?.addEventListener('change', (e) => {
+    if (!e.target.classList.contains('variable-type')) return;
+    const row = e.target.closest('.variable-row');
+    const v = state.variables[parseInt(row?.dataset.index, 10)];
+    if (!v) return;
+    if (e.target.value === 'counter') Object.assign(v, { type: 'counter', ...normalizeCounterVariable(v) });
+    else delete v.type;
+    renderVariablesPanel();
+    onVariablesChanged();
+  });
+  list?.addEventListener('keydown', (e) => {
+    // 名前の欄で Enter → 値の欄へ。最後の行の値で Enter → 次の変数を足す
+    if (e.key !== 'Enter' || e.isComposing) return;
+    const row = e.target.closest('.variable-row');
+    if (!row) return;
+    e.preventDefault();
+    if (e.target.classList.contains('variable-name')) {
+      (row.querySelector('.variable-value') || row.querySelector('.variable-counter'))?.focus();
+    } else if (parseInt(row.dataset.index, 10) === state.variables.length - 1) {
+      addVariable();
+    }
+  });
+  list?.addEventListener('click', (e) => {
+    const row = e.target.closest('.variable-row');
+    if (!row) return;
+    const i = parseInt(row.dataset.index, 10);
+    if (e.target.closest('.variable-delete')) {
+      state.variables.splice(i, 1);
+      renderVariablesPanel();
+      onVariablesChanged();
+    } else if (e.target.closest('.variable-insert')) {
+      const name = cleanVariableName(state.variables[i]?.name);
+      if (!name) {
+        row.querySelector('.variable-name')?.focus();
+        return;
+      }
+      insertColumnIntoDesign(name, 'status_variable_inserted');
+    }
+  });
+  $('#mobile-variables-btn')?.addEventListener('click', () => {
+    closeMobileMenu();
+    $('#template-panel')?.classList.remove('hidden');
+  });
 }
 
 function initSpreadsheetMerge() {
@@ -2609,7 +2860,7 @@ function renderPreviewThumbnail(canvas, recordIndex) {
   if (!record) return;
 
   // Substitute fields and evaluate expressions
-  const substitutedElements = substituteFields(state.elements, record);
+  const substitutedElements = elementsWithValues(record);
   const mergedElements = evaluateExpressions(substitutedElements, { counterIndex: counterIndexForLabel(batchPositionOf(recordIndex)) });
 
   // Create a temporary renderer at smaller scale
@@ -2634,7 +2885,7 @@ function showFullPreview(recordIndex) {
   state.currentPreviewIndex = recordIndex;
 
   const record = state.templateData[recordIndex];
-  const substitutedElements = substituteFields(state.elements, record);
+  const substitutedElements = elementsWithValues(record);
   const mergedElements = evaluateExpressions(substitutedElements, { counterIndex: counterIndexForLabel(batchPositionOf(recordIndex)) });
 
   // Render to full preview canvas
@@ -2686,6 +2937,11 @@ function navigatePreview(direction) {
 /**
  * Print batch of labels
  */
+/** 差し込み印刷パネルの印刷ボタン: 表があれば連続印刷、無ければふつうの印刷(部数ぶん、連番は1枚ごとに進む) */
+function printFromTemplatePanel() {
+  return state.templateData.length > 0 ? handleBatchPrint() : handlePrint();
+}
+
 async function handleBatchPrint() {
   // 選んだ行(範囲)だけを印刷する。1行も選ばれていなければ印刷しない
   const recordsToPrint = [...state.selectedRecords];
@@ -2756,7 +3012,9 @@ async function handleBatchPrint() {
           }
           // If no more records, zone will be empty (no substitution)
         }
-        substitutedElements = substituteFieldsByZone(state.elements, rowRecords, labelsAcross);
+        // 変数は表の値の後に入れる(同じ名前なら表の値が優先、データのないゾーンにも変数は入る)
+        const zoneRecords = rowRecords.map(r => fieldValues(r));
+        substitutedElements = applyVariables(substituteFieldsByZone(state.elements, zoneRecords, labelsAcross), state.variables);
         // 連番: ゾーンごとに1つずつ進める
         counterIndex = (el) => counterIndexForLabel(startIdx + (el.zone || 0));
 
@@ -2766,7 +3024,7 @@ async function handleBatchPrint() {
         // Clone mode ON or single-label: Same data for all zones
         const recordIndex = recordsToPrint[rowIndex];
         const record = state.templateData[recordIndex];
-        substitutedElements = substituteFields(state.elements, record);
+        substitutedElements = elementsWithValues(record);
         // 連番: CSV の印刷順に番号を振る
         counterIndex = counterIndexForLabel(rowIndex);
 
@@ -2869,7 +3127,7 @@ async function handlePrintSinglePreview() {
     }
 
     // Substitute fields and evaluate expressions
-    const substitutedElements = substituteFields(state.elements, record);
+    const substitutedElements = elementsWithValues(record);
     const mergedElements = evaluateExpressions(substitutedElements, { counterIndex: counterIndexForLabel(batchPositionOf(recordIndex)) });
     await waitForElementFonts(mergedElements);
 
@@ -5883,9 +6141,9 @@ async function handlePrint() {
 
     // Substitute template fields if template data is loaded
     // (キャンバスで行をプレビュー中なら、その行を印刷する)
-    const elements = state.templateData.length > 0
-      ? substituteFields(state.elements, mergePreviewRecord() || state.templateData[0])
-      : state.elements;
+    const elements = elementsWithValues(state.templateData.length > 0
+      ? (mergePreviewRecord() || state.templateData[0])
+      : null);
 
     // Render to raster (use raw format for rotated printers like D-series and P12)
     const deviceName = state.transport.getDeviceName?.() || '';
@@ -6107,6 +6365,10 @@ function writeCurrentDesign(name, overwrite) {
     if (state.templateData.length > 0) {
       designData.templateData = state.templateData;
     }
+    // デザインの変数
+    const variables = normalizeVariables(state.variables);
+    if (variables.length > 0) designData.variables = variables;
+
     // 連携した Googleスプレッドシート(次に開いたとき、同じシートから読み直す)
     const mergeSource = currentMergeSourceForSave();
     if (mergeSource) designData.mergeSource = mergeSource;
@@ -6231,6 +6493,8 @@ function handleExport() {
   if (state.templateData.length > 0) {
     exportData.templateData = state.templateData;
   }
+  const exportVariables = normalizeVariables(state.variables);
+  if (exportVariables.length > 0) exportData.variables = exportVariables;
   const exportSource = currentMergeSourceForSave();
   if (exportSource) exportData.mergeSource = exportSource;
 
@@ -6270,7 +6534,7 @@ async function handleExportPDF() {
   }
 
   // Evaluate expressions (date/time substitutions)
-  const elementsToRender = evaluateExpressions(state.elements, { counterIndex: counterIndexForLabel(0) });
+  const elementsToRender = evaluateExpressions(elementsWithValues(), { counterIndex: counterIndexForLabel(0) });
   await waitForElementFonts(elementsToRender);
 
   // Render to temporary canvas at high DPI for quality
@@ -6322,7 +6586,7 @@ async function handleExportPNG() {
     return;
   }
 
-  const elementsToRender = evaluateExpressions(state.elements, { counterIndex: counterIndexForLabel(0) });
+  const elementsToRender = evaluateExpressions(elementsWithValues(), { counterIndex: counterIndexForLabel(0) });
   await waitForElementFonts(elementsToRender);
 
   // Render at 4x scale for quality
@@ -6405,6 +6669,8 @@ function handleImportFile(file) {
         state.mergePreview = { enabled: false, row: 0 };
       }
       restoreTemplateSource(data.mergeSource);
+      state.variables = normalizeVariables(data.variables);
+      renderVariablesPanel();
 
       // Clear selection and update renderer
       state.selectedIds = [];
@@ -6546,6 +6812,8 @@ function handleLoad(name, sampleDesign = null) {
   state.templateSheets = null;
   state.mergePreview = { enabled: false, row: 0 };
   restoreTemplateSource(design.mergeSource);
+  state.variables = normalizeVariables(design.variables);
+  renderVariablesPanel();
 
   // 印刷時の回転を復元(無ければ機体の既定に従う)
   state.printRotation = normalizeDesignRotation(design.printRotation);
@@ -7123,7 +7391,7 @@ function initMobileUI() {
   });
   $('#mobile-template-print')?.addEventListener('click', () => {
     closeMobileMenu();
-    handleBatchPrint();
+    printFromTemplatePanel();
   });
 
   // Sync mobile label size selector with desktop
@@ -7391,9 +7659,9 @@ function populateMobileProps() {
 
   // Helper to generate field dropdown HTML
   const fieldDropdownHtml = (inputId) => {
-    const existingFields = state.templateFields || [];
+    const existingFields = [...definedVariables().map(v => v.name), ...(state.templateFields || [])];
     const fieldOptions = existingFields.map(f =>
-      `<button class="w-full px-3 py-2 text-left text-sm hover:bg-purple-50 active:bg-purple-100" data-insert-field="${f}" data-target="${inputId}">{{${escapeHtml(f)}}}</button>`
+      `<button class="w-full px-3 py-2 text-left text-sm hover:bg-purple-50 active:bg-purple-100" data-insert-field="${escapeAttr(f)}" data-target="${inputId}">{{${escapeHtml(f)}}}</button>`
     ).join('');
     return `
       <div class="mobile-field-dropdown hidden absolute right-0 top-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-[80] min-w-[160px] overflow-hidden">
@@ -8445,6 +8713,7 @@ function init() {
   // Counter settings (#31)
   initCounterSettings();
   initSpreadsheetMerge();
+  initVariables();
 
   // 印刷の横位置の補正(プリンターごと)
   initPrintOffsetUI({
@@ -8726,6 +8995,7 @@ function init() {
     state.printSettings.feed = parseInt(feedSelect.value);
     state.printSettings.printerModel = printerModelSelect.value;
     savePrintRotationUI();
+    updateTemplateIndicator(); // 差し込み印刷パネルの「印刷 (N部)」
 
     // Save to localStorage
     safeStorageSet('phomymo_print_settings', safeJsonStringify(state.printSettings));
@@ -9534,7 +9804,7 @@ function init() {
 
   // Template quick actions (properties panel)
   $('#template-quick-preview').addEventListener('click', showPreviewDialog);
-  $('#template-quick-print').addEventListener('click', handleBatchPrint);
+  $('#template-quick-print').addEventListener('click', printFromTemplatePanel);
 
   // Template data actions
   $('#template-import-csv').addEventListener('click', () => $('#template-csv-input').click());

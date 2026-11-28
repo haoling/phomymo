@@ -9,7 +9,7 @@
  */
 
 import { CanvasRenderer } from './canvas.js?v=120';
-import { substituteFields, evaluateExpressions } from './templates.js?v=102';
+import { substituteFields, evaluateExpressions, buildFieldValues } from './templates.js?v=106';
 import { waitForElementFonts } from './fonts-ja.js?v=1';
 import * as kv from './kv.js';
 import { t } from './i18n.js';
@@ -50,11 +50,13 @@ function cacheKey(summary, design) {
   return [summary.id, design.savedAt || 0, design.counter?.next ?? '', design.counter?.resume ? 1 : 0].join(':');
 }
 
-/** サムネイルに描く要素(差し込みは1件目のデータ、日付・連番は今の値) */
+/** サムネイルに描く要素(変数と差し込みは1件目のデータ、日付・連番は今の値) */
 function elementsForThumbnail(design) {
   let elements = design.elements || [];
-  if (design.templateData?.length) {
-    elements = substituteFields(elements, design.templateData[0]);
+  const record = design.templateData?.length ? design.templateData[0] : null;
+  if (record || design.variables?.length) {
+    // 変数と1件目のデータを入れる(同じ名前なら表の値が優先)
+    elements = substituteFields(elements, buildFieldValues(design.variables, record));
   }
   const counterIndex = design.counter?.resume ? Math.max(0, design.counter.next | 0) : 0;
   return evaluateExpressions(elements, { counterIndex });

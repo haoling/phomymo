@@ -338,6 +338,21 @@ export function importDesign(jsonString, overrideName = null) {
     if (data.templateData && Array.isArray(data.templateData)) {
       designData.templateData = data.templateData;
     }
+    // デザインの変数 [{ name, value }]
+    if (Array.isArray(data.variables)) {
+      designData.variables = data.variables
+        .filter(v => v && typeof v.name === 'string')
+        .map(v => {
+          const out = { name: v.name, value: v.value == null ? '' : String(v.value) };
+          if (v.type === 'counter') {
+            out.type = 'counter';
+            for (const k of ['start', 'step', 'pad']) {
+              if (Number.isFinite(Number(v[k]))) out[k] = Number(v[k]);
+            }
+          }
+          return out;
+        });
+    }
 
     // Import multi-label configuration if present
     if (data.multiLabel && typeof data.multiLabel === 'object') {

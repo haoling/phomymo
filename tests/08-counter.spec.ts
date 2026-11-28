@@ -3,6 +3,14 @@ import path from 'path';
 import { waitForAppReady, dismissInfoDialog } from './helpers/app';
 import { installFakePrinter, printAndWait, resetDrawnTexts, getDrawnTexts, setCopies } from './helpers/fake-printer';
 
+/** 差し込み印刷パネルを開いて「連番の続き」欄を出す */
+async function openCounterSettings(page: Page) {
+  if (await page.locator('#template-panel').evaluate(el => el.classList.contains('hidden'))) {
+    await page.click('#template-toolbar-btn');
+  }
+  await expect(page.locator('#counter-settings')).not.toHaveClass(/\bhidden\b/);
+}
+
 // #31 連番
 
 async function addText(page: Page, text: string) {
@@ -93,11 +101,11 @@ test.describe('連番での印刷', () => {
     test.setTimeout(120_000);
     await addText(page, 'No.[[counter|pad=3]]');
 
-    await page.click('#print-settings-btn');
+    // 連番の続きの設定は、差し込み印刷パネルの変数欄にある(印刷設定からは移した)
+    await openCounterSettings(page);
     await expect(page.locator('#counter-preview')).toHaveText('次に印刷される番号: 001');
     await page.locator('#counter-resume').check();
-    await page.locator('#print-copies').fill('2');
-    await page.click('#print-settings-save');
+    await setCopies(page, 2);
 
     await resetDrawnTexts(page);
     await printAndWait(page);
@@ -112,7 +120,7 @@ test.describe('連番での印刷', () => {
     expect(drawn).toContain('No.004');
     expect(drawn).not.toContain('No.001');
 
-    await page.click('#print-settings-btn');
+    await openCounterSettings(page);
     await expect(page.locator('#counter-next')).toHaveValue('5');
     await expect(page.locator('#counter-preview')).toHaveText('次に印刷される番号: 005');
 
@@ -140,12 +148,11 @@ test.describe('連番での印刷', () => {
     test.setTimeout(120_000);
     await addText(page, 'No.[[counter|pad=3]]');
 
-    await page.click('#print-settings-btn');
+    await openCounterSettings(page);
     await page.locator('#counter-resume').check();
     await page.locator('#counter-next').fill('42');
     await page.locator('#counter-next').dispatchEvent('change');
     await expect(page.locator('#counter-preview')).toHaveText('次に印刷される番号: 042');
-    await page.click('#print-settings-save');
 
     // デザインに書き込む処理
     const saved = await page.evaluate(async () => {
