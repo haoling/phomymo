@@ -188,6 +188,7 @@ import {
   validateJSONFile,
   validatePosition,
 } from './utils/validation.js?v=101';
+import { PRINT_MODE, decideInitialPrintMode, urlForPrintMode } from './print-mode.js';
 
 // DOM helpers
 const $ = (sel) => document.querySelector(sel);
@@ -298,6 +299,8 @@ const state = {
     menuOpen: false,            // Whether hamburger menu is open
     propsOpen: false,           // Whether properties panel is open
   },
+  printMode: false,             // 印刷専用モード(print-mode.js)
+  printModeBusy: false,         // 印刷モードの印刷ボタンで印刷中
 };
 
 // Note: GUIDES.SNAP_THRESHOLD, HISTORY.MAX_SIZE, and STORAGE_KEYS are imported from constants.js
@@ -347,6 +350,7 @@ function getSavedDeviceModel(deviceName) {
  * data-i18n の付いた静的な文言は i18n.js が書き換える。
  */
 function refreshLanguageTexts() {
+  refreshPrintModeTexts();
   const connectBtn = $('#connect-btn');
   if (connectBtn && !connectBtn.disabled) connectBtn.textContent = t('connect');
   const printBtn = $('#print-btn');
@@ -420,6 +424,9 @@ function shapeName(shapeType) {
  */
 function setStatus(message) {
   $('#status-message').textContent = message;
+  // 印刷モードでは下の帯が隠れるので、印刷ボタンの下にも出す
+  const printModeStatus = $('#print-mode-status');
+  if (printModeStatus) printModeStatus.textContent = message;
 }
 
 /**
@@ -795,6 +802,7 @@ function updateConnectionStatus(connected) {
   const mobileConnectBtn = $('#mobile-connect-btn');
   const mobileDisconnectBtn = $('#mobile-disconnect-btn');
 
+  updatePrintModeConnection();
   dot.classList.toggle('bg-green-500', connected);
   dot.classList.toggle('bg-gray-400', !connected);
 
@@ -876,6 +884,7 @@ function updateMobileLabelName() {
   if (mobileLabelName) {
     mobileLabelName.textContent = state.currentDesignName || t('untitled_label');
   }
+  if (state.printMode) updatePrintModeDesignInfo();
 }
 
 /**
@@ -1428,6 +1437,7 @@ function render() {
     elementsToRender = elementsWithValues(null, { counterIndex: counterIndexForLabel(0) });
   }
   state.renderer.renderAll(elementsToRender, state.selectedIds, state.alignmentGuides);
+  if (state.printMode) schedulePrintModePreview();
 }
 
 // =============================================================================
@@ -1501,6 +1511,7 @@ function updateCounterUI() {
   }
   const note = $('#counter-unsaved-note');
   if (note) note.classList.toggle('hidden', !state.counter.resume || !!state.currentDesignName);
+  updatePrintModeCounter();
 }
 
 /** 印刷設定ダイアログの「印刷の向き」欄を state から作り直す */
@@ -1556,6 +1567,18 @@ function savePrintRotationUI() {
   }
 }
 
+/** 「次に印刷する番号」を決める(入れた番号から何枚目かを求め、続きから振るようにする) */
+function setCounterNextNumber(raw) {
+  const opts = findCounterOptions(elementsWithValues()) || COUNTER_DEFAULTS;
+  const value = parseInt(raw, 10);
+  const index = Number.isFinite(value) && opts.step ? Math.round((value - opts.start) / opts.step) : 0;
+  state.counter.next = Math.max(0, index);
+  state.counter.resume = true;
+  persistCounter();
+  updateCounterUI();
+  render(); // キャンバスの連番も次に印刷する番号に
+}
+
 function initCounterSettings() {
   $('#counter-resume')?.addEventListener('change', (e) => {
     state.counter.resume = e.target.checked;
@@ -1564,16 +1587,8 @@ function initCounterSettings() {
     render(); // キャンバスの連番も次に印刷する番号に
   });
   $('#counter-next')?.addEventListener('change', (e) => {
-    // 入れた番号から何枚目かを求める。番号を決めたら、続きから振るようにする
-    const opts = findCounterOptions(elementsWithValues()) || COUNTER_DEFAULTS;
-    const value = parseInt(e.target.value, 10);
-    const index = Number.isFinite(value) && opts.step ? Math.round((value - opts.start) / opts.step) : 0;
-    state.counter.next = Math.max(0, index);
-    state.counter.resume = true;
     e.target.blur();
-    persistCounter();
-    updateCounterUI();
-    render(); // キャンバスの連番も次に印刷する番号に
+    setCounterNextNumber(e.target.value);
   });
   $('#counter-reset')?.addEventListener('click', () => {
     state.counter.next = 0;
@@ -2571,6 +2586,7 @@ function renderVariablesPanel() {
     }).join('');
   }
   updateVariableRowStates();
+  renderPrintModeVariables();
 }
 
 /** 名前の重複などを行ごとに知らせ、件数を更新する */
@@ -6912,7 +6928,8 @@ function handleLoad(name, sampleDesign = null) {
  */
 function handleKeyDown(e) {
   // Skip all shortcuts when inline text editing is active
-  if (state.editingTextId) {
+  // 印刷モードでは編集しないので、ショートカット(削除・貼り付けなど)も効かせない
+  if (state.editingTextId || state.printMode) {
     return;
   }
 
@@ -8698,6 +8715,297 @@ function initPrinterDefsManager() {
 /**
  * Initialize the application
  */
+// =============================================================================
+// PRINT MODE(印刷専用モード。入り方の決まりは print-mode.js)
+// ラベルの編集はせず、デザインを開く・変数の値を変える・部数を決めて印刷する、だけの画面
+// =============================================================================
+
+/** 出す/隠す(Tailwind の .hidden と hidden 属性の両方。CSS が読めなくても隠れるように) */
+function showPrintModeEl(el, show) {
+  if (!el) return;
+  el.classList.toggle('hidden', !show);
+  el.hidden = !show;
+}
+
+/** 印刷モードで印刷するもの(表があるデザインなら、プレビュー中の行か1行目) */
+function printModeRecord() {
+  if (state.templateData.length === 0) return null;
+  return mergePreviewRecord() || state.templateData[0];
+}
+
+/** 印刷モードの画面の値を入れる変数(state.variables の何番目か。名前が空・重複は除く) */
+function printModeVariableIndexes() {
+  const seen = new Set();
+  const out = [];
+  state.variables.forEach((v, i) => {
+    const name = cleanVariableName(v.name);
+    if (!name || v.type === 'counter') return;
+    const key = name.toLowerCase();
+    if (seen.has(key)) return;
+    seen.add(key);
+    out.push(i);
+  });
+  return out;
+}
+
+/** 変数の欄を描き直す(デザインを開いたとき・言語を変えたとき) */
+function renderPrintModeVariables() {
+  const list = $('#print-mode-variables');
+  if (!list) return;
+  const indexes = printModeVariableIndexes();
+  list.innerHTML = indexes.map((i) => {
+    const v = state.variables[i];
+    const name = cleanVariableName(v.name);
+    return `
+      <label class="block">
+        <span class="block text-sm text-gray-700 mb-1">${escapeHtml(name)}</span>
+        <input type="text" class="print-mode-variable w-full px-3 py-2.5 border border-gray-300 rounded-lg text-base focus:outline-none focus:ring-2 focus:ring-gray-400"
+          data-index="${i}" value="${escapeAttr(v.value)}" placeholder="${escapeAttr(t('variable_value_placeholder'))}">
+      </label>`;
+  }).join('');
+  showPrintModeEl(list, indexes.length > 0);
+  updatePrintModeCounter();
+}
+
+/** 「次に印刷する番号」の欄(連番を使うデザインだけ出す) */
+function updatePrintModeCounter() {
+  const row = $('#print-mode-counter-row');
+  const input = $('#print-mode-counter-next');
+  if (!row || !input) return;
+  const elements = elementsWithValues(printModeRecord());
+  const usesCounter = hasCounter(elements);
+  showPrintModeEl(row, usesCounter);
+  if (usesCounter && document.activeElement !== input) {
+    const opts = findCounterOptions(elements) || COUNTER_DEFAULTS;
+    input.value = opts.start + counterBase() * opts.step;
+  }
+  const hasVariables = printModeVariableIndexes().length > 0;
+  showPrintModeEl($('#print-mode-variables-card'), hasVariables || usesCounter);
+  row.classList.toggle('mt-3', hasVariables);
+}
+
+/** 部数の欄と印刷ボタンの文言 */
+function updatePrintModeCopies() {
+  const copies = state.printSettings?.copies || PRINT.DEFAULT_COPIES;
+  const input = $('#print-mode-copies');
+  if (input && document.activeElement !== input) input.value = copies;
+  const label = $('#print-mode-print-label');
+  const btn = $('#print-mode-print');
+  if (label && !btn?.disabled) {
+    label.textContent = copies > 1 ? t('print_mode_print_n', { n: copies }) : t('print');
+  }
+}
+
+/** 部数を決める(印刷設定ダイアログの部数と同じ値。保存もする) */
+function setPrintModeCopies(value) {
+  const n = Math.max(PRINT.MIN_COPIES, Math.min(PRINT.MAX_COPIES, parseInt(value, 10) || PRINT.DEFAULT_COPIES));
+  state.printSettings.copies = n;
+  const dialogInput = $('#print-copies');
+  if (dialogInput) dialogInput.value = n;
+  safeStorageSet('phomymo_print_settings', safeJsonStringify(state.printSettings));
+  updateTemplateIndicator();
+  updatePrintModeCopies();
+}
+
+/** 接続の表示 */
+function updatePrintModeConnection() {
+  const connected = !!state.transport?.isConnected?.();
+  const dot = $('#print-mode-status-dot');
+  dot?.classList.toggle('bg-green-500', connected);
+  dot?.classList.toggle('bg-gray-400', !connected);
+  const text = $('#print-mode-connection');
+  if (text) {
+    const name = connected ? (state.transport.getDeviceName?.() || '') : '';
+    text.textContent = connected
+      ? (name ? t('print_mode_connected', { name }) : t('print_mode_connected_unknown'))
+      : t('print_mode_not_connected');
+    text.classList.toggle('text-green-700', connected);
+    text.classList.toggle('text-gray-500', !connected);
+  }
+  showPrintModeEl($('#print-mode-connect'), !connected);
+}
+
+/** デザイン名・空のときの案内・表のデータの注意 */
+function updatePrintModeDesignInfo() {
+  const nameEl = $('#print-mode-design-name');
+  if (nameEl) nameEl.textContent = state.currentDesignName || t('untitled_label');
+  const hasDesign = state.elements.length > 0;
+  showPrintModeEl($('#print-mode-empty'), !hasDesign);
+  showPrintModeEl($('#print-mode-canvas'), hasDesign);
+  const loadLabel = $('#print-mode-load [data-i18n]');
+  if (loadLabel) {
+    loadLabel.dataset.i18n = hasDesign ? 'print_mode_change_design' : 'print_mode_choose_design';
+    loadLabel.textContent = t(loadLabel.dataset.i18n);
+  }
+  const printBtn = $('#print-mode-print');
+  if (printBtn && !state.printModeBusy) printBtn.disabled = !hasDesign;
+  const status = $('#print-mode-status');
+  if (status && state.templateData.length > 0 && !status.textContent) {
+    const row = state.mergePreview.enabled ? state.mergePreview.row + 1 : 1;
+    status.textContent = t('print_mode_rows_note', { row });
+  }
+}
+
+let printModePreviewQueued = false;
+let printModePreviewToken = 0;
+
+/** render() のたびに呼ばれる。まとめて1回だけ描く */
+function schedulePrintModePreview() {
+  if (printModePreviewQueued) return;
+  printModePreviewQueued = true;
+  requestAnimationFrame(() => {
+    printModePreviewQueued = false;
+    renderPrintModePreview();
+  });
+}
+
+/** 印刷されるもの(変数・連番・日付を入れたもの)をプレビューに描く */
+async function renderPrintModePreview() {
+  updatePrintModeDesignInfo();
+  const canvas = $('#print-mode-canvas');
+  if (!canvas || !state.renderer || state.elements.length === 0) return;
+  const token = ++printModePreviewToken;
+  const elements = evaluateExpressions(elementsWithValues(printModeRecord()), { counterIndex: counterIndexForLabel(0) });
+  await waitForElementFonts(elements);
+  if (token !== printModePreviewToken) return; // 待っている間に描き直しが来た
+
+  const scale = PRINT_MODE.PREVIEW_SCALE;
+  const w = state.renderer.labelWidth;
+  const h = state.renderer.labelHeight;
+  canvas.width = w * scale;
+  canvas.height = h * scale;
+  // 横長でも縦長でも枠に収まるよう、縦横比を保って広げる
+  canvas.style.aspectRatio = `${w} / ${h}`;
+  canvas.style.width = w >= h ? '100%' : 'auto';
+  canvas.style.height = w >= h ? 'auto' : '28vh';
+  canvas.style.borderRadius = state.renderer.isRound ? '50%' : '';
+  const ctx = canvas.getContext('2d');
+  ctx.setTransform(scale, 0, 0, scale, 0, 0);
+  ctx.fillStyle = 'white';
+  ctx.fillRect(0, 0, w, h);
+  state.renderer.renderAllToContext(ctx, elements, []);
+}
+
+/** 印刷モードの画面の文言を今の言語で書き直す */
+function refreshPrintModeTexts() {
+  if (!state.printMode) return;
+  renderPrintModeVariables();
+  updatePrintModeConnection();
+  updatePrintModeCopies();
+  updatePrintModeDesignInfo();
+}
+
+/**
+ * 印刷モードに入る/出る
+ * @param {boolean} on
+ * @param {{ remember?: boolean, updateUrl?: boolean }} opts
+ */
+function setPrintMode(on, { remember = true, updateUrl = true } = {}) {
+  state.printMode = !!on;
+  document.body.classList.toggle('print-mode', state.printMode);
+  const view = $('#print-mode-view');
+  view?.classList.toggle('hidden', !state.printMode);
+  if (view) view.hidden = !state.printMode;
+
+  if (remember && PRINT_MODE.REMEMBER_LAST_MODE) {
+    safeStorageSet(PRINT_MODE.STORAGE_KEY, state.printMode ? PRINT_MODE.URL_PRINT : PRINT_MODE.URL_EDIT);
+  }
+  if (updateUrl) {
+    try {
+      history.replaceState(history.state, '', urlForPrintMode(location.href, state.printMode));
+    } catch {
+      // URL を書き換えられなくても、画面の切り替えはできる
+    }
+  }
+
+  if (state.printMode) {
+    closeMobileMenu();
+    closeMobileProps();
+    if (state.selectedIds.length) {
+      state.selectedIds = [];
+      updateToolbarState();
+      updatePropertiesPanel();
+    }
+    const status = $('#print-mode-status');
+    if (status) status.textContent = '';
+    renderPrintModeVariables();
+    updatePrintModeCopies();
+    updatePrintModeConnection();
+    renderPrintModePreview();
+  } else {
+    // 編集画面の変数欄に、印刷モードで変えた値を映す
+    renderVariablesPanel();
+    updateCounterUI();
+    render();
+  }
+}
+
+async function handlePrintModePrint() {
+  const btn = $('#print-mode-print');
+  const label = $('#print-mode-print-label');
+  if (!btn || btn.disabled) return;
+  state.printModeBusy = true;
+  btn.disabled = true;
+  if (label) label.textContent = t('printing');
+  try {
+    await handlePrint();
+  } finally {
+    state.printModeBusy = false;
+    btn.disabled = state.elements.length === 0;
+    updatePrintModeCopies();
+    updatePrintModeCounter();
+    updatePrintModeConnection();
+  }
+}
+
+function initPrintMode() {
+  $('#mobile-print-mode-btn')?.addEventListener('click', () => setPrintMode(true));
+  $('#print-mode-exit')?.addEventListener('click', () => setPrintMode(false));
+  $('#print-mode-load')?.addEventListener('click', () => showLoadDialog());
+  $('#print-mode-connect')?.addEventListener('click', () => handleConnect());
+  $('#print-mode-settings')?.addEventListener('click', () => {
+    updateCounterUI();
+    $('#print-settings-dialog')?.classList.remove('hidden');
+    $('#print-settings-dialog')?.classList.add('flex');
+  });
+  $('#print-mode-print')?.addEventListener('click', handlePrintModePrint);
+
+  // 変数の値: 打つたびにプレビューへ映す
+  $('#print-mode-variables')?.addEventListener('input', (e) => {
+    if (!e.target.classList.contains('print-mode-variable')) return;
+    const v = state.variables[parseInt(e.target.dataset.index, 10)];
+    if (!v) return;
+    v.value = e.target.value;
+    onVariablesChanged();
+  });
+  $('#print-mode-variables')?.addEventListener('keydown', (e) => {
+    // Enter で次の欄へ(最後の欄ならキーボードを閉じる)
+    if (e.key !== 'Enter' || e.isComposing || !e.target.classList.contains('print-mode-variable')) return;
+    e.preventDefault();
+    const inputs = [...$$('#print-mode-variables .print-mode-variable, #print-mode-counter-row:not([hidden]) input')];
+    const next = inputs[inputs.indexOf(e.target) + 1];
+    if (next) next.focus();
+    else e.target.blur();
+  });
+
+  $('#print-mode-counter-next')?.addEventListener('change', (e) => {
+    setCounterNextNumber(e.target.value);
+    e.target.blur();
+  });
+
+  $('#print-mode-copies')?.addEventListener('change', (e) => setPrintModeCopies(e.target.value));
+  $('#print-mode-copies-minus')?.addEventListener('click', () => setPrintModeCopies((state.printSettings.copies || 1) - 1));
+  $('#print-mode-copies-plus')?.addEventListener('click', () => setPrintModeCopies((state.printSettings.copies || 1) + 1));
+
+  const start = decideInitialPrintMode({
+    search: location.search,
+    saved: safeStorageGet(PRINT_MODE.STORAGE_KEY),
+    isMobile: isMobileViewport(),
+  });
+  // 起動時は覚え直さない(?mode=print で一度開いただけで、次も印刷モードにならないように)
+  if (start) setPrintMode(true, { remember: false, updateUrl: false });
+}
+
 function init() {
   if (!checkCompatibility()) {
     return;
@@ -9000,6 +9308,7 @@ function init() {
     state.printSettings.printerModel = printerModelSelect.value;
     savePrintRotationUI();
     updateTemplateIndicator(); // 差し込み印刷パネルの「印刷 (N部)」
+    updatePrintModeCopies();
 
     // Save to localStorage
     safeStorageSet('phomymo_print_settings', safeJsonStringify(state.printSettings));
@@ -9954,6 +10263,9 @@ function init() {
 
   // Initialize mobile UI
   initMobileUI();
+
+  // 印刷専用モード(?mode=print・スマホのメニュー)
+  initPrintMode();
 
   // 素材集(#27)・枠(#28)
   initAssetsPanel({
