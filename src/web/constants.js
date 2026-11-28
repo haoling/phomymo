@@ -125,6 +125,10 @@ export const BLE = {
   CHUNK_DELAY_MS: 20,
   MAX_RETRIES: 1,
   INITIAL_RETRY_DELAY_MS: 300,
+  // 「GATT operation already in progress」(ほかの書き込みの途中)のとき、
+  // 待ってから同じデータを送り直す回数と間隔(ms)。仮決め
+  BUSY_RETRY_MAX: 10,
+  BUSY_RETRY_DELAY_MS: 30,
 };
 
 // =============================================================================

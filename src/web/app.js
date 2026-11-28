@@ -5,11 +5,11 @@
  */
 
 import { CanvasRenderer } from './canvas.js?v=120';
-import { BLETransport } from './ble.js?v=103';
+import { BLETransport } from './ble.js?v=104';
 import { USBTransport } from './usb.js?v=101';
 import { normalizeMirror, defaultOrientFor, DEFAULT_MIRROR } from './mirror.js';
 import { PRINT_ROTATIONS, ROTATION_FOLLOW_DEVICE, normalizeDesignRotation, getDeviceRotation, setDeviceRotation, resolvePrintRotation, rotatedSize } from './print-rotation.js';
-import { print, printDensityTest, isDSeriesPrinter, isP12Printer, isA30Printer, isTapePrinter, isPM241Printer, isTSPLPrinter, isRotatedPrinter, getPrinterWidthBytes, getPrinterDpi, getPrinterAlignment, getPrinterDescription, isDeviceRecognized, getMatchedPattern, loadPrinterDefinitions, getAllPrinterDefinitions, getPrinterDefinition, getCustomPrinterDefinitions, saveCustomPrinterDefinition, deleteCustomPrinterDefinition, isBuiltinPrinter, resetBuiltinPrinter, getAvailableProtocols, getAvailableLabelPresets, getDetectedDefinition } from './printer.js?v=130';
+import { print, printDensityTest, isDSeriesPrinter, isP12Printer, isA30Printer, isTapePrinter, isPM241Printer, isTSPLPrinter, isRotatedPrinter, getPrinterWidthBytes, getPrinterDpi, getPrinterAlignment, getPrinterDescription, isDeviceRecognized, getMatchedPattern, loadPrinterDefinitions, getAllPrinterDefinitions, getPrinterDefinition, getCustomPrinterDefinitions, saveCustomPrinterDefinition, deleteCustomPrinterDefinition, isBuiltinPrinter, resetBuiltinPrinter, getAvailableProtocols, getAvailableLabelPresets, getDetectedDefinition } from './printer.js?v=131';
 import { densityTestLevels, buildDensityTestElements, DEFAULT_DENSITY_TEST_RANGE } from './density-test.js?v=1';
 import {
   createTextElement,
