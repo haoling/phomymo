@@ -162,6 +162,72 @@ test.describe('印刷モード', () => {
     await expect(page.locator('#variables-list .variable-value')).toHaveValue('みかん');
   });
 
+  test('表のデータがあるデザインは、行を選んで・押した行をプレビューして印刷できる', async ({ page }) => {
+    test.setTimeout(150_000);
+    await installFakePrinter(page);
+    await installFakeGoogle(page, new FakeDrive());
+    await page.goto('http://localhost:8081/', { waitUntil: 'networkidle' });
+    await waitForEditorReady(page);
+    await dismissInfoDialog(page);
+    await loginViaUI(page);
+
+    await addText(page, '{{name}} No.{{番号}}');
+    await page.click('#template-toolbar-btn');
+    await page.click('#variables-add-counter');
+    await page.locator('#variables-list .variable-row').last().locator('.variable-name').fill('番号');
+    await page.click('#template-paste-btn');
+    await page.locator('#template-paste-text').fill('name\tprice\nAlpha\t1\nBeta\t2\nGamma\t3\nDelta\t4\n');
+    await page.click('#template-paste-apply');
+    await page.click('#save-btn');
+    await page.fill('#save-name', '名札');
+    await page.click('#save-confirm');
+    await expect(page.locator('#save-dialog')).toHaveClass(/\bhidden\b/);
+
+    await page.setViewportSize(MOBILE);
+    await page.locator('#mobile-menu-btn').dispatchEvent('click');
+    await page.locator('#mobile-print-mode-btn').dispatchEvent('click');
+
+    // 行の一覧が出て、最初は全部選ばれている。部数の欄は出さない(1行1枚)
+    const rows = page.locator('#print-mode-rows .print-mode-row');
+    await expect(rows).toHaveCount(4);
+    await expect(rows.nth(1)).toContainText('Beta');
+    await expect(page.locator('#print-mode-rows-status')).toHaveText('4 / 4 行を印刷します');
+    await expect(page.locator('#print-mode-copies-row')).toBeHidden();
+    await expect(page.locator('#print-mode-print-label')).toHaveText('印刷 (4枚)');
+
+    // 行を押すとプレビューがその行になる
+    await resetDrawnTexts(page);
+    await rows.nth(2).locator('.print-mode-row-show').click();
+    await expect(rows.nth(2)).toContainText('プレビュー中');
+    await expect.poll(async () => (await getDrawnTexts(page)).join(' ')).toContain('Gamma');
+
+    // 選ばない → 印刷できない。範囲の欄で 2,4 行目を選ぶ
+    await page.click('#print-mode-rows-none');
+    await expect(page.locator('#print-mode-print')).toBeDisabled();
+    await page.locator('#print-mode-rows-range').fill('2, 4');
+    await page.locator('#print-mode-rows-range').dispatchEvent('change');
+    await expect(page.locator('#print-mode-rows-status')).toHaveText('2 / 4 行を印刷します');
+    await expect(rows.nth(1).locator('.print-mode-row-check')).toBeChecked();
+    await expect(rows.nth(0).locator('.print-mode-row-check')).not.toBeChecked();
+    // チェックでも選べる(1行目を足して、4行目を外す)
+    await rows.nth(0).locator('.print-mode-row-check').check();
+    await rows.nth(3).locator('.print-mode-row-check').uncheck();
+    await expect(page.locator('#print-mode-rows-range')).toHaveValue('1-2');
+    await expect(page.locator('#print-mode-print-label')).toHaveText('印刷 (2枚)');
+
+    await resetDrawnTexts(page);
+    await page.click('#print-mode-print');
+    await page.waitForFunction(() => {
+      const label = document.querySelector('#print-mode-print-label');
+      return label?.textContent === '印刷 (2枚)' && !(document.querySelector('#print-mode-print') as HTMLButtonElement).disabled;
+    }, null, { timeout: 90_000, polling: 200 });
+    await expect(page.locator('#template-data-dialog')).toHaveClass(/\bhidden\b/); // 接続のあとにデータ画面が開かない
+    const drawn = (await getDrawnTexts(page)).join(' ');
+    expect(drawn).toContain('Alpha No.1');
+    expect(drawn).toContain('Beta No.2');
+    expect(drawn).not.toContain('Delta No.');
+  });
+
   test('最後に使った画面を覚えていて、次に開いたときもその画面になる', async ({ page }) => {
     await installFakeGoogle(page, new FakeDrive());
     await page.goto('http://localhost:8081/', { waitUntil: 'networkidle' });

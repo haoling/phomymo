@@ -1727,6 +1727,7 @@ function updateTemplateIndicator() {
   // Update field dropdowns for insert field buttons
   updateFieldDropdowns();
   updateMergeControls();
+  if (state.printMode) renderPrintModeRows();
 }
 
 /**
@@ -2446,13 +2447,7 @@ function updateMergeControls() {
   const summary = $('#merge-row-summary');
   if (summary) {
     const record = state.templateData[state.mergePreview.row];
-    const fields = state.templateFields.length ? state.templateFields : state.templateColumns;
-    summary.textContent = record
-      ? fields.slice(0, 3).map(f => {
-        const key = Object.keys(record).find(k => k.trim().toLowerCase() === f.trim().toLowerCase());
-        return key !== undefined ? record[key] : '';
-      }).filter(v => v !== '').join(' / ')
-      : t('merge_no_data');
+    summary.textContent = record ? recordSummary(record) : t('merge_no_data');
   }
 
   const rangeText = formatRowRange(state.selectedRecords, total);
@@ -2992,6 +2987,8 @@ async function handleBatchPrint() {
 
     // Ensure connected
     if (!state.transport || !state.transport.isConnected()) {
+      // 接続の画面のあいだはデータ画面を閉じ、開いていたときだけ開き直す(印刷モードからも呼ぶため)
+      const dialogWasOpen = !$('#template-data-dialog').classList.contains('hidden');
       hideTemplateDataDialog();
       setStatus(t('connecting'));
       await handleConnect();
@@ -2999,7 +2996,7 @@ async function handleBatchPrint() {
       if (!state.transport || !state.transport.isConnected()) {
         throw new Error(t('error_connect_first'));
       }
-      showTemplateDataDialog();
+      if (dialogWasOpen) showTemplateDataDialog();
     }
 
     // Show progress modal
@@ -8727,10 +8724,83 @@ function showPrintModeEl(el, show) {
   el.hidden = !show;
 }
 
-/** 印刷モードで印刷するもの(表があるデザインなら、プレビュー中の行か1行目) */
+/** 印刷モードでプレビューする行(表があるデザインなら、選んでいる行。無ければ null) */
 function printModeRecord() {
   if (state.templateData.length === 0) return null;
-  return mergePreviewRecord() || state.templateData[0];
+  return state.templateData[state.mergePreview.row] || state.templateData[0];
+}
+
+/** プレビューの連番の位置(表があれば、その行が何枚目に印刷されるか) */
+function printModeCounterIndex() {
+  return state.templateData.length > 0
+    ? counterIndexForLabel(batchPositionOf(state.mergePreview.row))
+    : counterIndexForLabel(0);
+}
+
+/** 表の行の見出し(デザインで使っている項目の値を3つまで) */
+function recordSummary(record) {
+  if (!record) return '';
+  const fields = state.templateFields.length ? state.templateFields : state.templateColumns;
+  return fields.slice(0, 3).map(f => {
+    const key = Object.keys(record).find(k => k.trim().toLowerCase() === f.trim().toLowerCase());
+    return key !== undefined ? record[key] : '';
+  }).filter(v => v !== '').join(' / ');
+}
+
+/** 一覧に出す行の数の上限(多いときは範囲の欄で選んでもらう) */
+const PRINT_MODE_MAX_LISTED_ROWS = 300;
+
+/** 「印刷する行」の欄(表があるデザインだけ出す) */
+function renderPrintModeRows() {
+  const card = $('#print-mode-rows-card');
+  if (!card) return;
+  const total = state.templateData.length;
+  showPrintModeEl(card, total > 0);
+  showPrintModeEl($('#print-mode-copies-row'), total === 0); // 表のときは1行1枚
+  updatePrintModeCopies();
+  if (total === 0) return;
+  clampMergePreviewRow();
+
+  const range = $('#print-mode-rows-range');
+  if (range && document.activeElement !== range) range.value = formatRowRange(state.selectedRecords, total);
+  const status = $('#print-mode-rows-status');
+  if (status && !(document.activeElement === range && status.classList.contains('text-red-600'))) {
+    status.classList.remove('text-red-600');
+    status.textContent = t('merge_range_selected', { n: state.selectedRecords.length, total });
+  }
+
+  const selected = new Set(state.selectedRecords);
+  const listed = Math.min(total, PRINT_MODE_MAX_LISTED_ROWS);
+  const list = $('#print-mode-rows');
+  if (list) {
+    list.innerHTML = state.templateData.slice(0, listed).map((record, i) => {
+      const previewing = i === state.mergePreview.row;
+      const summary = recordSummary(record) || t('print_mode_row_label', { n: i + 1 });
+      return `
+        <li class="print-mode-row flex items-center gap-2 px-2 py-1.5 ${previewing ? 'bg-blue-50' : ''}" data-index="${i}">
+          <input type="checkbox" class="print-mode-row-check w-5 h-5 flex-shrink-0" ${selected.has(i) ? 'checked' : ''}
+            aria-label="${escapeAttr(t('print_mode_row_label', { n: i + 1 }))}">
+          <button class="print-mode-row-show flex-1 min-w-0 text-left py-1" aria-label="${escapeAttr(t('print_mode_row_show', { n: i + 1 }))}">
+            <span class="text-xs text-gray-400 mr-1">${i + 1}</span>
+            <span class="text-sm text-gray-800 ${previewing ? 'font-medium' : ''}">${escapeHtml(summary)}</span>
+            ${previewing ? `<span class="ml-1 text-[11px] text-blue-600">${escapeHtml(t('print_mode_row_preview'))}</span>` : ''}
+          </button>
+        </li>`;
+    }).join('');
+  }
+  const more = $('#print-mode-rows-more');
+  if (more) {
+    more.textContent = total > listed ? t('print_mode_rows_more', { n: total - listed }) : '';
+    showPrintModeEl(more, total > listed);
+  }
+}
+
+/** 押した行をプレビューに出す */
+function showPrintModeRow(index) {
+  state.mergePreview.row = index;
+  renderPrintModeRows();
+  updateMergeControls();
+  renderPrintModePreview();
 }
 
 /** 印刷モードの画面の値を入れる変数(state.variables の何番目か。名前が空・重複は除く) */
@@ -8765,6 +8835,7 @@ function renderPrintModeVariables() {
   }).join('');
   showPrintModeEl(list, indexes.length > 0);
   updatePrintModeCounter();
+  renderPrintModeRows();
 }
 
 /** 「次に印刷する番号」の欄(連番を使うデザインだけ出す) */
@@ -8791,8 +8862,15 @@ function updatePrintModeCopies() {
   if (input && document.activeElement !== input) input.value = copies;
   const label = $('#print-mode-print-label');
   const btn = $('#print-mode-print');
-  if (label && !btn?.disabled) {
-    label.textContent = copies > 1 ? t('print_mode_print_n', { n: copies }) : t('print');
+  if (label && !state.printModeBusy) {
+    // 表があるデザインは、選んだ行を1枚ずつ印刷する
+    label.textContent = state.templateData.length > 0
+      ? t('print_mode_print_rows', { n: state.selectedRecords.length })
+      : (copies > 1 ? t('print_mode_print_n', { n: copies }) : t('print'));
+  }
+  if (btn && !state.printModeBusy) {
+    btn.disabled = state.elements.length === 0
+      || (state.templateData.length > 0 && state.selectedRecords.length === 0);
   }
 }
 
@@ -8837,13 +8915,7 @@ function updatePrintModeDesignInfo() {
     loadLabel.dataset.i18n = hasDesign ? 'print_mode_change_design' : 'print_mode_choose_design';
     loadLabel.textContent = t(loadLabel.dataset.i18n);
   }
-  const printBtn = $('#print-mode-print');
-  if (printBtn && !state.printModeBusy) printBtn.disabled = !hasDesign;
-  const status = $('#print-mode-status');
-  if (status && state.templateData.length > 0 && !status.textContent) {
-    const row = state.mergePreview.enabled ? state.mergePreview.row + 1 : 1;
-    status.textContent = t('print_mode_rows_note', { row });
-  }
+  updatePrintModeCopies(); // 印刷ボタンの文言と押せるか
 }
 
 let printModePreviewQueued = false;
@@ -8865,7 +8937,7 @@ async function renderPrintModePreview() {
   const canvas = $('#print-mode-canvas');
   if (!canvas || !state.renderer || state.elements.length === 0) return;
   const token = ++printModePreviewToken;
-  const elements = evaluateExpressions(elementsWithValues(printModeRecord()), { counterIndex: counterIndexForLabel(0) });
+  const elements = evaluateExpressions(elementsWithValues(printModeRecord()), { counterIndex: printModeCounterIndex() });
   await waitForElementFonts(elements);
   if (token !== printModePreviewToken) return; // 待っている間に描き直しが来た
 
@@ -8948,10 +9020,10 @@ async function handlePrintModePrint() {
   btn.disabled = true;
   if (label) label.textContent = t('printing');
   try {
-    await handlePrint();
+    // 表があるデザインは選んだ行を(差し込み印刷と同じ流れで)、無ければ部数ぶん
+    await printFromTemplatePanel();
   } finally {
     state.printModeBusy = false;
-    btn.disabled = state.elements.length === 0;
     updatePrintModeCopies();
     updatePrintModeCounter();
     updatePrintModeConnection();
@@ -8991,6 +9063,36 @@ function initPrintMode() {
   $('#print-mode-counter-next')?.addEventListener('change', (e) => {
     setCounterNextNumber(e.target.value);
     e.target.blur();
+  });
+
+  // 印刷する行: チェックで選ぶ/行を押すとプレビュー/範囲の欄
+  $('#print-mode-rows')?.addEventListener('change', (e) => {
+    if (!e.target.classList.contains('print-mode-row-check')) return;
+    const i = parseInt(e.target.closest('.print-mode-row')?.dataset.index, 10);
+    if (!Number.isFinite(i)) return;
+    setRecordSelection(e.target.checked
+      ? [...state.selectedRecords, i]
+      : state.selectedRecords.filter(x => x !== i));
+    renderPrintModePreview(); // 連番の位置が変わる
+  });
+  $('#print-mode-rows')?.addEventListener('click', (e) => {
+    const show = e.target.closest('.print-mode-row-show');
+    if (!show) return;
+    showPrintModeRow(parseInt(show.closest('.print-mode-row').dataset.index, 10));
+  });
+  $('#print-mode-rows-all')?.addEventListener('click', () => {
+    setRecordSelection(state.templateData.map((_, i) => i));
+    renderPrintModePreview();
+  });
+  $('#print-mode-rows-none')?.addEventListener('click', () => {
+    setRecordSelection([]);
+    renderPrintModePreview();
+  });
+  $('#print-mode-rows-range')?.addEventListener('change', (e) => {
+    applyRangeInput(e.target, $('#print-mode-rows-status'));
+    e.target.blur();
+    renderPrintModeRows();
+    renderPrintModePreview();
   });
 
   $('#print-mode-copies')?.addEventListener('change', (e) => setPrintModeCopies(e.target.value));
