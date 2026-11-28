@@ -27,6 +27,13 @@ const QUERY_COMMANDS = {
 // Singleton instance
 let sharedInstance = null;
 
+/**
+ * 「GATT operation already in progress」など、ほかの書き込みの途中で断られたエラーか
+ */
+export function isGattBusyError(e) {
+  return /in progress/i.test(e?.message || '');
+}
+
 export class BLETransport {
   constructor() {
     this.device = null;
@@ -38,6 +45,7 @@ export class BLETransport {
     this.onDisconnect = null;
     this.onPrinterInfo = null; // Callback for printer info updates
     this._useWriteWithResponse = false; // Some devices need writeValue instead of writeValueWithoutResponse
+    this._lock = Promise.resolve(); // exclusive() の順番待ち
     this.printerInfo = {
       battery: null,
       paper: null,
@@ -371,19 +379,52 @@ export class BLETransport {
       buffer = new Uint8Array(data).buffer;
     }
 
-    // Use the appropriate write method based on characteristic properties
-    if (this._useWriteWithResponse) {
-      await this.writeChar.writeValue(buffer);
-    } else {
+    // ほかの書き込みの途中で断られたら、少し待って同じデータを送り直す
+    for (let attempt = 0; ; attempt++) {
       try {
-        await this.writeChar.writeValueWithoutResponse(buffer);
+        await this._write(buffer);
+        return;
       } catch (e) {
-        // Fallback to writeValue if writeValueWithoutResponse fails
-        console.warn('writeValueWithoutResponse failed, trying writeValue:', e.message);
-        this._useWriteWithResponse = true;
-        await this.writeChar.writeValue(buffer);
+        if (!isGattBusyError(e) || attempt >= BLE.BUSY_RETRY_MAX) throw e;
+        console.warn(`GATT busy, retrying write (${attempt + 1}/${BLE.BUSY_RETRY_MAX})...`);
+        await this.delay(BLE.BUSY_RETRY_DELAY_MS);
       }
     }
+  }
+
+  /**
+   * 1回分の書き込み。
+   * writeValueWithoutResponse が使えない機種では writeValue に切り替える。
+   * ただし「ほかの書き込みの途中」で断られたときは、使えないわけではないので切り替えない。
+   */
+  async _write(buffer) {
+    if (this._useWriteWithResponse) {
+      await this.writeChar.writeValue(buffer);
+      return;
+    }
+    try {
+      await this.writeChar.writeValueWithoutResponse(buffer);
+    } catch (e) {
+      if (isGattBusyError(e)) throw e;
+      // Fallback to writeValue if writeValueWithoutResponse fails
+      console.warn('writeValueWithoutResponse failed, trying writeValue:', e.message);
+      this._useWriteWithResponse = true;
+      await this.writeChar.writeValue(buffer);
+    }
+  }
+
+  /**
+   * 印刷や状態の問い合わせを1つずつ順番に流す。
+   * プリンタへのデータは区切りの無いバイト列なので、印刷の途中に問い合わせ(1F 11 xx)が
+   * 割り込むと、ラスタの途中に混ざって以降の行がずれたり、書き込みが断られて印刷が止まる。
+   * 中で exclusive() をもう一度呼ぶと待ち合って止まるので、入れ子にしないこと。
+   * @param {Function} fn - async 関数
+   */
+  exclusive(fn) {
+    const run = this._lock.then(() => fn());
+    // 失敗しても次の待ち手を止めない
+    this._lock = run.catch(() => {});
+    return run;
   }
 
   /**
@@ -658,18 +699,22 @@ export class BLETransport {
       throw new Error(t('err_not_connected'));
     }
 
-    console.log('Querying all printer info...');
+    // 印刷のデータに混ざらないよう、印刷と同じ順番待ちに入れる
+    return this.exclusive(async () => {
+      console.log('Querying all printer info...');
 
-    // Query each type with a small delay between
-    const queries = ['battery', 'paper', 'firmware', 'serial'];
-    for (const q of queries) {
-      try {
-        await this.query(q);
-        await this.delay(100);
-      } catch (e) {
-        console.warn(`Query ${q} failed:`, e.message);
+      // Query each type with a small delay between
+      const queries = ['battery', 'paper', 'firmware', 'serial'];
+      for (const q of queries) {
+        if (!this.isConnected()) break;
+        try {
+          await this.query(q);
+          await this.delay(100);
+        } catch (e) {
+          console.warn(`Query ${q} failed:`, e.message);
+        }
       }
-    }
+    });
   }
 
   /**

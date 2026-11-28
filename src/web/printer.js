@@ -617,6 +617,14 @@ function rotateRaster90CCW(data, widthBytes, heightLines) {
  * @param {number} [options.offsetMm] - 横位置の補正(mm、＋で右)。省略時はプリンターごとの設定
  */
 export async function print(transport, rasterData, options = {}) {
+  // 状態の問い合わせなどが印刷データに混ざらないよう、送信は1件ずつ(BLE だけが持っている)
+  if (typeof transport?.exclusive === 'function') {
+    return transport.exclusive(() => printNow(transport, rasterData, options));
+  }
+  return printNow(transport, rasterData, options);
+}
+
+async function printNow(transport, rasterData, options = {}) {
   const { isBLE = false, deviceName = '', printerModel = 'auto', density = 6, feed = 32, continuous = false, onProgress = null } = options;
 
   // 横位置の補正(プリンターごと)。90° 回して送る機種では横が送り方向になるので使わない
