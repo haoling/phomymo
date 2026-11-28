@@ -175,9 +175,13 @@ test.describe('印刷モード', () => {
     await page.click('#template-toolbar-btn');
     await page.click('#variables-add-counter');
     await page.locator('#variables-list .variable-row').last().locator('.variable-name').fill('番号');
+    await page.click('#template-manage-data');
+    await expect(page.locator('#template-data-dialog')).toBeVisible();
     await page.click('#template-paste-btn');
     await page.locator('#template-paste-text').fill('name\tprice\nAlpha\t1\nBeta\t2\nGamma\t3\nDelta\t4\n');
     await page.click('#template-paste-apply');
+    await expect(page.locator('#template-data-body tr')).toHaveCount(4);
+    await page.click('#template-data-close');
     await page.click('#save-btn');
     await page.fill('#save-name', '名札');
     await page.click('#save-confirm');
